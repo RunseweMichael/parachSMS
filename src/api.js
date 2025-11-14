@@ -1,25 +1,24 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api/', // ✅ keep trailing slash for consistency
+  // baseURL: 'http://127.0.0.1:8000/api/',
+  baseURL: 'https://parachsms.pythonanywhere.com/api/',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// ✅ Automatically attach Token header to all requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Token ${token}`; // ✅ FIXED: 'Token' not 'Bearer'
+      config.headers.Authorization = `Token ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ✅ Optional: handle 401 globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {

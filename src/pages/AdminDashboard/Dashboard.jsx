@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../api";
 import { 
   FaUsers, FaGraduationCap, FaCertificate, 
-  FaDollarSign, FaChartLine, FaBell 
+  FaDollarSign
 } from "react-icons/fa";
 import { Line, Bar, Doughnut } from "react-chartjs-2";
 import {
@@ -36,10 +36,21 @@ const Dashboard = () => {
   const [courseStats, setCourseStats] = useState([]);
   const [recentStudents, setRecentStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
+    fetchUserInfo();
   }, []);
+
+  const fetchUserInfo = async () => {
+    try {
+      const res = await api.get("/students/me/");
+      setUser(res.data);
+    } catch (error) {
+      console.error("Failed to fetch user info:", error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -62,7 +73,7 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !stats) {
     return (
       <div style={styles.loadingContainer}>
         <div style={styles.spinner}></div>
@@ -71,7 +82,6 @@ const Dashboard = () => {
     );
   }
 
-  // Chart data
   const revenueChartData = {
     labels: revenueData.map(d => d.month).reverse(),
     datasets: [
@@ -152,21 +162,28 @@ const Dashboard = () => {
           subtitle={`${stats.pending_certificates} pending`}
           color="#FF9800"
         />
-        <StatCard
-          icon={<FaDollarSign />}
-          title="Total Revenue"
-          value={`$${stats.total_revenue.toLocaleString()}`}
-          subtitle={`$${stats.total_outstanding.toLocaleString()} outstanding`}
-          color="#4CAF50"
-        />
+
+        {/* ✅ Revenue Section visible only to superadmins */}
+        {user?.is_superadmin && (
+          <StatCard
+            icon={<FaDollarSign />}
+            title="Total Revenue"
+            value={`$${stats.total_revenue.toLocaleString()}`}
+            subtitle={`$${stats.total_outstanding.toLocaleString()} outstanding`}
+            color="#4CAF50"
+          />
+        )}
       </div>
 
-      {/* Charts Row */}
+      {/* ✅ Charts Row */}
       <div style={styles.chartsRow}>
-        <div style={styles.chartCard}>
-          <h3 style={styles.chartTitle}>Revenue Trends (Last 6 Months)</h3>
-          <Line data={revenueChartData} options={{ responsive: true }} />
-        </div>
+        {/* Only show revenue trends for superadmin */}
+        {user?.is_superadmin && (
+          <div style={styles.chartCard}>
+            <h3 style={styles.chartTitle}>Revenue Trends (Last 6 Months)</h3>
+            <Line data={revenueChartData} options={{ responsive: true }} />
+          </div>
+        )}
 
         <div style={styles.chartCard}>
           <h3 style={styles.chartTitle}>Certificate Status</h3>
@@ -290,28 +307,16 @@ const styles = {
     alignItems: "center",
     gap: "20px",
   },
-  statIcon: {
-    fontSize: "40px",
-  },
-  statContent: {
-    flex: 1,
-  },
+  statIcon: { fontSize: "40px" },
+  statContent: { flex: 1 },
   statValue: {
     fontSize: "28px",
     fontWeight: "700",
     margin: "0 0 5px 0",
     color: "#333",
   },
-  statTitle: {
-    fontSize: "14px",
-    color: "#666",
-    margin: "0 0 5px 0",
-  },
-  statSubtitle: {
-    fontSize: "12px",
-    color: "#999",
-    margin: 0,
-  },
+  statTitle: { fontSize: "14px", color: "#666", margin: 0 },
+  statSubtitle: { fontSize: "12px", color: "#999", margin: 0 },
   chartsRow: {
     display: "grid",
     gridTemplateColumns: "2fr 1fr",
@@ -349,10 +354,7 @@ const styles = {
     marginBottom: "20px",
     color: "#333",
   },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-  },
+  table: { width: "100%", borderCollapse: "collapse" },
   th: {
     textAlign: "left",
     padding: "12px",
@@ -361,14 +363,8 @@ const styles = {
     color: "#333",
     borderBottom: "2px solid #dee2e6",
   },
-  td: {
-    padding: "12px",
-    borderBottom: "1px solid #dee2e6",
-    color: "#666",
-  },
-  tr: {
-    transition: "background-color 0.2s",
-  },
+  td: { padding: "12px", borderBottom: "1px solid #dee2e6", color: "#666" },
+  tr: { transition: "background-color 0.2s" },
   badge: {
     display: "inline-block",
     padding: "4px 12px",

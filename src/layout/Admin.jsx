@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AdminNavbar from "../component/Navbars/AdminNavbar.jsx";
 import Sidebar from "../component/Sidebar/Sidebar.jsx";
 import HeaderStats from "../component/Headers/HeaderStats.jsx";
+import FooterAdmin from "../component/Footers/FooterAdmin.jsx";
 
 // Views
 import Dashboard from "../views/Student-Interface/Dashboard.jsx";
