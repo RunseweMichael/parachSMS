@@ -1,9 +1,9 @@
-// src/components/Certificates.jsx
 import React, { useEffect, useState } from "react";
-import axios from "../../api"; // assuming api.js exports an axios instance with baseURL
+import axios from "../../api"; // axios instance
 
 const Certificates = () => {
   const [certificates, setCertificates] = useState([]);
+  const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -11,11 +11,9 @@ const Certificates = () => {
     const fetchCertificates = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem("token"); // make sure token is stored after login
+        const token = localStorage.getItem("token");
         const res = await axios.get("certificates/certificates/", {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
+          headers: { Authorization: `Token ${token}` },
         });
         setCertificates(res.data);
       } catch (err) {
@@ -25,19 +23,62 @@ const Certificates = () => {
         setLoading(false);
       }
     };
-
     fetchCertificates();
   }, []);
 
   if (loading) return <p>Loading certificates...</p>;
   if (error) return <p>{error}</p>;
 
+  // Normalize is_approved and apply filter
+  const filteredCertificates = certificates.filter((cert) => {
+    const approved =
+      cert.is_approved === true ||
+      cert.is_approved === "true" ||
+      cert.is_approved === 1;
+
+    if (filter === "approved") return approved;
+    if (filter === "pending") return !approved;
+    return true; // "all"
+  });
+
   return (
     <div>
       <h2>Certificates</h2>
-      <ul>
-        {certificates.map((cert) => (
-          <li key={cert.id} style={{ marginBottom: "20px" }}>
+
+      {/* Filter Buttons */}
+      <div style={{ marginBottom: "20px" }}>
+        {["all", "approved", "pending"].map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            style={{
+              fontWeight: filter === f ? "bold" : "normal",
+              padding: "6px 12px",
+              marginRight: "10px",
+              border: filter === f ? "2px solid #007bff" : "1px solid gray",
+              borderRadius: "4px",
+              backgroundColor: filter === f ? "#e0f0ff" : "#fff",
+              cursor: "pointer",
+            }}
+          >
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {filteredCertificates.length === 0 && <p>No certificates to show.</p>}
+
+        {filteredCertificates.map((cert) => (
+          <li
+            key={cert.id}
+            style={{
+              marginBottom: "20px",
+              padding: "10px",
+              border: "1px solid #ccc",
+              borderRadius: "6px",
+            }}
+          >
             <strong>{cert.student_name}</strong> - {cert.course_name}
             <br />
             Issued: {new Date(cert.issue_date).toLocaleDateString()}

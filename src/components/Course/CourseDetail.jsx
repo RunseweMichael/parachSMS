@@ -121,7 +121,7 @@ const CourseDetail = () => {
                         <span>📘 {lesson.title}</span>
                         <div>
                           <Link
-                            to={`/lessons/edit/${lesson.id}`}
+                            to={`/admin/lessons/edit/${lesson.id}`}
                             style={{ ...styles.button, ...styles.editSmall }}
                           >
                             Edit
@@ -142,7 +142,7 @@ const CourseDetail = () => {
 
                 <div>
                   <Link
-                    to={`/lessons/add?module=${module.id}`}
+                    to={`/admin/lessons/add?module=${module.id}`}
                     style={{ ...styles.button, ...styles.addSmall }}
                   >
                     ➕ Add Lesson

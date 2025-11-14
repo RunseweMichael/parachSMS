@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
 import api from "../../api";
 import {
   User,
@@ -17,17 +18,20 @@ import {
 } from "lucide-react";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [balance, setBalance] = useState({ amount_paid: 0, amount_owed: 0 });
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
   const [hasLeftReview, setHasLeftReview] = useState(false);
+  const [visibleCerts, setVisibleCerts] = useState({});
 
   useEffect(() => {
     fetchUserProfile();
+    fetchBalance();
 
-    // Load review status from localStorage
     const reviewStatus = localStorage.getItem("hasLeftReview");
     if (reviewStatus === "true") setHasLeftReview(true);
   }, []);
@@ -49,6 +53,18 @@ const Profile = () => {
     }
   };
 
+  const fetchBalance = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await api.get("/payments/get_balance/", {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setBalance(res.data);
+    } catch (err) {
+      console.error(err.response || err);
+    }
+  };
+
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -67,10 +83,50 @@ const Profile = () => {
     }
   };
 
+  const handleDownloadCertificate = async (
+    imageUrl,
+    filename = "certificate.pdf"
+  ) => {
+    if (!hasLeftReview) {
+      alert("🔒 Please leave a review to download your certificate.");
+      return;
+    }
+
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = function () {
+        const base64data = reader.result;
+        const pdf = new jsPDF("landscape", "px", "a4");
+        const imgWidth = pdf.internal.pageSize.getWidth();
+        const imgHeight = pdf.internal.pageSize.getHeight();
+        pdf.addImage(base64data, "JPEG", 0, 0, imgWidth, imgHeight);
+        pdf.save(filename);
+      };
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to download certificate.");
+    }
+  };
+
   const handleLeaveReview = () => {
     window.open("https://g.page/r/CaN0Psi7wexOEBE/review", "_blank");
     localStorage.setItem("hasLeftReview", "true");
     setHasLeftReview(true);
+  };
+
+  const toggleCertificateView = (id) => {
+    if (!hasLeftReview) {
+      alert("🔒 Please leave a review to view your certificate.");
+      return;
+    }
+
+    setVisibleCerts((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
   if (loading)
@@ -102,6 +158,7 @@ const Profile = () => {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
+        {/* PROFILE HEADER */}
         <div
           style={{
             display: "flex",
@@ -137,6 +194,7 @@ const Profile = () => {
 
         <div style={styles.divider}></div>
 
+        {/* PROFILE GRID */}
         <div style={styles.grid}>
           <EditableField
             icon={<User size={18} />}
@@ -174,6 +232,11 @@ const Profile = () => {
               )
             }
           />
+          <ProfileField
+            icon={<DollarSign size={18} />}
+            label="Course Price"
+            value={user.course ? `₦ ${user.course.price}` : "N/A"}
+          />
           <EditableField
             icon={<Calendar size={18} />}
             label="Birth Date"
@@ -199,16 +262,25 @@ const Profile = () => {
             editing={editing}
             onChange={handleChange}
           />
+
           <ProfileField
             icon={<DollarSign size={18} />}
             label="Amount Paid"
-            value={`$${user.amount_paid ?? 0}`}
+            value={`₦${balance.amount_paid ?? 0}`}
           />
           <ProfileField
             icon={<DollarSign size={18} />}
             label="Amount Owed"
-            value={`$${user.amount_owed ?? 0}`}
+            value={`₦${balance.amount_owed ?? 0}`}
           />
+
+          <button
+            onClick={() => navigate("/payment")}
+            className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            💳 Make a Payment
+          </button>
+
           <ProfileField
             icon={<Calendar size={18} />}
             label="Next Due Date"
@@ -237,6 +309,48 @@ const Profile = () => {
             value={user.consent ? "Yes" : "No"}
           />
           <ProfileField
+            icon={<Book size={18} />}
+            label="Course Resource"
+            value={
+              user.course ? (
+                balance.amount_paid >= 0 ? (
+                  user.course.resource_link ? (
+                    <a
+                      href={user.course.resource_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-block",
+                        backgroundColor: "#2563eb",
+                        color: "#fff",
+                        padding: "10px 18px",
+                        borderRadius: 8,
+                        fontWeight: "600",
+                        textDecoration: "none",
+                        transition: "background 0.3s",
+                      }}
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#1e40af")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#2563eb")
+                      }
+                    >
+                      📂 Access Resource
+                    </a>
+                  ) : (
+                    "Resource not available"
+                  )
+                ) : (
+                  "Pay the course to access resource"
+                )
+              ) : (
+                "N/A"
+              )
+            }
+          />
+
+          <ProfileField
             icon={<Calendar size={18} />}
             label="Registration Date"
             value={
@@ -245,15 +359,20 @@ const Profile = () => {
                 : "N/A"
             }
           />
+          <button
+            onClick={() => navigate("/student-transactions")}
+            className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg"
+          >
+            View Receipts
+          </button>
         </div>
 
-        {/* === Certificates Section === */}
+        {/* CERTIFICATES SECTION */}
         <div style={{ marginTop: 30 }}>
           <h3 style={{ color: "#1e3a8a", marginBottom: 12 }}>
             🎓 My Certificates
           </h3>
 
-          {/* Stylish Review Prompt */}
           {!hasLeftReview && (
             <div
               style={{
@@ -307,12 +426,6 @@ const Profile = () => {
                   cursor: "pointer",
                   transition: "background 0.3s",
                 }}
-                onMouseOver={(e) =>
-                  (e.target.style.backgroundColor = "#3749bb")
-                }
-                onMouseOut={(e) =>
-                  (e.target.style.backgroundColor = "#1e3a8a")
-                }
               >
                 💬 Post a Review
               </button>
@@ -320,74 +433,82 @@ const Profile = () => {
           )}
 
           {user.certificates?.length > 0 ? (
-            user.certificates.map((cert) => (
-              <div key={cert.id} style={styles.certificateBox}>
-                {cert.certificate_file ? (
-                  <>
-                    {hasLeftReview ? (
-                      <img
-                        src={
-                          cert.certificate_file.startsWith("http")
-                            ? cert.certificate_file
-                            : `http://127.0.0.1:8000${cert.certificate_file}`
-                        }
-                        alt="Certificate"
-                        style={{ maxWidth: "100%", borderRadius: 8 }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          backgroundColor: "#f1f5f9",
-                          padding: "20px",
-                          borderRadius: "8px",
-                          textAlign: "center",
-                          color: "#475569",
-                        }}
-                      >
-                        🔒 Certificate image locked. Please leave a review to
-                        unlock it.
-                      </div>
-                    )}
+            user.certificates.map((cert) => {
+              const imageUrl = cert.certificate_file?.startsWith("http")
+                ? cert.certificate_file
+                : `http://127.0.0.1:8000${cert.certificate_file}`;
 
-                    <a
-                      href={
-                        hasLeftReview
-                          ? cert.certificate_file.startsWith("http")
-                            ? cert.certificate_file
-                            : `http://127.0.0.1:8000${cert.certificate_file}`
-                          : "#"
-                      }
-                      onClick={(e) => {
-                        if (!hasLeftReview) {
-                          e.preventDefault();
-                          alert(
-                            "Please leave a review before downloading your certificate."
-                          );
-                        }
-                      }}
-                      target={hasLeftReview ? "_blank" : "_self"}
-                      rel="noopener noreferrer"
-                      style={{
-                        ...styles.certificateLink,
-                        marginTop: 8,
-                        display: "inline-block",
-                        backgroundColor: hasLeftReview ? "#2563eb" : "#94a3b8",
-                        cursor: hasLeftReview ? "pointer" : "not-allowed",
-                      }}
-                    >
-                      🎓{" "}
-                      {hasLeftReview
-                        ? "Download Certificate"
-                        : "Locked – Leave a Review"}
-                    </a>
-                  </>
-                ) : (
-                  <p style={{ color: "#64748b" }}>
-                    Certificate not available yet.
-                  </p>
-                )}
-              </div>
-            ))
+              return (
+                <div key={cert.id} style={styles.certificateBox}>
+                  {cert.certificate_file ? (
+                    <>
+                      {!hasLeftReview ? (
+                        <div
+                          style={{
+                            backgroundColor: "#f1f5f9",
+                            padding: "20px",
+                            borderRadius: "8px",
+                            textAlign: "center",
+                            color: "#475569",
+                          }}
+                        >
+                          🔒 Certificate locked. Please leave a review to
+                          unlock it.
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => toggleCertificateView(cert.id)}
+                            style={{
+                              ...styles.certificateLink,
+                              backgroundColor: "#1e40af",
+                              marginRight: 8,
+                            }}
+                          >
+                            {visibleCerts[cert.id]
+                              ? "Hide Certificate"
+                              : "View Certificate"}
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              handleDownloadCertificate(
+                                imageUrl,
+                                `certificate_${user.name}.pdf`
+                              )
+                            }
+                            style={{
+                              ...styles.certificateLink,
+                              backgroundColor: "#16a34a",
+                            }}
+                          >
+                            📄 Download Certificate
+                          </button>
+
+                          {visibleCerts[cert.id] && (
+                            <div style={{ marginTop: 15 }}>
+                              <img
+                                src={imageUrl}
+                                alt="Certificate"
+                                style={{
+                                  maxWidth: "100%",
+                                  borderRadius: 8,
+                                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                }}
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <p style={{ color: "#64748b" }}>
+                      Certificate not available yet.
+                    </p>
+                  )}
+                </div>
+              );
+            })
           ) : (
             <p>No certificates assigned yet.</p>
           )}

@@ -10,6 +10,7 @@ const CourseForm = () => {
     duration: "",
     skills: "",
     status: true,
+    resource_link: "", // NEW FIELD
   });
 
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ const CourseForm = () => {
         });
         alert("Course created!");
       }
-      navigate("/");
+      navigate("/"); // Redirect after submission
     } catch (err) {
       console.error(err);
       alert("Error submitting the form.");
@@ -103,6 +104,20 @@ const CourseForm = () => {
             style={styles.textarea}
             value={formData.skills}
             onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+          />
+        </div>
+
+        {/* ===== RESOURCE LINK FIELD ===== */}
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Resource Link (URL)</label>
+          <input
+            type="url"
+            style={styles.input}
+            value={formData.resource_link}
+            onChange={(e) =>
+              setFormData({ ...formData, resource_link: e.target.value })
+            }
+            placeholder="https://example.com/resource"
           />
         </div>
 

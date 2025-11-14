@@ -10,6 +10,8 @@ import {
   FaSignOutAlt,
   FaBars,
   FaTimes,
+  FaTicketAlt,
+  FaUserTie,
 } from "react-icons/fa";
 
 const AdminLayout = () => {
@@ -22,7 +24,6 @@ const AdminLayout = () => {
   useEffect(() => {
     fetchUnreadCount();
     fetchUserInfo();
-    // Poll for notifications every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -38,7 +39,7 @@ const AdminLayout = () => {
 
   const fetchUserInfo = async () => {
     try {
-      const res = await api.get("/students/users/"); // Adjust to your user endpoint
+      const res = await api.get("/students/me/"); // must return role info
       setUser(res.data);
     } catch (error) {
       console.error("Failed to fetch user info:", error);
@@ -52,11 +53,15 @@ const AdminLayout = () => {
     }
   };
 
-  const menuItems = [
+  // ✅ All available sidebar menu items
+  const allMenuItems = [
     { path: "/admin", icon: <FaHome />, label: "Dashboard", exact: true },
     { path: "/admin/courses", icon: <FaHistory />, label: "Courses" },
     { path: "/admin/students", icon: <FaUsers />, label: "Students" },
+    { path: "/admin/staff-management", icon: <FaUserTie />, label: "Staff Management" },
     { path: "/admin/certificates", icon: <FaCertificate />, label: "Certificates" },
+    { path: "/admin/payments/history", icon: <FaUsers />, label: "Payments" },
+    { path: "/admin/coupons", icon: <FaTicketAlt />, label: "Coupons" },
     {
       path: "/admin/notifications",
       icon: <FaBell />,
@@ -65,6 +70,27 @@ const AdminLayout = () => {
     },
     { path: "/admin/activity", icon: <FaHistory />, label: "Activity Log" },
   ];
+
+  // ✅ Filter menu items based on role
+  const filteredMenuItems = allMenuItems.filter((item) => {
+    if (!user) return false; // wait until user loads
+
+    // Staff user: hide restricted pages
+    if (user.is_staff_admin && !user.is_superadmin) {
+      const hiddenForStaff = [
+        "/admin/staff-management",
+        "/admin/coupons",
+        "/admin/activity",
+      ];
+      return !hiddenForStaff.includes(item.path);
+    }
+
+    // Superadmin: show everything
+    if (user.is_superadmin) return true;
+
+    // Other users: show only dashboard
+    return ["/admin"].includes(item.path);
+  });
 
   return (
     <div style={styles.layout}>
@@ -86,7 +112,7 @@ const AdminLayout = () => {
         </div>
 
         <nav style={styles.nav}>
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const isActive = item.exact
               ? location.pathname === item.path
               : location.pathname.startsWith(item.path);
@@ -118,7 +144,13 @@ const AdminLayout = () => {
               </div>
               <div>
                 <p style={styles.userName}>{user.username}</p>
-                <p style={styles.userRole}>Administrator</p>
+                <p style={styles.userRole}>
+                  {user.is_superadmin
+                    ? "Super Admin"
+                    : user.is_staff_admin
+                    ? "Staff"
+                    : "User"}
+                </p>
               </div>
             </div>
           )}
@@ -139,9 +171,14 @@ const AdminLayout = () => {
             <FaBars />
           </button>
           <h2 style={styles.mobileTitle}>Admin Panel</h2>
-          <div style={styles.notificationBell} onClick={() => navigate("/admin/notifications")}>
+          <div
+            style={styles.notificationBell}
+            onClick={() => navigate("/admin/notifications")}
+          >
             <FaBell />
-            {unreadCount > 0 && <span style={styles.bellBadge}>{unreadCount}</span>}
+            {unreadCount > 0 && (
+              <span style={styles.bellBadge}>{unreadCount}</span>
+            )}
           </div>
         </header>
 
@@ -152,12 +189,7 @@ const AdminLayout = () => {
       </main>
 
       {/* Overlay for mobile */}
-      {sidebarOpen && (
-        <div
-          style={styles.overlay}
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {sidebarOpen && <div style={styles.overlay} onClick={() => setSidebarOpen(false)} />}
     </div>
   );
 };
@@ -345,23 +377,6 @@ const styles = {
     bottom: 0,
     backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 999,
-  },
-  "@media (max-width: 768px)": {
-    sidebar: {
-      transform: "translateX(-100%)",
-    },
-    main: {
-      marginLeft: 0,
-    },
-    mobileHeader: {
-      display: "flex",
-    },
-    toggleBtn: {
-      display: "block",
-    },
-    overlay: {
-      display: "block",
-    },
   },
 };
 

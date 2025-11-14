@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
-import { FaEdit, FaToggleOn, FaToggleOff, FaTrash, FaDownload } from "react-icons/fa";
+import { FaEdit, FaToggleOn, FaToggleOff, FaDownload } from "react-icons/fa";
 
 const StudentManagement = () => {
   const [students, setStudents] = useState([]);
@@ -11,53 +11,63 @@ const StudentManagement = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
 
+  // Fetch students whenever filter changes
   useEffect(() => {
     fetchStudents();
   }, [filter]);
 
+  // -------------------------------
+  // Fetch students
+  // -------------------------------
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      let url = "/students/users/";
-      
-      if (filter === "active") {
-        url += "?is_active=true";
-      } else if (filter === "inactive") {
-        url += "?is_active=false";
-      } else if (filter === "defaulters") {
-        url = "/admin-panel/students/defaulters/";
+      let data = [];
+
+      if (filter === "defaulters") {
+        const res = await api.get("/admin-panel/students/defaulters/");
+        data = res.data;
+      } else {
+        const res = await api.get("/students/users/");
+        data = res.data;
+
+        if (filter === "active") data = data.filter(s => s.is_active);
+        if (filter === "inactive") data = data.filter(s => !s.is_active);
       }
 
-      const res = await api.get(url);
-      setStudents(res.data);
-    } catch (error) {
-      console.error("Failed to fetch students:", error);
+      setStudents(data);
+      setSelectedStudents([]); // clear selection on refetch
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
       alert("Failed to load students");
     } finally {
       setLoading(false);
     }
   };
 
+  // -------------------------------
+  // Toggle individual student active status
+  // -------------------------------
   const handleToggleActive = async (studentId) => {
     try {
       const res = await api.post(`/admin-panel/students/${studentId}/toggle_active/`);
       alert(res.data.message);
       fetchStudents();
-    } catch (error) {
-      console.error("Failed to toggle status:", error);
+    } catch (err) {
+      console.error("Failed to toggle status:", err);
       alert("Failed to update student status");
     }
   };
 
+  // -------------------------------
+  // Bulk activate/deactivate
+  // -------------------------------
   const handleBulkAction = async (action) => {
-    if (selectedStudents.length === 0) {
+    if (!selectedStudents.length) {
       alert("Please select students first");
       return;
     }
-
-    if (!window.confirm(`${action} ${selectedStudents.length} students?`)) {
-      return;
-    }
+    if (!window.confirm(`${action} ${selectedStudents.length} students?`)) return;
 
     try {
       const endpoint = action === "activate" 
@@ -66,21 +76,19 @@ const StudentManagement = () => {
 
       const res = await api.post(endpoint, { student_ids: selectedStudents });
       alert(res.data.message);
-      setSelectedStudents([]);
       fetchStudents();
-    } catch (error) {
-      console.error("Bulk action failed:", error);
+    } catch (err) {
+      console.error("Bulk action failed:", err);
       alert("Failed to perform bulk action");
     }
   };
 
+  // -------------------------------
+  // Export students
+  // -------------------------------
   const handleExport = async () => {
     try {
-      const response = await api.post("/admin-panel/export/", 
-        { type: "students" },
-        { responseType: 'blob' }
-      );
-      
+      const response = await api.post("/admin-panel/export/", { type: "students" }, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -88,34 +96,35 @@ const StudentManagement = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
-      console.error("Export failed:", error);
+    } catch (err) {
+      console.error("Export failed:", err);
       alert("Failed to export data");
     }
   };
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedStudents(filteredStudents.map(s => s.id));
-    } else {
-      setSelectedStudents([]);
-    }
-  };
-
-  const handleSelectStudent = (studentId) => {
-    if (selectedStudents.includes(studentId)) {
-      setSelectedStudents(selectedStudents.filter(id => id !== studentId));
-    } else {
-      setSelectedStudents([...selectedStudents, studentId]);
-    }
-  };
-
-  const filteredStudents = students.filter((student) =>
-    `${student.username || ""} ${student.email || ""}`
-      .toLowerCase()
-      .includes(search.toLowerCase())
+  // -------------------------------
+  // Selection
+  // -------------------------------
+  const filteredStudents = students.filter(s => 
+    `${s.username || ""} ${s.email || ""}`.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) setSelectedStudents(filteredStudents.map(s => s.id));
+    else setSelectedStudents([]);
+  };
+
+  const handleSelectStudent = (id) => {
+    if (selectedStudents.includes(id)) {
+      setSelectedStudents(selectedStudents.filter(sid => sid !== id));
+    } else {
+      setSelectedStudents([...selectedStudents, id]);
+    }
+  };
+
+  // -------------------------------
+  // Render
+  // -------------------------------
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -125,19 +134,18 @@ const StudentManagement = () => {
         </button>
       </div>
 
-      {/* Filters and Search */}
+      {/* Filters & Search */}
       <div style={styles.controls}>
         <input
           type="text"
           placeholder="🔍 Search by username or email..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={e => setSearch(e.target.value)}
           style={styles.searchBox}
         />
-
         <select
           value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          onChange={e => setFilter(e.target.value)}
           style={styles.filterSelect}
         >
           <option value="all">All Students</option>
@@ -151,22 +159,16 @@ const StudentManagement = () => {
       {selectedStudents.length > 0 && (
         <div style={styles.bulkActions}>
           <span>{selectedStudents.length} selected</span>
-          <button
-            style={styles.bulkBtn}
-            onClick={() => handleBulkAction("activate")}
-          >
+          <button style={styles.bulkBtn} onClick={() => handleBulkAction("activate")}>
             Activate Selected
           </button>
-          <button
-            style={{ ...styles.bulkBtn, backgroundColor: "#f44336" }}
-            onClick={() => handleBulkAction("deactivate")}
-          >
+          <button style={{ ...styles.bulkBtn, backgroundColor: "#f44336" }} onClick={() => handleBulkAction("deactivate")}>
             Deactivate Selected
           </button>
         </div>
       )}
 
-      {/* Students Table */}
+      {/* Table */}
       {loading ? (
         <p style={styles.message}>Loading students...</p>
       ) : filteredStudents.length === 0 ? (
@@ -176,73 +178,43 @@ const StudentManagement = () => {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={styles.th}>
-                  <input
-                    type="checkbox"
-                    onChange={handleSelectAll}
-                    checked={selectedStudents.length === filteredStudents.length}
-                  />
-                </th>
-                <th style={styles.th}>#</th>
-                <th style={styles.th}>Name</th>
-                <th style={styles.th}>Email</th>
-                <th style={styles.th}>Course</th>
-                <th style={styles.th}>Amount Paid</th>
-                <th style={styles.th}>Amount Owed</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Actions</th>
+                <th><input type="checkbox" onChange={handleSelectAll} checked={selectedStudents.length === filteredStudents.length} /></th>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Course</th>
+                <th>Amount Paid</th>
+                <th>Amount Owed</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.map((student, index) => (
-                <tr key={student.id} style={styles.tr}>
-                  <td style={styles.td}>
-                    <input
-                      type="checkbox"
-                      checked={selectedStudents.includes(student.id)}
-                      onChange={() => handleSelectStudent(student.id)}
-                    />
-                  </td>
-                  <td style={styles.td}>{index + 1}</td>
-                  <td style={styles.td}>{student.name}</td>
-                  <td style={styles.td}>{student.email}</td>
-                  <td style={styles.td}>{student.course_name || "—"}</td>
-                  <td style={styles.td}>${student.amount_paid?.toFixed(2) || "0.00"}</td>
-                  <td style={styles.td}>${student.amount_owed?.toFixed(2) || "0.00"}</td>
-                  <td style={styles.td}>
-                    <span
-                      style={{
-                        ...styles.badge,
-                        backgroundColor: student.is_active ? "#d4edda" : "#f8d7da",
-                        color: student.is_active ? "#155724" : "#721c24",
-                      }}
-                    >
-                      {student.is_active ? "Active" : "Inactive"}
+              {filteredStudents.map((s, i) => (
+                <tr key={s.id} style={styles.tr}>
+                  <td><input type="checkbox" checked={selectedStudents.includes(s.id)} onChange={() => handleSelectStudent(s.id)} /></td>
+                  <td>{i + 1}</td>
+                  <td>{s.username}</td>
+                  <td>{s.email}</td>
+                  <td>{s.course_name || "—"}</td>
+                  <td>${Number(s.amount_paid || 0).toFixed(2)}</td>
+                  <td>${Number(s.amount_owed || 0).toFixed(2)}</td>
+                  <td>
+                    <span style={{
+                      ...styles.badge,
+                      backgroundColor: s.is_active ? "#d4edda" : "#f8d7da",
+                      color: s.is_active ? "#155724" : "#721c24"
+                    }}>
+                      {s.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
-                  <td style={styles.td}>
-                    <div style={styles.actionBtns}>
-                      <button
-                        style={styles.iconBtn}
-                        onClick={() => {
-                          setEditingStudent(student);
-                          setShowPaymentModal(true);
-                        }}
-                        title="Edit Payment"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        style={{
-                          ...styles.iconBtn,
-                          color: student.is_active ? "#f44336" : "#4CAF50",
-                        }}
-                        onClick={() => handleToggleActive(student.id)}
-                        title={student.is_active ? "Deactivate" : "Activate"}
-                      >
-                        {student.is_active ? <FaToggleOff /> : <FaToggleOn />}
-                      </button>
-                    </div>
+                  <td>
+                    <button style={styles.iconBtn} onClick={() => { setEditingStudent(s); setShowPaymentModal(true); }} title="Edit Payment">
+                      <FaEdit />
+                    </button>
+                    <button style={{ ...styles.iconBtn, color: s.is_active ? "#f44336" : "#4CAF50" }} onClick={() => handleToggleActive(s.id)}>
+                      {s.is_active ? <FaToggleOff /> : <FaToggleOn />}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -255,21 +227,17 @@ const StudentManagement = () => {
       {showPaymentModal && (
         <PaymentModal
           student={editingStudent}
-          onClose={() => {
-            setShowPaymentModal(false);
-            setEditingStudent(null);
-          }}
-          onSuccess={() => {
-            fetchStudents();
-            setShowPaymentModal(false);
-            setEditingStudent(null);
-          }}
+          onClose={() => { setShowPaymentModal(false); setEditingStudent(null); }}
+          onSuccess={() => { fetchStudents(); setShowPaymentModal(false); setEditingStudent(null); }}
         />
       )}
     </div>
   );
 };
 
+// -------------------------------
+// Payment Modal (unchanged)
+// -------------------------------
 const PaymentModal = ({ student, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     amount_paid: student.amount_paid || 0,
@@ -280,65 +248,45 @@ const PaymentModal = ({ student, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post(`/admin-panel/students/${student.id}/update_payment/`, formData);
-      alert("Payment information updated successfully!");
+      const payload = {
+        amount_paid: formData.amount_paid !== "" ? Number(formData.amount_paid) : null,
+        amount_owed: formData.amount_owed !== "" ? Number(formData.amount_owed) : null,
+        next_due_date: formData.next_due_date || null,
+      };
+      if ((payload.amount_paid !== null && isNaN(payload.amount_paid)) || (payload.amount_owed !== null && isNaN(payload.amount_owed))) {
+        alert("Please enter valid numbers");
+        return;
+      }
+
+      await api.post(`/admin-panel/students/${student.id}/update_payment/`, payload);
+      alert("Payment updated successfully");
       onSuccess();
-    } catch (error) {
-      console.error("Failed to update payment:", error);
-      alert("Failed to update payment information");
+    } catch (err) {
+      console.error("Payment update failed:", err);
+      alert(err?.response?.data?.error || "Failed to update payment");
     }
   };
 
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div style={styles.modal} onClick={e => e.stopPropagation()}>
         <h3 style={styles.modalTitle}>Update Payment - {student.username}</h3>
         <form onSubmit={handleSubmit}>
           <div style={styles.formGroup}>
             <label style={styles.label}>Amount Paid</label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.amount_paid}
-              onChange={(e) =>
-                setFormData({ ...formData, amount_paid: e.target.value })
-              }
-              style={styles.input}
-            />
+            <input type="number" step="0.01" value={formData.amount_paid} onChange={e => setFormData({ ...formData, amount_paid: e.target.value })} style={styles.input} />
           </div>
-
           <div style={styles.formGroup}>
             <label style={styles.label}>Amount Owed</label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.amount_owed}
-              onChange={(e) =>
-                setFormData({ ...formData, amount_owed: e.target.value })
-              }
-              style={styles.input}
-            />
+            <input type="number" step="0.01" value={formData.amount_owed} onChange={e => setFormData({ ...formData, amount_owed: e.target.value })} style={styles.input} />
           </div>
-
           <div style={styles.formGroup}>
             <label style={styles.label}>Next Due Date</label>
-            <input
-              type="date"
-              value={formData.next_due_date}
-              onChange={(e) =>
-                setFormData({ ...formData, next_due_date: e.target.value })
-              }
-              style={styles.input}
-            />
+            <input type="date" value={formData.next_due_date} onChange={e => setFormData({ ...formData, next_due_date: e.target.value })} style={styles.input} />
           </div>
-
           <div style={styles.modalActions}>
-            <button type="button" style={styles.cancelBtn} onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" style={styles.saveBtn}>
-              Save Changes
-            </button>
+            <button type="button" style={styles.cancelBtn} onClick={onClose}>Cancel</button>
+            <button type="submit" style={styles.saveBtn}>Save Changes</button>
           </div>
         </form>
       </div>
