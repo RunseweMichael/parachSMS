@@ -33,8 +33,8 @@ import AuthForm from './views/Student-auth/Authform.jsx';
 import Admin from './layout/Admin.jsx';
 
 /* === COMBINED AUTH LOGIC === */
-const isDevMode = false; // set true to bypass login during testing
-const user = isDevMode ? true : (localStorage.getItem("token") || localStorage.getItem("user_id"));
+const user = localStorage.getItem("token") || localStorage.getItem("user_id");
+// const user = isDevMode ? true : (localStorage.getItem("token") || localStorage.getItem("user_id"));
 
 /* === Protected Route === */
 const ProtectedRoute = ({ children }) => {
@@ -126,8 +126,9 @@ function App() {
         </Route>
 
         {/* DEFAULT REDIRECT */}
-        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/verify-otp" replace />} />
+        <Route path="*" element={<h2>404 Not Found</h2>} />
+
 
       </Routes>
 
