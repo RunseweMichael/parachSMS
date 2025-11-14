@@ -1,190 +1,188 @@
-import React, { useState } from "react";
-import { Facebook, Mail, Linkedin, MailCheck, Lock, UserLock, UserPen, MailPlus, Phone, Scroll, MapPinHouse,  } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import SignUpPanel from "../../component/AuthForms/SignUpPanel";
+import SignInPanel from "../../component/AuthForms/SignInPanel";
+
+/* -------------------------------------------------------------------------- */
+/*                                  THEMES                                    */
+/* -------------------------------------------------------------------------- */
+
+const THEMES = {
+  linear: {
+    left: "from-indigo-500/60 to-purple-600/60",
+    right: "from-purple-600/60 to-indigo-500/60",
+    orb1: "bg-purple-400/20",
+    orb2: "bg-indigo-400/20",
+    button: "bg-black text-white",
+  },
+  vercel: {
+    left: "from-neutral-900/70 to-neutral-800/70",
+    right: "from-neutral-800/70 to-neutral-900/70",
+    orb1: "bg-white/10",
+    orb2: "bg-white/10",
+    button: "bg-white text-black",
+  },
+  apple: {
+    left: "from-slate-200/40 to-slate-50/40",
+    right: "from-slate-50/40 to-slate-200/40",
+    orb1: "bg-slate-300/30",
+    orb2: "bg-white/40",
+    button: "bg-neutral-900 text-white",
+  },
+  cyber: {
+    left: "from-fuchsia-500/50 to-blue-500/50",
+    right: "from-blue-500/50 to-fuchsia-500/50",
+    orb1: "bg-fuchsia-400/30",
+    orb2: "bg-blue-400/30",
+    button: "bg-fuchsia-600 text-white",
+  },
+};
+
+/* -------------------------------------------------------------------------- */
+/*                            PARALLAX ORB HOOK                               */
+/* -------------------------------------------------------------------------- */
+
+const useParallax = () => {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const move = (e) => {
+      setPos({
+        x: (e.clientX / window.innerWidth - 0.5) * 20,
+        y: (e.clientY / window.innerHeight - 0.5) * 20,
+      });
+    };
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, []);
+
+  return pos;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                         SPLIT PANEL WITH UPGRADES                          */
+/* -------------------------------------------------------------------------- */
+
+const SplitPanel = ({ isSignUp, theme, parallax }) => {
+  const t = THEMES[theme];
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+
+      {/* Left split panel */}
+      <div
+        className={`
+          absolute top-0 left-0 h-full w-[60%]
+          bg-gradient-to-br ${t.left}
+          backdrop-blur-xl shadow-2xl transform origin-bottom-left
+          transition-transform duration-[900ms] ease-[cubic-bezier(.7,0,.25,1)]
+          ${isSignUp ? "-translate-x-full -rotate-6" : "translate-x-0 rotate-0"}
+        `}
+        style={{
+          clipPath: "polygon(0 0, 100% 0, 85% 100%, 0% 100%)",
+        }}
+      />
+
+      {/* Right split panel */}
+      <div
+        className={`
+          absolute top-0 right-0 h-full w-[60%]
+          bg-gradient-to-tr ${t.right}
+          backdrop-blur-xl shadow-2xl transform origin-top-right
+          transition-transform duration-[900ms] ease-[cubic-bezier(.7,0,.25,1)]
+          ${isSignUp ? "translate-x-full rotate-6" : "translate-x-0 rotate-0"}
+        `}
+        style={{
+          clipPath: "polygon(15% 0, 100% 0, 100% 100%, 0 100%)",
+        }}
+      />
+
+      {/* Animated diagonal light sweep */}
+      <div
+        className={`
+          absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
+          skew-x-12 w-1/2 blur-xl opacity-0 pointer-events-none
+          animate-[shine_3s_infinite]
+        `}
+        style={{ animationDelay: "0.3s" }}
+      />
+
+      {/* Parallax glowing orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className={`
+            absolute top-40 left-20 w-72 h-72 rounded-full blur-3xl transition-transform duration-300
+            ${t.orb1}
+          `}
+          style={{ transform: `translate(${parallax.x}px, ${parallax.y}px)` }}
+        />
+        <div
+          className={`
+            absolute bottom-20 right-24 w-96 h-96 rounded-full blur-3xl transition-transform duration-300
+            ${t.orb2}
+          `}
+          style={{ transform: `translate(${parallax.x * -1}px, ${parallax.y * -1}px)` }}
+        />
+      </div>
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                   MAIN                                     */
+/* -------------------------------------------------------------------------- */
 
 const AuthForm = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const theme = "linear"; // change theme here
+  const parallax = useParallax();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-100 font-sans">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-6 relative">
       <div
-        className={`relative bg-white rounded-lg shadow-2xl overflow-hidden w-[50%] max-w-full min-h-[750px] transition-all duration-700 ease-in-out ${
-          isSignUp ? "right-panel-active" : ""
-        }`}
+        className="
+          relative w-full max-w-[900px] min-h-[700px]
+          bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden
+          transition-all duration-700
+        "
       >
-        {/* --- Sign Up --- */}
-        <div
-          className={`absolute top-0 h-full w-1/2 flex items-center justify-center flex-col p-10 transition-all duration-700 ease-in-out ${
-            isSignUp ? "translate-x-full opacity-100 z-10" : "opacity-0 z-0"
-          }`}
-        >
-          <h1 className="text-2xl font-bold mb-3">Create Account</h1>
-        
-<UserPen
-          size={20}
-          className="absolute ml-[15px] left-9.5 top-[24%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
-        />
-        <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-[#cdd1d7]
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            transition duration-300 ease-in-out"
-          placeholder="Full Name"
-          type="text"
-        />        
-           
-     <MailPlus
-          size={20}
-          className="absolute ml-[15px] left-9.5 top-[34%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
-        />
-        <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-[#cdd1d7]
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            transition duration-300 ease-in-out"
-          placeholder="Email"
-          type="email"
-        />  
-        <Lock
-          size={20}
-          className="absolute ml-[15px] left-9.5 top-[43.5%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
-        />
-        <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            transition duration-300 ease-in-out"
-          placeholder="Enter your password"
-          type="text"
-        />  
-     {/** Gender */}
-        <Phone
-          size={20}
-          className="absolute ml-[15px] left-9.5 top-[53%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
-        />
-        <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            transition duration-300 ease-in-out"
-          placeholder="Phone Number"
-          type="text"
-        />  
-        <Scroll
-          size={20}
-          className="absolute ml-[15px] left-9.5 top-[63%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
-        />
-        <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            transition duration-300 ease-in-out"
-          placeholder="Enter your prefered course"
-          type="text"
-        />  
- {/** date */}
-<MapPinHouse
-          size={20}
-          className="absolute ml-[15px] left-9.5 top-[73%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
-        />
-        <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            transition duration-300 ease-in-out"
-          placeholder="Enter your current address"
-          type="text"
-        />
-        <button className="bg-[linear-gradient(138deg,rgba(54,92,235,1)_0%,rgba(141,54,234,1)_50%)] text-white w-full font-bold mt-3.5 cursor-pointer px-8 py-4 rounded-2xl uppercase text-sm hover:bg-blue-600 transition">
-            Sign Up
-          </button>
-        </div>
+        {/* Split animation overlay */}
+        <SplitPanel isSignUp={isSignUp} theme={theme} parallax={parallax} />
 
-        {/* --- Sign In --- */}
-        <div
-          className={`absolute top-0 h-full w-1/2 flex items-center justify-center flex-col p-10 transition-all duration-700 ease-in-out ${
-            isSignUp ? "translate-x-full opacity-0 z-0" : "opacity-100 z-10"
-          }`}
-        >
-          <h1 className="text-2xl font-bold mb-3">Sign in</h1>
-      <MailCheck
-          size={20}
-          className="absolute ml-[15px] left-9.5 top-[31.7%] transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
-        />
-        <input
-          className="rounded-[10px] tracking-widest pl-10 my-2.5 w-full py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            transition duration-300 ease-in-out"
-          placeholder="Enter your Email"
-          type="text"
-        />
-<Lock
-          size={20}
-          className="absolute ml-[15px] left-9.5 top-[41%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
-        />
-        <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            transition duration-300 ease-in-out"
-          placeholder="Enter your password"
-          type="text"
-        />  
-<UserLock
-          size={20}
-          className="absolute ml-[15px] left-9.5 top-[51%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
-        />
-        <input
-          className="rounded-[10px] tracking-widest pl-10 w-full py-3.5 my-2.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            transition duration-300 ease-in-out"
-          placeholder="OTP Password"
-          type="text"
-        /> 
-        <div className=" flex w-full justify-between my-3.5 items-center">
-     <div className="re">      <input type="checkbox" name="Remember" id="" /> <span className="text-[#4b5563 text-[17px]">Remember me</span></div>
-              <a href="#" className=" text-[#2563ee] hover:text-blue-500">Forgot your password?</a>
-        </div>
-      
-          <button className="bg-[linear-gradient(138deg,rgba(54,92,235,1)_0%,rgba(141,54,234,1)_50%)] text-white w-full font-bold px-8 py-4 cursor-pointer rounded-2xl uppercase text-sm hover:bg-blue-600 transition">
-            Sign In
-          </button>
-             <button className="bg-[linear-gradient(138deg,rgba(54,92,235,1)_0%,rgba(141,54,234,1)_50%)] text-white w-full font-bold mt-3.5 cursor-pointer px-8 py-4 rounded-2xl uppercase text-sm hover:bg-blue-600 transition">
-            Send OTP
-          </button>
-        </div>
-
-        {/* --- Overlay Panel --- */}
-        <div
-          className={`absolute top-0 left-[50%] w-1/2 h-full text-center overflow-hidden transition-transform duration-700 ease-in-out ${
-            isSignUp ? "-translate-x-full" : ""
-          }`}
-        >
+        {/* CONTENT SWAP */}
+        <div className="relative h-full">
+          {/* Sign In */}
           <div
-            className={`bg-[linear-gradient(138deg,rgba(54,92,235,1)_0%,rgba(141,54,234,1)_50%)] text-white absolute -left-full h-full w-[200%] transform transition-transform duration-700 ease-in-out ${
-              isSignUp ? "translate-x-1/2" : "translate-x-0"
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              isSignUp ? "opacity-0 pointer-events-none" : "opacity-100"
             }`}
           >
-            {/* Overlay Left */}
-            <div className=" h-full w-[80%] flex flex-col items-center justify-center text-center px-10 transform transition-all duration-700 ease-in-out translate-x-[-20%]">
-              <h1 className="text-center text-3xl font-bold mb-3">Welcome Back!</h1>
-              
-              <button
-                onClick={() => setIsSignUp(false)}
-                className="border border-white text-white px-8 py-2 rounded-full uppercase text-sm hover:bg-white hover:text-blue-500 transition"
-              >
-                Sign In
-              </button>
-            </div>
+            <SignInPanel isSignUp={isSignUp} />
+          </div>
 
-            {/* Overlay Right */}
-            <div className="absolute top-0 right-0 h-full w-1/2 flex flex-col items-center justify-center text-center px-10 transform transition-all duration-700 ease-in-out">
-              <h1 className="text-3xl font-bold mb-3">Hello</h1>
-              <p className="text-sm mb-5">Enter your personal details and start your journey with us</p>
-              <button
-                onClick={() => setIsSignUp(true)}
-                className="border border-white text-white px-8 py-2 rounded-full uppercase text-sm hover:bg-white hover:text-blue-500 transition"
-              >
-                Sign Up
-              </button>
-            </div>
+          {/* Sign Up */}
+          <div
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              isSignUp ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <SignUpPanel isSignUp={isSignUp} />
           </div>
         </div>
-      </div>
 
-     
+        {/* Theme-styled switch button */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
+          <button
+            onClick={() => setIsSignUp(!isSignUp)}
+            className={`
+              px-8 py-3 rounded-full text-sm font-semibold shadow-xl
+              hover:shadow-2xl hover:scale-105 transition-all duration-300
+              ${THEMES[theme].button}
+            `}
+          >
+            {isSignUp ? "Already have an account? Sign In" : "New here? Sign Up"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
