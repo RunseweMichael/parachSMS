@@ -7,7 +7,7 @@ const AuthForm = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-100 font-sans">
       <div
-        className={`relative bg-white rounded-lg shadow-2xl overflow-hidden w-[55%] max-w-full min-h-[750px] transition-all duration-700 ease-in-out ${
+        className={`relative bg-white rounded-lg shadow-2xl overflow-hidden w-[50%] max-w-full min-h-[750px] transition-all duration-700 ease-in-out ${
           isSignUp ? "right-panel-active" : ""
         }`}
       >
@@ -47,7 +47,7 @@ const AuthForm = () => {
           className="absolute ml-[15px] left-9.5 top-[43.5%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
         />
         <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-[#cdd1d7]
+          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
             focus:outline-none focus:ring-2 focus:ring-blue-500
             transition duration-300 ease-in-out"
           placeholder="Enter your password"
@@ -59,7 +59,7 @@ const AuthForm = () => {
           className="absolute ml-[15px] left-9.5 top-[53%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
         />
         <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-[#cdd1d7]
+          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
             focus:outline-none focus:ring-2 focus:ring-blue-500
             transition duration-300 ease-in-out"
           placeholder="Phone Number"
@@ -70,7 +70,7 @@ const AuthForm = () => {
           className="absolute ml-[15px] left-9.5 top-[63%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
         />
         <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-[#cdd1d7]
+          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
             focus:outline-none focus:ring-2 focus:ring-blue-500
             transition duration-300 ease-in-out"
           placeholder="Enter your prefered course"
@@ -82,7 +82,7 @@ const AuthForm = () => {
           className="absolute ml-[15px] left-9.5 top-[73%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
         />
         <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-[#cdd1d7]
+          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
             focus:outline-none focus:ring-2 focus:ring-blue-500
             transition duration-300 ease-in-out"
           placeholder="Enter your current address"
@@ -105,7 +105,7 @@ const AuthForm = () => {
           className="absolute ml-[15px] left-9.5 top-[31.7%] transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
         />
         <input
-          className="rounded-[10px] tracking-widest pl-10 my-2.5 w-full py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-[#cdd1d7]
+          className="rounded-[10px] tracking-widest pl-10 my-2.5 w-full py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
             focus:outline-none focus:ring-2 focus:ring-blue-500
             transition duration-300 ease-in-out"
           placeholder="Enter your Email"
@@ -116,7 +116,7 @@ const AuthForm = () => {
           className="absolute ml-[15px] left-9.5 top-[41%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
         />
         <input
-          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-[#cdd1d7]
+          className="rounded-[10px] tracking-widest pl-10 w-full my-2.5 py-3.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
             focus:outline-none focus:ring-2 focus:ring-blue-500
             transition duration-300 ease-in-out"
           placeholder="Enter your password"
@@ -127,7 +127,7 @@ const AuthForm = () => {
           className="absolute ml-[15px] left-9.5 top-[51%]  transform -translate-y-1/2 text-[#b5bac3] transition-colors duration-300"
         />
         <input
-          className="rounded-[10px] tracking-widest pl-10 w-full py-3.5 my-2.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-[#cdd1d7]
+          className="rounded-[10px] tracking-widest pl-10 w-full py-3.5 my-2.5 bg-white border border-[#cdd1d7] placeholder:text-[#cdd1d7] text-[15px] text-black
             focus:outline-none focus:ring-2 focus:ring-blue-500
             transition duration-300 ease-in-out"
           placeholder="OTP Password"

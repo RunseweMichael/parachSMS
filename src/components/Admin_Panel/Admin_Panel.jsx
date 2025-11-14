@@ -1,4 +1,4 @@
-import api from './api'; // Your configured Axios instance
+import api from '../'; // Your configured Axios instance
 
 // Get dashboard stats
 const fetchStats = async () => {
