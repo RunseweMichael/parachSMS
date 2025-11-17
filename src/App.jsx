@@ -1,8 +1,9 @@
 import React from 'react';
 import './App.css';
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-/* === OLD FRONTEND IMPORTS (KEEP ALL) === */
+/* === OLD FRONTEND IMPORTS === */
 import AdminLayout from './pages/AdminDashboard/AdminLayout';
 import Dashboard from './pages/AdminDashboard/Dashboard';
 import StudentManagement from './pages/AdminDashboard/StudentManagement';
@@ -14,7 +15,7 @@ import CourseList from './components/Course/CourseList';
 import CourseDetail from './components/Course/CourseDetail';
 import CourseForm from './components/Course/CourseForm';
 import RegistrationForm from './components/Students/RegistrationForm';
-import VerifyOTP from './components/Students/VerifyOtp';
+import VerifyOTP from './components/Students/VerifyOTP.jsx';
 import ResetPassword from './components/Students/ResetPassword';
 import Profile from './components/Students/Profile';
 import EnquiryList from './components/Enquiries/EnquiryList';
@@ -28,82 +29,93 @@ import PaymentPage from "./pages/PaymentPage";
 import PaymentHistory from "./pages/PaymentHistory";
 import StudentPaymentHistory from "./components/Students/StudentPaymentHistory";
 
-/* === NEW FRONTEND IMPORTS === */
-import AuthForm from './views/Student-auth/Authform.jsx';
+/* === NEW FRONTEND IMPORTS (STUDENT INTERFACE) === */
+import SignUpPage from './views/Student-auth/SignUpPage.jsx';
+import SignInPage from './views/Student-auth/SignInPage.jsx';
 import Admin from './layout/Admin.jsx';
 
-/* === COMBINED AUTH LOGIC === */
-const user = localStorage.getItem("token") || localStorage.getItem("user_id");
-// const user = isDevMode ? true : (localStorage.getItem("token") || localStorage.getItem("user_id"));
+import CertificateDashboard from "./views/Student-Interface/CertificateDashboard.jsx";
+import PaymentDashboard from "./views/Student-Interface/PaymentDashboard.jsx";
+import Settings from "./views/Student-Interface/Settings.jsx";
+import StudentDashboard from "./views/Student-Interface/Dashboard.jsx";
 
-/* === Protected Route === */
+/* === AUTH CHECK === */
+const user = localStorage.getItem("token") || localStorage.getItem("user_id");
+
+/* === PROTECTED ROUTE WRAPPER === */
 const ProtectedRoute = ({ children }) => {
   return user ? children : <Navigate to="/AdminLogin" replace />;
 };
 
-
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-center" />
 
       <Routes>
-
-        {/* === NEW AUTH ROUTES === */}
-        <Route path="/auth" element={<AuthForm />} />
+        {/* === AUTH === */}
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/signin" element={<SignInPage />} />
         <Route path="/AdminLogin" element={<Login />} />
 
-        {/* === PUBLIC ROUTES (STUDENT SIDE) === */}
+        {/* === PUBLIC STUDENT ROUTES === */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegistrationForm />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/dashboard" element={<Profile />} />
 
         <Route path="/enquiries" element={<EnquiryList />} />
         <Route path="/enquiries/add" element={<EnquiryForm />} />
         <Route path="/enquiries/edit/:id" element={<EnquiryForm />} />
 
         <Route path="/course/:id" element={<CourseDetails />} />
-
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payment/verify" element={<PaymentPage />} />
         <Route path="/student-transactions" element={<StudentPaymentHistory />} />
 
-        {/* === OLD ADMIN ROUTES INSIDE NEW ADMIN LAYOUT === */}
-        <Route 
-          path="/admin" 
+        {/* ======================================
+            STUDENT INTERFACE ( /student/* )
+        ====================================== */}
+        <Route
+          path="/student/*"
           element={
             <ProtectedRoute>
-              <Admin /> 
+              <Admin />
             </ProtectedRoute>
           }
         >
+          <Route index element={<Navigate to="dashboard" replace />} />
 
-          {/* ADMIN DASHBOARD */}
+          <Route path="dashboard" element={<StudentDashboard />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="certificate" element={<CertificateDashboard />} />
+          <Route path="payment" element={<PaymentDashboard />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+
+        {/* ======================================
+            OLD ADMIN PANEL ( /super-admin/* )
+        ====================================== */}
+        <Route
+          path="/super-admin/*"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+
           <Route path="dashboard" element={<Dashboard />} />
-
-          {/* STUDENTS */}
           <Route path="students" element={<StudentManagement />} />
-
-          {/* CERTIFICATES */}
           <Route path="certificates" element={<CertificateManagement />} />
-
-          {/* NOTIFICATIONS */}
           <Route path="notifications" element={<Notifications />} />
-
-          {/* ACTIVITY */}
           <Route path="activity" element={<ActivityLog />} />
-
-          {/* PAYMENTS */}
           <Route path="payments/history" element={<PaymentHistory />} />
-
-          {/* COUPONS */}
           <Route path="coupons" element={<CouponAdmin />} />
-
-          {/* STAFF */}
           <Route path="staff-management" element={<StaffManagement />} />
 
-          {/* COURSES */}
+          {/* Courses */}
           <Route path="courses">
             <Route index element={<CourseList />} />
             <Route path="add" element={<CourseForm />} />
@@ -111,27 +123,23 @@ function App() {
             <Route path="edit/:id" element={<CourseForm />} />
           </Route>
 
-          {/* MODULES */}
+          {/* Modules */}
           <Route path="modules">
             <Route path="add" element={<ModuleForm />} />
             <Route path="edit/:id" element={<ModuleForm />} />
           </Route>
 
-          {/* LESSONS */}
+          {/* Lessons */}
           <Route path="lessons">
             <Route path="add" element={<LessonForm />} />
             <Route path="edit/:id" element={<LessonForm />} />
           </Route>
-
         </Route>
 
-        {/* DEFAULT REDIRECT */}
-        <Route path="/" element={<Navigate to="/verify-otp" replace />} />
+        {/* === DEFAULT === */}
+     <Route path="/" element={<Navigate to="/signin" replace />} />
         <Route path="*" element={<h2>404 Not Found</h2>} />
-
-
       </Routes>
-
     </BrowserRouter>
   );
 }

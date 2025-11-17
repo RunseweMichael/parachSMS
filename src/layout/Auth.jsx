@@ -2,8 +2,8 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 // views
 
-import Login from "../views/Student-auth/Authform.jsx";
-import Register from "../views/Student-auth/Authform.jsx";
+import Login from "../views/Student-auth/SignUpPage.jsx";
+import Register from "../views/Student-auth/SignUpPage.jsx";
 
 const bgImage = new URL("../assets/img/register_bg_2.png", import.meta.url).href;
 

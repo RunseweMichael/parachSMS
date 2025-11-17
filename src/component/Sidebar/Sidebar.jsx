@@ -38,10 +38,10 @@ export default function Sidebar() {
   // -------------------------
 
   const menuItems = [
-    { name: "Dashboard", icon: <Home className="w-5 h-5" />, path: "/admin/dashboard" },
-    { name: "Profile", icon: <User className="w-5 h-5" />, path: "/admin/settings" },
-    { name: "Certificate", icon: <FileText className="w-5 h-5" />, path: "/admin/tables" },
-    { name: "Payment", icon: <CreditCard className="w-5 h-5" />, path: "/admin/maps" },
+    { name: "Dashboard", icon: <Home className="w-5 h-5" />, path: "/student/dashboard" },
+    { name: "Profile", icon: <User className="w-5 h-5" />, path: "/student/profile" },
+    { name: "Certificate", icon: <FileText className="w-5 h-5" />, path: "/student/certificate" },
+    { name: "Payment", icon: <CreditCard className="w-5 h-5" />, path: "/student/payment" },
   ];
 
   return (
@@ -58,7 +58,7 @@ export default function Sidebar() {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-5 border-b border-white/20">
-          <Link to="/admin/dashboard" className="flex items-center gap-2 select-none">
+          <Link to="/student/dashboard" className="flex items-center gap-2 select-none">
             <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center text-lg font-bold">
               P
             </div>
@@ -217,7 +217,7 @@ export default function Sidebar() {
               </button>
 
               <Link
-                to="/auth"
+                to="/signin"
                 onClick={() => setMobileOpen(false)}
                 className="flex items-center gap-3 text-blue-100 hover:bg-white/10 hover:text-white rounded-lg p-3 transition-all mt-2"
               >

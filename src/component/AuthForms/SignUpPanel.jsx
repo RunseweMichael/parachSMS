@@ -12,6 +12,8 @@ import {
   CheckSquare,
 } from "lucide-react";
 import api from "../../api";   // <-- your axios instance
+import { toast } from 'react-hot-toast'; // or 'react-toastify' depending on which library you're using
+
 
 // -------------------------------------------------
 // Reusable Input with Icon (same as before)
@@ -76,28 +78,123 @@ const SignUpPanel = ({ isSignUp }) => {
   };
 
   // ---------- Submit ----------
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    try {
-      await api.post("/students/users/", formData);
-      alert("Registration successful! Check your email for OTP verification.");
-      navigate("/verify-otp");
-    } catch (err) {
-      if (err.response?.data) {
-        const msgs = Object.entries(err.response.data)
-          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-          .join(" | ");
-        setError(msgs);
-      } else {
-        setError("Registration failed. Please try again.");
+  // DEBUG: Log what we're sending
+  console.log("📤 Sending registration data:", formData);
+
+  try {
+    const response = await api.post("/students/users/", formData);
+    
+    console.log("✅ Registration response:", response.data);
+    
+    // Store authentication data from response
+    const { token, user_id, user } = response.data;
+    
+    if (token) {
+      localStorage.setItem("token", token);
+      localStorage.setItem("user_id", user_id);
+      
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
       }
-    } finally {
-      setLoading(false);
+      
+      toast.success("Registration successful! Welcome aboard! 🎉", {
+        duration: 3000,
+        position: 'top-center',
+        icon: '🚀',
+      });
+      
+      setTimeout(() => {
+        navigate("/admin/dashboard", { 
+          state: { fromRegistration: true } 
+        });
+      }, 1500);
+      
+    } else {
+      toast.success("Check your email for OTP verification.", {
+        duration: 4000,
+        position: 'top-center',
+      });
+      navigate("/verify-otp", { 
+        state: { 
+          email: formData.email,
+          fromRegistration: true 
+        } 
+      });
     }
-  };
+    
+  } catch (err) {
+    // DETAILED ERROR LOGGING
+    console.error("❌ Registration error:", err);
+    console.error("❌ Error response:", err.response);
+    console.error("❌ Error status:", err.response?.status);
+    console.error("❌ Error data:", err.response?.data);
+    console.error("❌ Error headers:", err.response?.headers);
+    console.error("❌ Request config:", err.config);
+    
+    // Check if it's a network error
+    if (!err.response) {
+      toast.error("Network error. Cannot reach the server. Please check your connection.", {
+        duration: 5000,
+        position: 'top-center',
+      });
+      return;
+    }
+    
+    // Handle different error types
+    const status = err.response?.status;
+    const data = err.response?.data;
+    
+    if (status === 500) {
+      toast.error("Server error. Please contact support or try again later.", {
+        duration: 5000,
+        position: 'top-center',
+      });
+    } else if (status === 404) {
+      toast.error("API endpoint not found. Please check your configuration.", {
+        duration: 5000,
+        position: 'top-center',
+      });
+    } else if (status === 400 && data && typeof data === 'object') {
+      // Validation errors
+      const msgs = Object.entries(data)
+        .map(([k, v]) => {
+          const value = Array.isArray(v) ? v.join(", ") : v;
+          return `${k}: ${value}`;
+        })
+        .join(" | ");
+      toast.error(msgs, {
+        duration: 6000,
+        position: 'top-center',
+      });
+    } else if (status === 401) {
+      toast.error("Unauthorized. Please check your credentials.", {
+        duration: 5000,
+        position: 'top-center',
+      });
+    } else if (data && typeof data === 'object') {
+      // Generic object error
+      const msgs = Object.entries(data)
+        .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+        .join(" | ");
+      toast.error(msgs, {
+        duration: 5000,
+        position: 'top-center',
+      });
+    } else {
+      toast.error("Registration failed. Please try again.", {
+        duration: 4000,
+        position: 'top-center',
+      });
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   // -------------------------------------------------
   return (
