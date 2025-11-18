@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { FiEdit, FiTrash2, FiMail } from "react-icons/fi";
 import api from "../../api";
 
 const EnquiryList = () => {
   const [enquiries, setEnquiries] = useState([]);
   const [filtered, setFiltered] = useState([]);
-  const [courses, setCourses] = useState([]); // store all courses
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -34,7 +35,6 @@ const EnquiryList = () => {
     fetchData();
   }, []);
 
-  // Delete enquiry
   const deleteEnquiry = async (id) => {
     if (!window.confirm("Delete this enquiry?")) return;
     try {
@@ -47,7 +47,6 @@ const EnquiryList = () => {
     }
   };
 
-  // Toggle status
   const toggleStatus = async (enquiry) => {
     const newStatus = enquiry.status === "NEW" ? "FOLLOWED_UP" : "NEW";
     try {
@@ -64,7 +63,6 @@ const EnquiryList = () => {
     }
   };
 
-  // Send predefined email
   const sendEmail = async (enquiry) => {
     if (!window.confirm(`Send predefined email to ${enquiry.name}?`)) return;
     try {
@@ -76,7 +74,6 @@ const EnquiryList = () => {
     }
   };
 
-  // Search/filter
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearch(value);
@@ -90,112 +87,120 @@ const EnquiryList = () => {
     setCurrentPage(1);
   };
 
-  // Map course ID to course name
   const getCourseName = (id) => {
     const course = courses.find((c) => c.id === id);
     return course ? course.course_name : "—";
   };
 
-  // Pagination logic
+  // Pagination
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentItems = filtered.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
-  if (loading) return <p style={styles.loading}>Loading enquiries...</p>;
-  if (error) return <p style={styles.error}>{error}</p>;
+  if (loading)
+    return <p className="text-center mt-16 text-gray-600">Loading enquiries...</p>;
+  if (error)
+    return <p className="text-center mt-16 text-red-600 font-semibold">{error}</p>;
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>📩 Enquiries Dashboard</h2>
+    <div className="max-w-[1200px] mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-6 text-blue-800 flex items-center gap-2">
+        📩 Enquiries Dashboard
+      </h2>
 
-      <div style={styles.topBar}>
+      {/* Top bar */}
+      <div className="flex flex-col md:flex-row justify-between mb-4 gap-3">
         <input
           type="text"
           placeholder="Search by name, email or phone..."
           value={search}
           onChange={handleSearch}
-          style={styles.searchInput}
+          className="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <Link to="/enquiries/add" style={{ ...styles.button, ...styles.add }}>
+        <Link
+          to="/admin/enquiries/add"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center gap-2 justify-center"
+        >
           ➕ Add Enquiry
         </Link>
       </div>
 
-      <table style={styles.table}>
-        <thead>
-          <tr style={styles.theadRow}>
-            <th>#</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Gender</th>
-            <th>Course</th>
-            <th>Consent</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentItems.length === 0 && (
+      {/* Table */}
+      <div className="overflow-x-auto shadow-lg rounded-lg">
+        <table className="min-w-full bg-white divide-y divide-gray-200">
+          <thead className="bg-blue-800 text-white">
             <tr>
-              <td colSpan="10" style={styles.noData}>
-                No enquiries found.
-              </td>
+              <th className="px-3 py-2 text-left text-sm">#</th>
+              <th className="px-3 py-2 text-left text-sm">Name</th>
+              <th className="px-3 py-2 text-left text-sm">Email</th>
+              <th className="px-3 py-2 text-left text-sm">Phone</th>
+              <th className="px-3 py-2 text-left text-sm">Gender</th>
+              <th className="px-3 py-2 text-left text-sm">Course</th>
+              <th className="px-3 py-2 text-center text-sm">Consent</th>
+              <th className="px-3 py-2 text-center text-sm">Status</th>
+              <th className="px-3 py-2 text-left text-sm">Created</th>
+              <th className="px-3 py-2 text-center text-sm">Actions</th>
             </tr>
-          )}
-          {currentItems.map((enquiry, index) => (
-            <tr key={enquiry.id} style={styles.row}>
-              <td>{index + 1 + (currentPage - 1) * itemsPerPage}</td>
-              <td>{enquiry.name}</td>
-              <td>{enquiry.email}</td>
-              <td>{enquiry.phone}</td>
-              <td>{enquiry.gender}</td>
-              <td>{getCourseName(enquiry.course)}</td>
-              <td>{enquiry.consent ? "✅" : "❌"}</td>
-              <td
-                style={{
-                  ...styles.statusText,
-                  backgroundColor:
-                    enquiry.status === "FOLLOWED_UP" ? "#10b981" : "#ef4444",
-                  cursor: "pointer",
-                }}
-                onClick={() => toggleStatus(enquiry)}
-              >
-                {enquiry.status === "FOLLOWED_UP" ? "FOLLOWED UP" : "NEW"}
-              </td>
-              <td>{new Date(enquiry.created_at).toLocaleDateString()}</td>
-              <td style={{ display: "flex", gap: "6px", justifyContent: "center" }}>
-                <Link
-                  to={`/enquiries/edit/${enquiry.id}`}
-                  style={{ ...styles.button, ...styles.editSmall }}
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {currentItems.length === 0 && (
+              <tr>
+                <td colSpan="10" className="text-center py-4 text-gray-500">
+                  No enquiries found.
+                </td>
+              </tr>
+            )}
+
+            {currentItems.map((enquiry, index) => (
+              <tr key={enquiry.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-3 py-2">{index + 1 + (currentPage - 1) * itemsPerPage}</td>
+                <td className="px-3 py-2">{enquiry.name}</td>
+                <td className="px-3 py-2">{enquiry.email}</td>
+                <td className="px-3 py-2">{enquiry.phone}</td>
+                <td className="px-3 py-2">{enquiry.gender}</td>
+                <td className="px-3 py-2">{getCourseName(enquiry.course)}</td>
+                <td className="px-3 py-2 text-center">{enquiry.consent ? "✅" : "❌"}</td>
+                <td
+                  className={`px-3 py-1 text-white font-semibold rounded-full text-center cursor-pointer ${
+                    enquiry.status === "FOLLOWED_UP" ? "bg-green-500" : "bg-red-500"
+                  }`}
+                  onClick={() => toggleStatus(enquiry)}
                 >
-                  Edit
-                </Link>
-                <button
-                  onClick={() => deleteEnquiry(enquiry.id)}
-                  style={{ ...styles.button, ...styles.deleteSmall }}
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => sendEmail(enquiry)}
-                  style={{ ...styles.button, ...styles.emailSmall }}
-                >
-                  📧 Send Email
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  {enquiry.status === "FOLLOWED_UP" ? "FOLLOWED UP" : "NEW"}
+                </td>
+                <td className="px-3 py-2">{new Date(enquiry.created_at).toLocaleDateString()}</td>
+                <td className="px-3 py-2 flex justify-center gap-2">
+                  <Link
+                    to={`/enquiries/edit/${enquiry.id}`}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-full"
+                  >
+                    <FiEdit />
+                  </Link>
+                  <button
+                    onClick={() => deleteEnquiry(enquiry.id)}
+                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+                  >
+                    <FiTrash2 />
+                  </button>
+                  <button
+                    onClick={() => sendEmail(enquiry)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full"
+                  >
+                    <FiMail />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div style={styles.pagination}>
+        <div className="flex justify-center mt-4 gap-2 flex-wrap">
           <button
-            style={styles.pageButton}
+            className="px-3 py-1 border rounded hover:bg-gray-200 disabled:opacity-50"
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
@@ -204,17 +209,16 @@ const EnquiryList = () => {
           {[...Array(totalPages)].map((_, i) => (
             <button
               key={i}
-              style={{
-                ...styles.pageButton,
-                ...(currentPage === i + 1 ? styles.activePage : {}),
-              }}
+              className={`px-3 py-1 border rounded hover:bg-gray-200 ${
+                currentPage === i + 1 ? "bg-blue-600 text-white border-blue-600" : ""
+              }`}
               onClick={() => setCurrentPage(i + 1)}
             >
               {i + 1}
             </button>
           ))}
           <button
-            style={styles.pageButton}
+            className="px-3 py-1 border rounded hover:bg-gray-200 disabled:opacity-50"
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
           >
@@ -224,28 +228,6 @@ const EnquiryList = () => {
       )}
     </div>
   );
-};
-
-const styles = {
-  container: { maxWidth: "1100px", margin: "50px auto", padding: "20px", fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" },
-  title: { fontSize: "28px", fontWeight: "700", marginBottom: "15px" },
-  topBar: { display: "flex", justifyContent: "space-between", marginBottom: "15px", flexWrap: "wrap", gap: "10px" },
-  searchInput: { padding: "6px 12px", fontSize: "14px", borderRadius: "6px", border: "1px solid #ccc", flexGrow: 1, minWidth: "200px" },
-  button: { padding: "6px 14px", borderRadius: "6px", fontSize: "14px", cursor: "pointer", border: "none", fontWeight: "600" },
-  add: { backgroundColor: "#3b82f6", color: "#fff" },
-  editSmall: { backgroundColor: "#facc15", color: "#fff", fontSize: "13px", padding: "4px 8px" },
-  deleteSmall: { backgroundColor: "#ef4444", color: "#fff", fontSize: "13px", padding: "4px 8px" },
-  emailSmall: { backgroundColor: "#3b82f6", color: "#fff", fontSize: "13px", padding: "4px 8px" },
-  table: { width: "100%", borderCollapse: "collapse", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" },
-  theadRow: { backgroundColor: "#1e40af", color: "#fff", textAlign: "center" },
-  row: { borderBottom: "1px solid #e5e7eb", textAlign: "center", transition: "background 0.2s" },
-  noData: { textAlign: "center", padding: "12px", color: "#6b7280" },
-  loading: { textAlign: "center", marginTop: "50px", fontSize: "16px" },
-  error: { textAlign: "center", marginTop: "50px", color: "#dc2626", fontWeight: "600" },
-  statusText: { color: "#fff", padding: "6px 12px", borderRadius: "12px", textAlign: "center", fontWeight: "600", display: "inline-block", minWidth: "80px" },
-  pagination: { display: "flex", justifyContent: "center", marginTop: "20px", gap: "5px", flexWrap: "wrap" },
-  pageButton: { padding: "6px 10px", borderRadius: "5px", border: "1px solid #ccc", backgroundColor: "#fff", cursor: "pointer" },
-  activePage: { backgroundColor: "#3b82f6", color: "#fff", border: "none" },
 };
 
 export default EnquiryList;

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
-import { jsPDF } from "jspdf";
 import { ArrowLeft, CheckCircle, XCircle, Download } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -15,6 +14,7 @@ const StudentPaymentHistory = () => {
     fetchProfile();
   }, []);
 
+  // Fetch student transactions
   const fetchTransactions = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -29,6 +29,7 @@ const StudentPaymentHistory = () => {
     }
   };
 
+  // Fetch student profile
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -41,39 +42,17 @@ const StudentPaymentHistory = () => {
     }
   };
 
+  // Download server-generated PDF receipt
   const downloadReceipt = (tx) => {
-    const doc = new jsPDF();
-    const yStart = 20;
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("Payment Receipt", 105, yStart, { align: "center" });
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Student Name: ${student?.name || "N/A"}`, 20, yStart + 20);
-    doc.text(
-      `Course: ${student?.course ? student.course.course_name : "N/A"}`,
-      20,
-      yStart + 30
-    );
-    doc.text(`Transaction Reference: ${tx.reference}`, 20, yStart + 40);
-    doc.text(`Amount: ₦${tx.amount?.toLocaleString()}`, 20, yStart + 50);
-    doc.text(
-      `Status: ${tx.status === "success" ? "Successful" : "Failed"}`,
-      20,
-      yStart + 60
-    );
-    doc.text(
-      `Date: ${tx.created_at ? new Date(tx.created_at).toLocaleString("en-NG") : "N/A"}`,
-      20,
-      yStart + 70
-    );
-
-    doc.setFont("helvetica", "italic");
-    doc.text("Thank you for your payment!", 105, yStart + 95, { align: "center" });
-
-    doc.save(`receipt_${tx.reference}.pdf`);
+    if (tx.status !== "success") return; // only allow success payments
+    const url = `${api.defaults.baseURL}payments/download/${tx.reference}/`;
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.download = `receipt_${tx.reference}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) {
@@ -143,12 +122,16 @@ const StudentPaymentHistory = () => {
                       : "N/A"}
                   </td>
                   <td style={styles.td}>
-                    <button
-                      onClick={() => downloadReceipt(tx)}
-                      style={styles.downloadBtn}
-                    >
-                      <Download size={14} /> Download
-                    </button>
+                    {tx.status === "success" ? (
+                      <button
+                        onClick={() => downloadReceipt(tx)}
+                        style={styles.downloadBtn}
+                      >
+                        <Download size={14} /> Download
+                      </button>
+                    ) : (
+                      <span style={{ color: "#888" }}>—</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -173,6 +156,9 @@ const StudentPaymentHistory = () => {
   );
 };
 
+// -----------------------------
+// Styles
+// -----------------------------
 const styles = {
   page: {
     minHeight: "100vh",

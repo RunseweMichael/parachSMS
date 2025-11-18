@@ -1,8 +1,6 @@
-// src/components/Students/VerifyOTP.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api"; // For login and protected endpoints
-import apiPublic from "../../apiPublic"; // For resend OTP (public)
+import apiPublic from "../../apiPublic"; 
 import { Link } from "react-router-dom"; // 
 
 const VerifyOTP = () => {

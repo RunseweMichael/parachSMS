@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { jsPDF } from "jspdf";
 import { Download } from "lucide-react";
 
 const PaymentHistory = () => {
@@ -64,7 +63,6 @@ const PaymentHistory = () => {
     setSortConfig({ key, direction });
   };
 
-  // Total Paid
   const totalPaid = filteredTransactions.reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
   // CSV Export
@@ -95,35 +93,18 @@ const PaymentHistory = () => {
     document.body.removeChild(link);
   };
 
-  // ✅ PDF Receipt
-  const downloadReceiptPDF = (tx) => {
-    const doc = new jsPDF();
-    const yStart = 20;
+  // ✅ Download server-generated PDF receipt
+  const downloadReceipt = (tx) => {
+    if (tx.status !== "success") return;
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("Payment Receipt", 105, yStart, { align: "center" });
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Student Name: ${tx.user_name || "N/A"}`, 20, yStart + 20);
-    doc.text(`Course: ${tx.user_course || "N/A"}`, 20, yStart + 30);
-    doc.text(`Transaction Reference: ${tx.reference}`, 20, yStart + 40);
-    doc.text(`Amount: ₦${parseFloat(tx.amount).toLocaleString()}`, 20, yStart + 50);
-    doc.text(`Status: ${tx.status === "success" ? "Successful" : "Failed"}`, 20, yStart + 60);
-    doc.text(
-      `Date: ${new Date(tx.created_at).toLocaleString("en-NG", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      })}`,
-      20,
-      yStart + 70
-    );
-
-    doc.setFont("helvetica", "italic");
-    doc.text("Thank you for your payment!", 105, yStart + 95, { align: "center" });
-
-    doc.save(`receipt_${tx.reference}.pdf`);
+    const url = `${API_BASE}/payments/download/${tx.reference}/`; // make sure this endpoint returns the PDF
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.download = `receipt_${tx.reference}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -206,7 +187,7 @@ const PaymentHistory = () => {
                 </td>
                 <td style={styles.td}>
                   <button
-                    onClick={() => downloadReceiptPDF(tx)}
+                    onClick={() => downloadReceipt(tx)}
                     style={{
                       backgroundColor: "#1d4ed8",
                       color: "#fff",
@@ -232,7 +213,7 @@ const PaymentHistory = () => {
   );
 };
 
-// Styles (same as before)
+// Styles same as before
 const styles = {
   container: { padding: "20px", maxWidth: "1000px", margin: "0 auto" },
   heading: { fontSize: "28px", fontWeight: "700", color: "#1D4ED8", marginBottom: "20px" },

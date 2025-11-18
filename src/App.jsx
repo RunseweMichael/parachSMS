@@ -14,7 +14,7 @@ import CourseList from './components/Course/CourseList';
 import CourseDetail from './components/Course/CourseDetail';
 import CourseForm from './components/Course/CourseForm';
 import RegistrationForm from './components/Students/RegistrationForm';
-import VerifyOTP from './components/Students/VerifyOtp';
+import VerifyOTP from './components/Students/VerifyOTP.jsx';
 import ResetPassword from './components/Students/ResetPassword';
 import Profile from './components/Students/Profile';
 import EnquiryList from './components/Enquiries/EnquiryList';
@@ -30,16 +30,17 @@ import StudentPaymentHistory from "./components/Students/StudentPaymentHistory";
 
 /* === NEW FRONTEND IMPORTS === */
 import AuthForm from './views/Student-auth/Authform.jsx';
-import Admin from './layout/Admin.jsx';
+// import Admin from './layout/Admin.jsx';
 
 /* === COMBINED AUTH LOGIC === */
 const user = localStorage.getItem("token") || localStorage.getItem("user_id");
 // const user = isDevMode ? true : (localStorage.getItem("token") || localStorage.getItem("user_id"));
 
-/* === Protected Route === */
 const ProtectedRoute = ({ children }) => {
-  return user ? children : <Navigate to="/AdminLogin" replace />;
-};
+  const token = localStorage.getItem('token');
+  console.log("Token from ProtectedRoute:", token);
+  return token ? children : <Navigate to="/login" replace />;
+}
 
 
 function App() {
@@ -47,7 +48,6 @@ function App() {
     <BrowserRouter>
 
       <Routes>
-
         {/* === NEW AUTH ROUTES === */}
         <Route path="/auth" element={<AuthForm />} />
         <Route path="/AdminLogin" element={<Login />} />
@@ -59,7 +59,6 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={<Profile />} />
 
-        <Route path="/enquiries" element={<EnquiryList />} />
         <Route path="/enquiries/add" element={<EnquiryForm />} />
         <Route path="/enquiries/edit/:id" element={<EnquiryForm />} />
 
@@ -74,13 +73,13 @@ function App() {
           path="/admin" 
           element={
             <ProtectedRoute>
-              <Admin /> 
+              <AdminLayout />
             </ProtectedRoute>
           }
         >
 
           {/* ADMIN DASHBOARD */}
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route index element={<Dashboard />} />
 
           {/* STUDENTS */}
           <Route path="students" element={<StudentManagement />} />
@@ -102,6 +101,13 @@ function App() {
 
           {/* STAFF */}
           <Route path="staff-management" element={<StaffManagement />} />
+
+          {/* EQUIRIES LIST */}
+          <Route path="enquiries">
+            <Route index element={<EnquiryList />} />
+            <Route path="add" element={<EnquiryForm />} />
+            <Route path="edit/:id" element={<EnquiryForm />} />
+          </Route>
 
           {/* COURSES */}
           <Route path="courses">
@@ -126,8 +132,7 @@ function App() {
         </Route>
 
         {/* DEFAULT REDIRECT */}
-        <Route path="/" element={<Navigate to="/verify-otp" replace />} />
-        <Route path="*" element={<h2>404 Not Found</h2>} />
+        <Route path="/" element={<Navigate to="/admin" />} />
 
 
       </Routes>

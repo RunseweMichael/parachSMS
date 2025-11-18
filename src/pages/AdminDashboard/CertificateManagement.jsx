@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
-import { FaCheckCircle, FaClock, FaDownload, FaEye } from "react-icons/fa";
+import {
+  FaCheckCircle,
+  FaClock,
+  FaDownload,
+  FaEye,
+  FaFileAlt,
+} from "react-icons/fa";
 
 const CertificateManagement = () => {
   const [certificates, setCertificates] = useState([]);
@@ -16,7 +22,7 @@ const CertificateManagement = () => {
     try {
       setLoading(true);
       let url = "/certificates/certificates/";
-      
+
       if (filter === "approved") {
         url += "?is_approved=true";
       } else if (filter === "pending") {
@@ -47,15 +53,19 @@ const CertificateManagement = () => {
 
   const handleExport = async () => {
     try {
-      const response = await api.post("/admin-panel/export/", 
+      const response = await api.post(
+        "/admin-panel/export/",
         { type: "certificates" },
-        { responseType: 'blob' }
+        { responseType: "blob" }
       );
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `certificates_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute(
+        "download",
+        `certificates_${new Date().toISOString().split("T")[0]}.csv`
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -66,7 +76,9 @@ const CertificateManagement = () => {
   };
 
   const filteredCertificates = certificates.filter((cert) =>
-    `${cert.student_name || ""} ${cert.certificate_number || ""} ${cert.course_name || ""}`
+    `${cert.student_name || ""} ${cert.certificate_number || ""} ${
+      cert.course_name || ""
+    }`
       .toLowerCase()
       .includes(search.toLowerCase())
   );
@@ -83,18 +95,29 @@ const CertificateManagement = () => {
       {/* Stats */}
       <div style={styles.statsRow}>
         <div style={styles.statCard}>
+          <div style={styles.statIconWrapper}>
+            <FaFileAlt style={styles.statIconBlue} />
+          </div>
           <div style={styles.statValue}>{certificates.length}</div>
           <div style={styles.statLabel}>Total Certificates</div>
         </div>
+
         <div style={styles.statCard}>
+          <div style={styles.statIconWrapper}>
+            <FaCheckCircle style={styles.statIconGreen} />
+          </div>
           <div style={styles.statValue}>
-            {certificates.filter(c => c.is_approved).length}
+            {certificates.filter((c) => c.is_approved).length}
           </div>
           <div style={styles.statLabel}>Approved</div>
         </div>
+
         <div style={styles.statCard}>
+          <div style={styles.statIconWrapper}>
+            <FaClock style={styles.statIconOrange} />
+          </div>
           <div style={styles.statValue}>
-            {certificates.filter(c => !c.is_approved).length}
+            {certificates.filter((c) => !c.is_approved).length}
           </div>
           <div style={styles.statLabel}>Pending</div>
         </div>
@@ -305,6 +328,32 @@ const styles = {
     fontSize: "12px",
     fontWeight: "600",
   },
+  statIconWrapper: {
+  width: 60,
+  height: 60,
+  borderRadius: "50%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  margin: "0 auto 12px auto",
+  backgroundColor: "#eef5ff",
+},
+
+statIconBlue: {
+  color: "#2196F3",
+  fontSize: 30,
+},
+
+statIconGreen: {
+  color: "#4CAF50",
+  fontSize: 30,
+},
+
+statIconOrange: {
+  color: "#FF9800",
+  fontSize: 30,
+},
+
   pendingBadge: {
     display: "inline-flex",
     alignItems: "center",

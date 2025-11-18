@@ -20,21 +20,71 @@ const PaymentPage = () => {
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Token ${token}` };
 
-  // Fetch user info
-  useEffect(() => {
-    axios
-      .get(`${API_BASE}/students/me/`, { headers })
-      .then((res) => setUser(res.data))
-      .catch(() => setErrorMsg("Failed to load user information."));
-  }, [API_BASE]);
+  // Fetch user and balance from backend
+  const fetchUserData = async () => {
+    if (!token) return;
+    try {
+      const resUser = await axios.get(`${API_BASE}/students/me/`, { headers });
+      const resBalance = await axios.get(`${API_BASE}/payments/get_balance/`, { headers });
 
-  // Fetch balance info
+      setUser(resUser.data);
+      setBalance({
+        course_price: resBalance.data.course_price,
+        discounted_price: resBalance.data.discounted_price,
+        discount_applied: resBalance.data.discount_applied,
+        amount_paid: resBalance.data.amount_paid,
+        amount_owed: resBalance.data.amount_owed,
+        min_payment_required: resBalance.data.min_payment_required,
+      });
+
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Failed to load user information.");
+    }
+  };
+
   useEffect(() => {
-    axios
-      .get(`${API_BASE}/payments/get_balance/`, { headers })
-      .then((res) => setBalance(res.data))
-      .catch(() => setErrorMsg("Error fetching balance information."));
-  }, [API_BASE]);
+    fetchUserData();
+  }, [token, API_BASE]);
+
+  // Handle Paystack redirect verification
+  useEffect(() => {
+    const reference = searchParams.get("reference");
+    if (!reference || sessionStorage.getItem(`verified_${reference}`)) return;
+
+    setVerifying(true);
+
+    const verifyPayment = async (attempt = 1) => {
+      try {
+        const res = await axios.get(`${API_BASE}/payments/verify/${reference}/`, { headers });
+
+        if (res.data.success) {
+          sessionStorage.setItem(`verified_${reference}`, "true");
+
+          alert(`✅ Payment of ₦${res.data.amount_paid.toLocaleString()} verified!`);
+
+          // Fetch the latest user/balance from backend
+          await fetchUserData();
+
+          navigate("/dashboard");
+        } else if (attempt < 3) {
+          setTimeout(() => verifyPayment(attempt + 1), 2000);
+        } else {
+          setErrorMsg("❌ Payment verification failed. Please refresh.");
+          setVerifying(false);
+        }
+      } catch (err) {
+        console.error("Verification error:", err);
+        if (attempt < 3) setTimeout(() => verifyPayment(attempt + 1), 2000);
+        else {
+          setErrorMsg("❌ Verification failed. Please try again.");
+          setVerifying(false);
+        }
+      }
+    };
+
+    verifyPayment();
+  }, [searchParams, API_BASE, headers, navigate]);
 
   const handlePayNow = async () => {
     setErrorMsg("");
@@ -46,7 +96,7 @@ const PaymentPage = () => {
 
     if (balance.amount_paid === 0 && parsedAmount < balance.min_payment_required) {
       setErrorMsg(
-        `Your first payment must be at least ₦${balance.min_payment_required.toLocaleString()} (50% of the course fee).`
+        `Your first payment must be at least ₦${balance.min_payment_required.toLocaleString()} (50% of course fee).`
       );
       return;
     }
@@ -64,6 +114,7 @@ const PaymentPage = () => {
         alert(`✅ Coupon applied! You got ₦${response.data.discount_applied.toLocaleString()} off.`);
       }
 
+      // Redirect to Paystack
       window.location.href = response.data.authorization_url;
     } catch (err) {
       console.error("Payment init error:", err.response);
@@ -77,50 +128,6 @@ const PaymentPage = () => {
     }
   };
 
-  // Handle Paystack redirect verification with retries
-  // Handle Paystack redirect verification (safe + one-time)
-useEffect(() => {
-  const reference = searchParams.get("reference");
-  if (!reference) return;
-
-  if (sessionStorage.getItem(`verified_${reference}`)) return; // ✅ stop duplicates
-  setVerifying(true);
-
-  const verifyPayment = async (attempt = 1) => {
-    try {
-      const res = await axios.get(`${API_BASE}/payments/verify/${reference}/`, { headers });
-
-      if (res.data.success) {
-        // ✅ Mark as verified so it won't retry on reload
-        sessionStorage.setItem(`verified_${reference}`, "true");
-
-        const balanceRes = await axios.get(`${API_BASE}/payments/get_balance/`, { headers });
-        setBalance(balanceRes.data);
-
-        alert(`✅ Payment of ₦${res.data.amount_paid.toLocaleString()} verified!`);
-        navigate("/dashboard");
-      } else if (attempt < 3) {
-        // Retry a few times only if status isn't success
-        setTimeout(() => verifyPayment(attempt + 1), 2000);
-      } else {
-        setErrorMsg("❌ Payment verification failed. Please refresh.");
-        setVerifying(false);
-      }
-    } catch (err) {
-      console.error("Verification error:", err);
-      if (attempt < 3) {
-        setTimeout(() => verifyPayment(attempt + 1), 2000);
-      } else {
-        setErrorMsg("❌ Verification failed. Please try again.");
-        setVerifying(false);
-      }
-    }
-  };
-
-  verifyPayment();
-}, [searchParams, API_BASE, headers, navigate]);
-
-
   return (
     <div
       style={{
@@ -132,44 +139,67 @@ useEffect(() => {
         padding: "2rem",
       }}
     >
-      <style>
-        {`
-          .card { background: white; border-radius: 16px; padding: 2rem; max-width: 440px; width: 100%; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-          .heading { display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: #1e3a8a; font-weight: 700; font-size: 1.6rem; }
-          .infoBox { background: #eff6ff; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
-          .label { display: flex; align-items: center; color: #1e3a8a; font-weight: 600; margin-bottom: 0.4rem; }
-          .amountInput { width: 100%; padding: 0.8rem; margin-top: 0.5rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
-          .button { width: 100%; background-color: #1d4ed8; color: white; border: none; border-radius: 10px; padding: 0.9rem; font-weight: 600; cursor: pointer; margin-top: 1rem; }
-          .button:hover { background-color: #1e40af; }
-          .footer { text-align: center; font-size: 0.85rem; color: #6b7280; margin-top: 1rem; }
-          .alertBox { display: flex; align-items: flex-start; gap: 0.5rem; background: #fff7ed; border: 1px solid #fdba74; color: #92400e; padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem; }
-          .errorBox { background: #fee2e2; border: 1px solid #f87171; color: #b91c1c; padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem; }
-        `}
-      </style>
-
-      <div className="card">
-        <div className="heading">
-          <CreditCard size={30} style={{ marginRight: "8px" }} />
+      <div
+        className="card"
+        style={{
+          background: "#fff",
+          borderRadius: 16,
+          padding: "2rem",
+          maxWidth: 440,
+          width: "100%",
+          boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+        }}
+      >
+        <div
+          className="heading"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "1.5rem",
+            color: "#1e3a8a",
+            fontWeight: 700,
+            fontSize: "1.6rem",
+          }}
+        >
+          <CreditCard size={30} style={{ marginRight: 8 }} />
           Course Payment
         </div>
 
-        {errorMsg && <div className="errorBox">⚠️ {errorMsg}</div>}
+        {errorMsg && (
+          <div
+            className="errorBox"
+            style={{
+              background: "#fee2e2",
+              border: "1px solid #f87171",
+              color: "#b91c1c",
+              padding: 8,
+              borderRadius: 8,
+              marginBottom: 16,
+            }}
+          >
+            ⚠️ {errorMsg}
+          </div>
+        )}
 
         {verifying && (
-          <div style={{ textAlign: "center", marginBottom: "1rem", color: "#2563eb" }}>
+          <div style={{ textAlign: "center", marginBottom: 16, color: "#2563eb" }}>
             <Loader2 className="animate-spin inline" size={18} /> Verifying your payment, please wait...
           </div>
         )}
 
         {user && balance ? (
           <>
-            <div className="infoBox">
-              <div className="label">
-                <User size={18} style={{ marginRight: "6px", color: "#1d4ed8" }} />
+            <div
+              className="infoBox"
+              style={{ background: "#eff6ff", borderRadius: 10, padding: 16, marginBottom: 16 }}
+            >
+              <div className="label" style={{ display: "flex", alignItems: "center", color: "#1e3a8a", fontWeight: 600, marginBottom: 4 }}>
+                <User size={18} style={{ marginRight: 6, color: "#1d4ed8" }} />
                 {user.name}
               </div>
-              <div className="label">
-                <Book size={18} style={{ marginRight: "6px", color: "#4f46e5" }} />
+              <div className="label" style={{ display: "flex", alignItems: "center", color: "#1e3a8a", fontWeight: 600, marginBottom: 4 }}>
+                <Book size={18} style={{ marginRight: 6, color: "#4f46e5" }} />
                 Course: <span style={{ marginLeft: 5 }}>{user.course?.course_name}</span>
               </div>
               <div style={{ marginTop: 10 }}>
@@ -181,27 +211,48 @@ useEffect(() => {
             </div>
 
             {Number(balance.amount_paid) === 0 ? (
-              <div className="alertBox">
+              <div
+                className="alertBox"
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 4,
+                  background: "#fff7ed",
+                  border: "1px solid #fdba74",
+                  color: "#92400e",
+                  padding: 8,
+                  borderRadius: 8,
+                  marginBottom: 16,
+                }}
+              >
                 <AlertTriangle size={18} />
                 <span>
-                  Your first payment must be at least{" "}
-                  <b>₦{Number(balance.min_payment_required || 0).toLocaleString()}</b>.
+                  Your first payment must be at least <b>₦{Number(balance.min_payment_required).toLocaleString()}</b>.
                 </span>
               </div>
             ) : (
               <div
                 className="alertBox"
-                style={{ background: "#ecfdf5", borderColor: "#6ee7b7", color: "#065f46" }}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 4,
+                  background: "#ecfdf5",
+                  borderColor: "#6ee7b7",
+                  color: "#065f46",
+                  padding: 8,
+                  borderRadius: 8,
+                  marginBottom: 16,
+                }}
               >
                 <AlertTriangle size={18} />
                 <span>
-                  You can pay <b>any amount</b> towards your remaining balance of{" "}
-                  <b>₦{Number(balance.amount_owed || 0).toLocaleString()}</b>.
+                  You can pay <b>any amount</b> towards your remaining balance of <b>₦{Number(balance.amount_owed).toLocaleString()}</b>.
                 </span>
               </div>
             )}
 
-            <div style={{ marginTop: "1rem" }}>
+            <div style={{ marginBottom: 12 }}>
               <label>Enter Coupon Code (optional):</label>
               <input
                 type="text"
@@ -209,10 +260,11 @@ useEffect(() => {
                 placeholder="e.g. WELCOME50"
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
+                style={{ width: "100%", padding: 8, marginTop: 4, border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14 }}
               />
             </div>
 
-            <div>
+            <div style={{ marginBottom: 12 }}>
               <label>Enter Amount to Pay:</label>
               <input
                 type="number"
@@ -220,14 +272,29 @@ useEffect(() => {
                 placeholder="e.g. 15000"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                style={{ width: "100%", padding: 8, marginTop: 4, border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14 }}
               />
             </div>
 
-            <button onClick={handlePayNow} disabled={loading || verifying} className="button">
+            <button
+              onClick={handlePayNow}
+              disabled={loading || verifying}
+              style={{
+                width: "100%",
+                backgroundColor: "#1d4ed8",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                padding: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                marginTop: 12,
+              }}
+            >
               {loading ? <Loader2 className="animate-spin inline" size={16} /> : "💳 Pay Now"}
             </button>
 
-            <p className="footer">
+            <p style={{ textAlign: "center", fontSize: 12, color: "#6b7280", marginTop: 12 }}>
               Secure payments powered by <span style={{ color: "#2563eb" }}>Paystack</span>.
             </p>
           </>

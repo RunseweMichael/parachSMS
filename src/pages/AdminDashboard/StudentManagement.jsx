@@ -1,5 +1,6 @@
+// src/components/StudentManagement.jsx
 import React, { useEffect, useState } from "react";
-import api from "../../api";
+import api from "../../api"; // your axios instance with auth
 import { FaEdit, FaToggleOn, FaToggleOff, FaDownload } from "react-icons/fa";
 
 const StudentManagement = () => {
@@ -8,17 +9,13 @@ const StudentManagement = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [selectedStudents, setSelectedStudents] = useState([]);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
 
-  // Fetch students whenever filter changes
   useEffect(() => {
     fetchStudents();
   }, [filter]);
 
-  // -------------------------------
-  // Fetch students
-  // -------------------------------
   const fetchStudents = async () => {
     try {
       setLoading(true);
@@ -26,17 +23,45 @@ const StudentManagement = () => {
 
       if (filter === "defaulters") {
         const res = await api.get("/admin-panel/students/defaulters/");
-        data = res.data;
+        data = (res.data || []).map(s => ({
+          id: s.id,
+          name: s.name || "—",
+          email: s.email,
+          phone_number: s.phone_number || "—",
+          course_name: s.course_name || (s.course?.course_name || "—"),
+          amount_paid: Number(s.amount_paid || 0),
+          amount_owed: Number(s.amount_owed || 0),
+          discount: Number(s.discounted_price || 0),
+          next_due_date: s.next_due_date || null,
+          is_active: s.is_active,
+          is_staff: s.is_staff
+        }));
       } else {
         const res = await api.get("/students/users/");
-        data = res.data;
-
-        if (filter === "active") data = data.filter(s => s.is_active);
-        if (filter === "inactive") data = data.filter(s => !s.is_active);
+        data = (res.data || []).map(s => ({
+          id: s.id,
+          name: s.name || "—",
+          email: s.email,
+          phone_number: s.phone_number || "—",
+          course_name: s.course_name || (s.course?.course_name || "—"),
+          amount_paid: Number(s.amount_paid || 0),
+          amount_owed: Number(s.amount_owed || 0),
+          discount: Number(s.discounted_price || 0),
+          next_due_date: s.next_due_date || null,
+          is_active: s.is_active,
+          is_staff: s.is_staff
+        }));
       }
 
+      // filter out staff users
+      data = data.filter(s => !s.is_staff);
+
+      // additional filters
+      if (filter === "active") data = data.filter(s => s.is_active);
+      if (filter === "inactive") data = data.filter(s => !s.is_active);
+
       setStudents(data);
-      setSelectedStudents([]); // clear selection on refetch
+      setSelectedStudents([]);
     } catch (err) {
       console.error("Failed to fetch students:", err);
       alert("Failed to load students");
@@ -45,9 +70,25 @@ const StudentManagement = () => {
     }
   };
 
-  // -------------------------------
-  // Toggle individual student active status
-  // -------------------------------
+  const handleNotifyDefaulters = async () => {
+    if (!selectedStudents.length) {
+      alert("Please select defaulters to notify.");
+      return;
+    }
+
+    if (!window.confirm(`Send notifications to ${selectedStudents.length} defaulters?`)) return;
+
+    try {
+      const res = await api.post("/admin-panel/notify_defaulters/", {
+        student_ids: selectedStudents,
+      });
+      alert(res.data.message || "Notifications sent successfully!");
+    } catch (err) {
+      console.error("Failed to send notifications:", err);
+      alert(err?.response?.data?.error || "Failed to send notifications");
+    }
+  };
+
   const handleToggleActive = async (studentId) => {
     try {
       const res = await api.post(`/admin-panel/students/${studentId}/toggle_active/`);
@@ -59,9 +100,6 @@ const StudentManagement = () => {
     }
   };
 
-  // -------------------------------
-  // Bulk activate/deactivate
-  // -------------------------------
   const handleBulkAction = async (action) => {
     if (!selectedStudents.length) {
       alert("Please select students first");
@@ -70,7 +108,7 @@ const StudentManagement = () => {
     if (!window.confirm(`${action} ${selectedStudents.length} students?`)) return;
 
     try {
-      const endpoint = action === "activate" 
+      const endpoint = action === "activate"
         ? "/admin-panel/students/bulk_activate/"
         : "/admin-panel/students/bulk_deactivate/";
 
@@ -83,9 +121,6 @@ const StudentManagement = () => {
     }
   };
 
-  // -------------------------------
-  // Export students
-  // -------------------------------
   const handleExport = async () => {
     try {
       const response = await api.post("/admin-panel/export/", { type: "students" }, { responseType: 'blob' });
@@ -102,11 +137,8 @@ const StudentManagement = () => {
     }
   };
 
-  // -------------------------------
-  // Selection
-  // -------------------------------
-  const filteredStudents = students.filter(s => 
-    `${s.username || ""} ${s.email || ""}`.toLowerCase().includes(search.toLowerCase())
+  const filteredStudents = students.filter(s =>
+    `${s.name} ${s.email}`.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSelectAll = (e) => {
@@ -122,23 +154,32 @@ const StudentManagement = () => {
     }
   };
 
-  // -------------------------------
-  // Render
-  // -------------------------------
+  const openEdit = (student) => {
+    setEditingStudent(student);
+    setShowEditModal(true);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>Student Management</h2>
-        <button style={styles.exportBtn} onClick={handleExport}>
-          <FaDownload /> Export CSV
-        </button>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button style={styles.exportBtn} onClick={handleExport}>
+            <FaDownload /> Export CSV
+          </button>
+        </div>
       </div>
 
-      {/* Filters & Search */}
       <div style={styles.controls}>
         <input
           type="text"
-          placeholder="🔍 Search by username or email..."
+          placeholder="🔍 Search by name or email..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={styles.searchBox}
@@ -159,16 +200,29 @@ const StudentManagement = () => {
       {selectedStudents.length > 0 && (
         <div style={styles.bulkActions}>
           <span>{selectedStudents.length} selected</span>
-          <button style={styles.bulkBtn} onClick={() => handleBulkAction("activate")}>
-            Activate Selected
-          </button>
-          <button style={{ ...styles.bulkBtn, backgroundColor: "#f44336" }} onClick={() => handleBulkAction("deactivate")}>
-            Deactivate Selected
-          </button>
+
+          {filter !== "defaulters" && (
+            <>
+              <button style={styles.bulkBtn} onClick={() => handleBulkAction("activate")}>
+                Activate Selected
+              </button>
+              <button style={{ ...styles.bulkBtn, backgroundColor: "#f44336" }} onClick={() => handleBulkAction("deactivate")}>
+                Deactivate Selected
+              </button>
+            </>
+          )}
+
+          {filter === "defaulters" && (
+            <button
+              style={{ ...styles.bulkBtn, backgroundColor: "#FF9800" }}
+              onClick={handleNotifyDefaulters}
+            >
+              Send Notification to Selected Defaulters
+            </button>
+          )}
         </div>
       )}
 
-      {/* Table */}
       {loading ? (
         <p style={styles.message}>Loading students...</p>
       ) : filteredStudents.length === 0 ? (
@@ -182,10 +236,14 @@ const StudentManagement = () => {
                 <th>#</th>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Phone</th>
                 <th>Course</th>
                 <th>Amount Paid</th>
                 <th>Amount Owed</th>
+                <th>Discount</th>
+                <th>Next Due Date</th>
                 <th>Status</th>
+                <th>Edit</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -194,11 +252,14 @@ const StudentManagement = () => {
                 <tr key={s.id} style={styles.tr}>
                   <td><input type="checkbox" checked={selectedStudents.includes(s.id)} onChange={() => handleSelectStudent(s.id)} /></td>
                   <td>{i + 1}</td>
-                  <td>{s.username}</td>
+                  <td>{s.name}</td>
                   <td>{s.email}</td>
-                  <td>{s.course_name || "—"}</td>
-                  <td>${Number(s.amount_paid || 0).toFixed(2)}</td>
-                  <td>${Number(s.amount_owed || 0).toFixed(2)}</td>
+                  <td>{s.phone_number}</td>
+                  <td>{s.course_name}</td>
+                  <td>${s.amount_paid.toFixed(2)}</td>
+                  <td>${s.amount_owed.toFixed(2)}</td>
+                  <td>${s.discount.toFixed(2)}</td>
+                  <td>{formatDate(s.next_due_date)}</td>
                   <td>
                     <span style={{
                       ...styles.badge,
@@ -209,9 +270,11 @@ const StudentManagement = () => {
                     </span>
                   </td>
                   <td>
-                    <button style={styles.iconBtn} onClick={() => { setEditingStudent(s); setShowPaymentModal(true); }} title="Edit Payment">
+                    <button style={styles.iconBtn} onClick={() => openEdit(s)} title="Edit Student">
                       <FaEdit />
                     </button>
+                  </td>
+                  <td>
                     <button style={{ ...styles.iconBtn, color: s.is_active ? "#f44336" : "#4CAF50" }} onClick={() => handleToggleActive(s.id)}>
                       {s.is_active ? <FaToggleOff /> : <FaToggleOn />}
                     </button>
@@ -223,70 +286,98 @@ const StudentManagement = () => {
         </div>
       )}
 
-      {/* Payment Modal */}
-      {showPaymentModal && (
-        <PaymentModal
+      {showEditModal && editingStudent && (
+        <EditStudentModal
           student={editingStudent}
-          onClose={() => { setShowPaymentModal(false); setEditingStudent(null); }}
-          onSuccess={() => { fetchStudents(); setShowPaymentModal(false); setEditingStudent(null); }}
+          onClose={() => { setShowEditModal(false); setEditingStudent(null); }}
+          onSuccess={() => { fetchStudents(); setShowEditModal(false); setEditingStudent(null); }}
         />
       )}
     </div>
   );
 };
 
-// -------------------------------
-// Payment Modal (unchanged)
-// -------------------------------
-const PaymentModal = ({ student, onClose, onSuccess }) => {
+// --------- Edit Student Modal ----------
+const EditStudentModal = ({ student, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
-    amount_paid: student.amount_paid || 0,
-    amount_owed: student.amount_owed || 0,
+    email: student.email || "",
+    amount_paid: student.amount_paid ?? 0,
     next_due_date: student.next_due_date || "",
+    name: student.name || "",
+    phone_number: student.phone_number || "",
+    address: student.address || ""
   });
+  const [saving, setSaving] = useState(false);
+
+  const handleChange = (key, value) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const payload = {
-        amount_paid: formData.amount_paid !== "" ? Number(formData.amount_paid) : null,
-        amount_owed: formData.amount_owed !== "" ? Number(formData.amount_owed) : null,
-        next_due_date: formData.next_due_date || null,
-      };
-      if ((payload.amount_paid !== null && isNaN(payload.amount_paid)) || (payload.amount_owed !== null && isNaN(payload.amount_owed))) {
-        alert("Please enter valid numbers");
-        return;
-      }
+    if (!formData.email) {
+      alert("Email is required.");
+      return;
+    }
 
-      await api.post(`/admin-panel/students/${student.id}/update_payment/`, payload);
-      alert("Payment updated successfully");
+    setSaving(true);
+    try {
+      await api.put(`/students/users/${student.id}/`, {
+        email: formData.email,
+        name: formData.name,
+        phone_number: formData.phone_number,
+        address: formData.address,
+        amount_paid: formData.amount_paid,
+        next_due_date: formData.next_due_date || null
+      });
+      alert("Student updated successfully.");
       onSuccess();
     } catch (err) {
-      console.error("Payment update failed:", err);
-      alert(err?.response?.data?.error || "Failed to update payment");
+      console.error("Update failed:", err);
+      alert(err?.response?.data?.error || "Failed to update student");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
       <div style={styles.modal} onClick={e => e.stopPropagation()}>
-        <h3 style={styles.modalTitle}>Update Payment - {student.username}</h3>
+        <h3 style={styles.modalTitle}>Edit Student — {student.name}</h3>
         <form onSubmit={handleSubmit}>
           <div style={styles.formGroup}>
-            <label style={styles.label}>Amount Paid</label>
-            <input type="number" step="0.01" value={formData.amount_paid} onChange={e => setFormData({ ...formData, amount_paid: e.target.value })} style={styles.input} />
+            <label style={styles.label}>Email</label>
+            <input value={formData.email} onChange={e => handleChange('email', e.target.value)} style={styles.input} />
           </div>
+
           <div style={styles.formGroup}>
-            <label style={styles.label}>Amount Owed</label>
-            <input type="number" step="0.01" value={formData.amount_owed} onChange={e => setFormData({ ...formData, amount_owed: e.target.value })} style={styles.input} />
+            <label style={styles.label}>Full Name</label>
+            <input value={formData.name} onChange={e => handleChange('name', e.target.value)} style={styles.input} />
           </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Phone</label>
+            <input value={formData.phone_number} onChange={e => handleChange('phone_number', e.target.value)} style={styles.input} />
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Address</label>
+            <input value={formData.address} onChange={e => handleChange('address', e.target.value)} style={styles.input} />
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Amount Paid</label>
+            <input type="number" step="0.01" value={formData.amount_paid} onChange={e => handleChange('amount_paid', e.target.value)} style={styles.input} />
+          </div>
+
           <div style={styles.formGroup}>
             <label style={styles.label}>Next Due Date</label>
-            <input type="date" value={formData.next_due_date} onChange={e => setFormData({ ...formData, next_due_date: e.target.value })} style={styles.input} />
+            <input type="date" value={formData.next_due_date || ""} onChange={e => handleChange('next_due_date', e.target.value)} style={styles.input} />
           </div>
+
           <div style={styles.modalActions}>
             <button type="button" style={styles.cancelBtn} onClick={onClose}>Cancel</button>
-            <button type="submit" style={styles.saveBtn}>Save Changes</button>
+            <button type="submit" style={styles.saveBtn} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</button>
           </div>
         </form>
       </div>
@@ -294,195 +385,32 @@ const PaymentModal = ({ student, onClose, onSuccess }) => {
   );
 };
 
+// ---------------- styles object ----------------
 const styles = {
-  container: {
-    padding: "30px",
-    backgroundColor: "#f5f5f5",
-    minHeight: "100vh",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "25px",
-  },
-  title: {
-    fontSize: "28px",
-    fontWeight: "700",
-    color: "#333",
-  },
-  exportBtn: {
-    padding: "10px 20px",
-    backgroundColor: "#4CAF50",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "600",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  },
-  controls: {
-    display: "flex",
-    gap: "15px",
-    marginBottom: "20px",
-  },
-  searchBox: {
-    flex: 1,
-    padding: "12px 15px",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-    fontSize: "14px",
-  },
-  filterSelect: {
-    padding: "12px 15px",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-    fontSize: "14px",
-    minWidth: "200px",
-  },
-  bulkActions: {
-    backgroundColor: "#fff",
-    padding: "15px",
-    borderRadius: "8px",
-    marginBottom: "20px",
-    display: "flex",
-    alignItems: "center",
-    gap: "15px",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-  },
-  bulkBtn: {
-    padding: "8px 16px",
-    backgroundColor: "#2196F3",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: "600",
-  },
-  tableContainer: {
-    backgroundColor: "#fff",
-    borderRadius: "12px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-    overflowX: "auto",
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-  },
-  th: {
-    textAlign: "left",
-    padding: "15px",
-    backgroundColor: "#f8f9fa",
-    fontWeight: "600",
-    color: "#333",
-    borderBottom: "2px solid #dee2e6",
-  },
-  td: {
-    padding: "12px 15px",
-    borderBottom: "1px solid #dee2e6",
-    color: "#666",
-  },
-  tr: {
-    transition: "background-color 0.2s",
-  },
-  badge: {
-    display: "inline-block",
-    padding: "5px 12px",
-    borderRadius: "12px",
-    fontSize: "12px",
-    fontWeight: "600",
-  },
-  actionBtns: {
-    display: "flex",
-    gap: "8px",
-  },
-  iconBtn: {
-    padding: "6px 10px",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "16px",
-    backgroundColor: "transparent",
-    color: "#2196F3",
-    transition: "all 0.2s",
-  },
-  message: {
-    textAlign: "center",
-    padding: "40px",
-    color: "#666",
-    backgroundColor: "#fff",
-    borderRadius: "12px",
-  },
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1000,
-  },
-  modal: {
-    backgroundColor: "#fff",
-    padding: "30px",
-    borderRadius: "12px",
-    width: "90%",
-    maxWidth: "500px",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-  },
-  modalTitle: {
-    fontSize: "20px",
-    fontWeight: "600",
-    marginBottom: "20px",
-    color: "#333",
-  },
-  formGroup: {
-    marginBottom: "20px",
-  },
-  label: {
-    display: "block",
-    marginBottom: "8px",
-    fontWeight: "500",
-    color: "#333",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    fontSize: "14px",
-  },
-  modalActions: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: "10px",
-    marginTop: "20px",
-  },
-  cancelBtn: {
-    padding: "10px 20px",
-    backgroundColor: "#f5f5f5",
-    color: "#333",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: "600",
-  },
-  saveBtn: {
-    padding: "10px 20px",
-    backgroundColor: "#4CAF50",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: "600",
-  },
+  container: { padding: "30px", backgroundColor: "#f5f5f5", minHeight: "100vh" },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" },
+  title: { fontSize: "28px", fontWeight: "700", color: "#333" },
+  exportBtn: { padding: "10px 20px", backgroundColor: "#4CAF50", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" },
+  controls: { display: "flex", gap: "15px", marginBottom: "20px" },
+  searchBox: { flex: 1, padding: "12px 15px", border: "1px solid #ccc", borderRadius: "8px", fontSize: "14px" },
+  filterSelect: { padding: "12px 15px", border: "1px solid #ccc", borderRadius: "8px", fontSize: "14px", minWidth: "200px" },
+  bulkActions: { backgroundColor: "#fff", padding: "15px", borderRadius: "8px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "15px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" },
+  bulkBtn: { padding: "8px 16px", backgroundColor: "#2196F3", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "600" },
+  tableContainer: { backgroundColor: "#fff", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", overflowX: "auto" },
+  table: { width: "100%", borderCollapse: "collapse" },
+  tr: { transition: "background-color 0.2s" },
+  badge: { display: "inline-block", padding: "5px 12px", borderRadius: "12px", fontSize: "12px", fontWeight: "600" },
+  iconBtn: { padding: "6px 10px", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "16px", backgroundColor: "transparent", color: "#2196F3", transition: "all 0.2s" },
+  message: { textAlign: "center", padding: "40px", color: "#666", backgroundColor: "#fff", borderRadius: "12px" },
+  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
+  modal: { backgroundColor: "#fff", padding: "30px", borderRadius: "12px", width: "90%", maxWidth: "600px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" },
+  modalTitle: { fontSize: "20px", fontWeight: "600", marginBottom: "20px", color: "#333" },
+  formGroup: { marginBottom: "12px" },
+  label: { display: "block", marginBottom: "6px", fontWeight: "500", color: "#333" },
+  input: { width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", fontSize: "14px" },
+  modalActions: { display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" },
+  cancelBtn: { padding: "10px 20px", backgroundColor: "#f5f5f5", color: "#333", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" },
+  saveBtn: { padding: "10px 20px", backgroundColor: "#4CAF50", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" },
 };
 
 export default StudentManagement;
