@@ -10,7 +10,7 @@ import HeaderStats from "../component/Headers/HeaderStats.jsx";
 // Views
 import Dashboard from "../views/Student-Interface/Dashboard.jsx";
 import Payment from "../views/Student-Interface/PaymentDashboard.jsx";
-import Settings from "../views/Student-Interface/Settings.jsx";
+import Settings from "../views/Student-Interface/StudentProfile.jsx";
 import Certificate from "../views/Student-Interface/CertificateDashboard.jsx";
 export default function Admin() {
   return (

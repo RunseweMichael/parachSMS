@@ -9,4 +9,6 @@ export default defineConfig({
     tailwindcss(),
     // tailwind-animate is a Tailwind plugin → put it in tailwind.config.js
   ],
+
+  
 });

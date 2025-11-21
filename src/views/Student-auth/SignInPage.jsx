@@ -3,6 +3,7 @@ import apiPublic from "../../apiPublic";
 import { MailCheck, Lock, UserLock, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import FloatingBackground from "../../component/FloatingBackground";
 
 export default function SignInPage() {
   const navigate = useNavigate();
@@ -60,24 +61,52 @@ export default function SignInPage() {
       const res = await apiPublic.post("/students/login/", {
         email: email,
         password: password,
-        code: otp, // backend requires this
+        code: otp,
       });
 
       console.log("LOGIN RESPONSE:", res.data);
+
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user_id", res.data.user_id);
+      localStorage.setItem("username", res.data.username);
+
+      const userRole = res.data.role || res.data.user_role || "student";
+      localStorage.setItem("role", userRole);
+
+      if (res.data.user) {
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+      }
+
       setSuccess("Login Successful!");
 
-      setTimeout(() => navigate("/student/dashbord"), 1200);
-
+      setTimeout(() => {
+        if (userRole === "admin" || userRole === "super-admin") {
+          navigate("/super-admin/dashboard");
+        } else {
+          navigate("/student/dashboard");
+        }
+      }, 1200);
     } catch (err) {
       console.log("LOGIN ERROR:", err.response?.data);
-      setError(err.response?.data?.code?.[0] || "Login failed");
+
+      const errorMsg =
+        err.response?.data?.error ||
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        JSON.stringify(err.response?.data) ||
+        "Login failed";
+
+      setError(errorMsg);
     }
 
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-6">
+    <div className="min-h-screen w-full flex items-center justify-center p-6 relative z-10 overflow-hidden">
+
+ 
+      <FloatingBackground />
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -85,7 +114,6 @@ export default function SignInPage() {
         transition={{ duration: 0.6 }}
         className="bg-white/70 backdrop-blur-2xl shadow-2xl border border-white/40 rounded-3xl p-10 w-full max-w-md"
       >
-
         <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-6">
           Welcome Back 👋
         </h1>
@@ -94,8 +122,14 @@ export default function SignInPage() {
           Sign in to continue your learning journey
         </p>
 
-        {error && <p className="text-red-600 bg-red-100 p-3 rounded-xl mb-3">{error}</p>}
-        {success && <p className="text-green-600 bg-green-100 p-3 rounded-xl mb-3">{success}</p>}
+        {error && (
+          <p className="text-red-600 bg-red-100 p-3 rounded-xl mb-3">{error}</p>
+        )}
+        {success && (
+          <p className="text-green-600 bg-green-100 p-3 rounded-xl mb-3">
+            {success}
+          </p>
+        )}
 
         <div className="space-y-4 mb-6">
 
@@ -123,7 +157,6 @@ export default function SignInPage() {
               className="w-full pl-12 pr-12 py-3 rounded-xl border border-gray-300 bg-white shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
 
-            {/* PASSWORD TOGGLE */}
             <div
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-4 top-3.5 text-gray-500 cursor-pointer"
@@ -143,13 +176,10 @@ export default function SignInPage() {
               className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 bg-white shadow-sm focus:ring-2 focus:ring-purple-500 outline-none"
             />
           </div>
-
         </div>
 
-        {/* BUTTONS */}
+        {/* Buttons */}
         <div className="space-y-4">
-
-          {/* LOGIN */}
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleLogin}
@@ -159,7 +189,6 @@ export default function SignInPage() {
             {loading ? "Logging in..." : "Sign In"}
           </motion.button>
 
-          {/* SEND OTP */}
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleSendOTP}
@@ -169,16 +198,13 @@ export default function SignInPage() {
             {sendingOtp ? "Sending OTP..." : "Send OTP"}
           </motion.button>
 
-          {/* SIGN-UP */}
           <button
             onClick={() => navigate("/signup")}
             className="w-full bg-gray-900 hover:bg-black text-white font-semibold py-3 rounded-2xl shadow-md transition-all hover:scale-[1.02]"
           >
             Create a New Account
           </button>
-
         </div>
-
       </motion.div>
     </div>
   );

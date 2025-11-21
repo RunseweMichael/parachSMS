@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { CreditCard, User, Book, Loader2 } from "lucide-react";
+import { CreditCard, Wallet, History, User, BookOpen, Loader2, CheckCircle } from "lucide-react";
 import axios from "axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
+
+
 
 export default function PaymentDashboard() {
   const [selectedMethod, setSelectedMethod] = useState("pay");
@@ -21,26 +23,25 @@ export default function PaymentDashboard() {
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Token ${token}` };
 
-  /** -------------------------------
-   * Fetch User + Balance
-   --------------------------------*/
+  const getMinimumAmount = () => {
+  if (!balance || !balance.amount_owed) return 0;
+  return balance.amount_owed * 0.4; // 40%
+};
+
+
   const fetchUserData = useCallback(async () => {
     try {
       const [resUser, resBalance] = await Promise.all([
         axios.get(`${API_BASE}/students/me/`, { headers }),
         axios.get(`${API_BASE}/payments/get_balance/`, { headers }),
       ]);
-
       setUser(resUser.data);
       setBalance(resBalance.data);
     } catch (err) {
-      setErrorMsg("Failed to load user information.");
+      setErrorMsg("Failed to load your information.");
     }
   }, [API_BASE]);
 
-  /** -------------------------------
-   * Fetch Transactions
-   --------------------------------*/
   const fetchTransactions = useCallback(async () => {
     try {
       const res = await axios.get(`${API_BASE}/payments/student-transactions/`, { headers });
@@ -55,20 +56,16 @@ export default function PaymentDashboard() {
     fetchTransactions();
   }, [fetchUserData, fetchTransactions]);
 
-  /** -------------------------------
-   * Verify Paystack Redirect
-   --------------------------------*/
   useEffect(() => {
     const reference = searchParams.get("reference");
     if (!reference) return;
 
     setVerifying(true);
-
     axios
       .get(`${API_BASE}/payments/verify/${reference}/`, { headers })
       .then((res) => {
         if (res.data.success) {
-          alert(`Payment of ₦${res.data.amount_paid} verified successfully!`);
+          alert(`Payment of ₦${res.data.amount_paid.toLocaleString()} verified successfully! 🎉`);
           fetchUserData();
           fetchTransactions();
           navigate("/dashboard", { replace: true });
@@ -76,192 +73,277 @@ export default function PaymentDashboard() {
       })
       .catch(() => setErrorMsg("Payment verification failed."))
       .finally(() => setVerifying(false));
-  }, []);
+  }, [searchParams, navigate, API_BASE, headers, fetchUserData, fetchTransactions]);
 
-  /** -------------------------------
-   * Initialize Payment
-   --------------------------------*/
-  const handlePayNow = async () => {
-    setErrorMsg("");
+ const handlePayNow = async () => {
+  setErrorMsg("");
 
-    if (!amount || Number(amount) <= 0) {
-      return setErrorMsg("Please enter a valid amount.");
-    }
+  const minAmount = getMinimumAmount();
 
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        `${API_BASE}/payments/initialize/`,
-        { amount: Number(amount), coupon_code: couponCode },
-        { headers }
-      );
+  if (!amount || Number(amount) <= 0) {
+    return setErrorMsg("Please enter a valid payment amount.");
+  }
 
-      window.location.href = response.data.authorization_url;
-    } catch (e) {
-      console.error(e);
-      setErrorMsg(e.response?.data?.message || "Payment initialization failed.");
-    } finally {
-      setLoading(false);
-    }
+  if (Number(amount) < minAmount) {
+    return setErrorMsg(
+      `Minimum payment is 40% of your outstanding balance (${minAmount.toLocaleString()}).`
+    );
+  }
+
+  setLoading(true);
+  try {
+    const response = await axios.post(
+      `${API_BASE}/payments/initialize/`,
+      { 
+        amount: Number(amount), 
+        coupon_code: couponCode || undefined 
+      },
+      { headers }
+    );
+
+    window.location.href = response.data.authorization_url;
+
+  } catch (e) {
+    setErrorMsg(e.response?.data?.message || "Payment failed. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+    },
   };
 
-  /** -------------------------------
-   * Animation
-   --------------------------------*/
-  const fadeUp = {
+  const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        {/* Tabs */}
-        <div className="flex gap-3 mb-6 justify-center flex-wrap">
-          {[
-            { key: "pay", label: "Make Payment" },
-            { key: "history", label: "Recent Transactions" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setSelectedMethod(tab.key)}
-              className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 shadow-sm text-sm md:text-base ${
-                selectedMethod === tab.key
-                  ? "bg-indigo-600 text-white scale-105"
-                  : "bg-white text-slate-700 hover:bg-slate-100"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+    <div className="min-h-screen bg-white text-slate-800 p-4 md:p-10">
 
-        {/* -------------------------------
-          MAKE PAYMENT TAB
-        --------------------------------*/}
+      <div className="max-w-6xl mx-auto">
+
+        {/* Header Tabs */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="flex justify-center mb-10"
+        >
+         <div className="w-full flex justify-center mt-6">
+          
+  <div className="w-full flex justify-center mt-6">
+     
+  <div className="relative bg-white border border-blue-200 rounded-2xl p-2 shadow-md flex gap-1">
+    
+    {/* Sliding highlight indicator */}
+    <motion.div
+      layout
+      className="absolute top-2 bottom-2 rounded-xl bg-blue-600"
+      initial={{ x: 0 }}
+      animate={{
+        x: selectedMethod === "pay" ? 0 : "100%",
+        width: "48.5%",
+      }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      style={{ zIndex: 0 }}
+    />
+
+    {[
+      { key: "pay", label: "Make Payment", icon: Wallet },
+      { key: "history", label: "Transaction History", icon: History },
+    ].map((tab, index) => (
+      <button
+        key={tab.key}
+        onClick={() => setSelectedMethod(tab.key)}
+        className="relative z-10 flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all w-[50%] justify-center"
+      >
+        <motion.div
+          animate={{ 
+            color: selectedMethod === tab.key ? "#fff" : "#1d4ed8", 
+            scale: selectedMethod === tab.key ? 1.05 : 1 
+          }}
+          transition={{ duration: 0.2 }}
+          className="flex items-center gap-2"
+        >
+          <tab.icon size={18} />
+          {tab.label}
+        </motion.div>
+      </button>
+    ))}
+  </div>
+</div>
+</div>
+
+        </motion.div>
+
+        {/* Pay Tab */}
         {selectedMethod === "pay" && (
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            className="bg-white rounded-2xl shadow-lg p-6 md:p-8"
-          >
-            <h2 className="flex items-center text-xl md:text-2xl font-bold text-indigo-700 mb-4">
-              <CreditCard className="mr-2" /> Course Payment
-            </h2>
+          <motion.div variants={container} initial="hidden" animate="show" className="grid lg:grid-cols-3 gap-8">
 
-            {errorMsg && (
-              <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-3 text-sm">
-                {errorMsg}
-              </div>
-            )}
-
-            {verifying && (
-              <p className="text-indigo-600 text-sm mb-2 flex items-center gap-2">
-                <Loader2 className="animate-spin" size={16} /> Verifying payment...
-              </p>
-            )}
-
-            {!user || !balance ? (
-              <div className="text-center py-6 text-slate-600">
-                <Loader2 className="animate-spin mx-auto" />
-                <p className="mt-2">Loading...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* User Info Card */}
-                <div className="bg-blue-50 p-4 rounded-xl">
-                  <p className="font-bold text-slate-800 flex items-center">
-                    <User className="mr-2" /> {user.name}
-                  </p>
-
-                  <p className="font-semibold text-slate-700 flex items-center">
-                    <Book className="mr-2" /> {user.course?.course_name}
-                  </p>
-
-                  <div className="mt-2 text-sm text-slate-600">
-                    <p>Course Price: ₦{balance.course_price.toLocaleString()}</p>
-                    <p>Paid: ₦{balance.amount_paid.toLocaleString()}</p>
-                    <p>Owed: ₦{balance.amount_owed.toLocaleString()}</p>
+            {/* User & Balance Card */}
+            <motion.div variants={item} className="lg:col-span-1">
+              <div className="bg-white border border-blue-100 rounded-2xl p-6 shadow-sm">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-4 bg-blue-600 text-white rounded-xl">
+                    <User size={26} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Welcome back</p>
+                    <h3 className="text-xl font-bold text-blue-800">{user?.name || "..."}</h3>
                   </div>
                 </div>
 
-                <input
-                  type="text"
-                  placeholder="Coupon Code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="w-full border p-3 rounded-xl text-sm"
-                />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <BookOpen size={20} className="text-blue-600" />
+                    <span className="text-lg">{user?.course?.course_name || "..."}</span>
+                  </div>
 
-                <input
-                  type="number"
-                  placeholder="Enter Amount"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full border p-3 rounded-xl text-sm"
-                />
+                  <div className="pt-6 space-y-3 border-t border-slate-200">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Total Fee</span>
+                      <span className="font-bold text-lg text-blue-900">₦{balance?.course_price?.toLocaleString() || "0"}</span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>Paid</span>
+                      <span className="font-bold">₦{balance?.amount_paid?.toLocaleString() || "0"}</span>
+                    </div>
+                    <div className="flex justify-between text-orange-600">
+                      <span>Outstanding</span>
+                      <span className="font-bold text-xl">₦{balance?.amount_owed?.toLocaleString() || "0"}</span>
+                    </div>
+                  </div>
 
-                <button
-                  onClick={handlePayNow}
-                  disabled={loading}
-                  className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 ${
-                    loading && "opacity-70 cursor-not-allowed"
-                  }`}
-                >
-                  {loading ? (
-                    <Loader2 className="animate-spin mx-auto" size={18} />
-                  ) : (
-                    "Pay Now"
+                  {balance?.amount_owed === 0 && (
+                    <div className="mt-4 p-4 bg-green-50 border border-green-400 rounded-xl text-center">
+                      <CheckCircle className="mx-auto mb-2 text-green-600" size={30} />
+                      <p className="font-semibold text-green-700">Fully Paid 🎉</p>
+                    </div>
                   )}
-                </button>
+                </div>
               </div>
-            )}
+            </motion.div>
+
+            {/* Payment Form */}
+            <motion.div variants={item} className="lg:col-span-2">
+              <div className="bg-white border border-blue-100 rounded-2xl p-8 shadow-sm">
+
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-blue-800">
+                  <CreditCard size={30} />
+                  Make a Payment
+                </h2>
+
+                {verifying && (
+                  <div className="mb-6 p-4 bg-blue-100 border border-blue-300 rounded-xl flex items-center gap-3 text-blue-700">
+                    <Loader2 className="animate-spin" />
+                    <span>Verifying your payment...</span>
+                  </div>
+                )}
+
+                {errorMsg && (
+                  <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-xl text-red-700">
+                    {errorMsg}
+                  </div>
+                )}
+
+                <div className="space-y-5">
+
+                  <div>
+                    <label className="text-sm text-slate-600">Coupon Code (Optional)</label>
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      className="w-full mt-1 px-4 py-3 border border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-slate-600">Amount to Pay (₦)</label>
+                    <input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="w-full mt-1 px-4 py-3 border border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                    />
+                    <div className="text-sm text-blue-700 mt-1">
+                       Minimum to pay: ₦{getMinimumAmount().toLocaleString()}
+                    </div>
+
+                  </div>
+
+                  <button
+                    onClick={handlePayNow}
+                    disabled={loading || !amount}
+                    className="w-full py-4 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-lg rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {loading ? <Loader2 className="animate-spin" size={24} /> : <><CreditCard size={22} /> Pay Now</>}
+                  </button>
+
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
 
-        {/* -------------------------------
-          TRANSACTIONS TAB
-        --------------------------------*/}
+        {/* History Tab */}
         {selectedMethod === "history" && (
           <motion.div
-            variants={fadeUp}
+            variants={container}
             initial="hidden"
             animate="show"
-            className="bg-white rounded-2xl shadow-lg p-6"
+            className="bg-white border border-blue-100 rounded-2xl shadow-sm overflow-hidden"
           >
-            <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-4">
-              Recent Transactions
-            </h2>
+            <div className="p-6 border-b border-slate-200">
+              <h2 className="text-2xl font-bold text-blue-800">Transaction History</h2>
+            </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-100 text-left">
-                    <th className="p-2">Reference</th>
-                    <th className="p-2">Amount</th>
-                    <th className="p-2">Status</th>
-                    <th className="p-2">Date</th>
+                  <tr className="text-left bg-blue-50 border-b border-blue-100">
+                    <th className="px-6 py-4">Reference</th>
+                    <th className="px-6 py-4">Amount</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Date</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {transactions.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="text-center p-4 text-slate-500">
-                        No transactions found.
+                      <td colSpan="4" className="text-center py-12 text-slate-500">
+                        No transactions yet.
                       </td>
                     </tr>
                   ) : (
                     transactions.map((tx) => (
-                      <tr key={tx.id} className="border-b hover:bg-slate-50">
-                        <td className="p-2">{tx.reference}</td>
-                        <td className="p-2">₦{tx.amount.toLocaleString()}</td>
-                        <td className="p-2">{tx.status}</td>
-                        <td className="p-2">
+                      <motion.tr
+                        key={tx.id}
+                        variants={item}
+                        className="border-b border-slate-200 hover:bg-blue-50 transition"
+                      >
+                        <td className="px-6 py-4 font-mono text-sm">{tx.reference}</td>
+                        <td className="px-6 py-4 font-bold text-blue-900">₦{tx.amount.toLocaleString()}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            tx.status === "success"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}>
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">
                           {new Date(tx.created_at).toLocaleString()}
                         </td>
-                      </tr>
+                      </motion.tr>
                     ))
                   )}
                 </tbody>
@@ -269,6 +351,7 @@ export default function PaymentDashboard() {
             </div>
           </motion.div>
         )}
+
       </div>
     </div>
   );
