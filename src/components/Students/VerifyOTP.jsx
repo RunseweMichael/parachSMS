@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiPublic from "../../apiPublic"; 
-import { Link } from "react-router-dom"; // 
+import { Link } from "react-router-dom";
 
 const VerifyOTP = () => {
   const navigate = useNavigate();
@@ -97,7 +97,7 @@ const VerifyOTP = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 font-inter px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient from-blue-50 to-slate-100 font-inter px-4">
       <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 animate-fade-in">
 
         <h2 className="text-3xl font-bold text-center text-blue-700">

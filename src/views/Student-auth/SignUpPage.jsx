@@ -16,6 +16,7 @@ export default function SignUpPage() {
     phone_number: "",
     address: "",
     consent: false,
+    center: "",       // ✅ NEW FIELD
   });
 
   const [courses, setCourses] = useState([]);
@@ -40,7 +41,6 @@ export default function SignUpPage() {
   };
 
   /** Submit registration */
-   /** Submit registration */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -50,26 +50,20 @@ export default function SignUpPage() {
 
       const { token, user_id, user } = res.data;
 
-      /** Save auth data */
       if (token) localStorage.setItem("token", token);
       if (user_id) localStorage.setItem("user_id", user_id);
       if (user) localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Registration successful!");
-
-      /** Redirect to Dashboard */
       navigate("/verify-otp");
 
     } catch (err) {
       console.error("Registration Error:", err);
 
-      /** 🔥 DEBUG POPUP ADDED HERE */
-      console.log("BACKEND ERROR DATA:", err.response?.data);
       alert(
         "Backend Response:\n\n" +
-          JSON.stringify(err.response?.data, null, 2)
+        JSON.stringify(err.response?.data, null, 2)
       );
-      /** END DEBUG */
 
       const data = err.response?.data;
 
@@ -88,7 +82,6 @@ export default function SignUpPage() {
     setLoading(false);
   };
 
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
       <div className="w-full max-w-lg bg-white/80 backdrop-blur-xl shadow-xl border border-white/40 rounded-3xl p-8">
@@ -98,6 +91,7 @@ export default function SignUpPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+
           <input
             name="name"
             placeholder="Full Name"
@@ -147,6 +141,20 @@ export default function SignUpPage() {
                 {c.course_name}
               </option>
             ))}
+          </select>
+
+          {/* ✅ CENTER FIELD */}
+          <select
+            name="center"
+            value={formData.center}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-xl border bg-white"
+          >
+            <option value="">Select Center</option>
+            <option value="Orogun">Orogun</option>
+            <option value="Samonda">Samonda</option>
+            <option value="Online">Online</option>
           </select>
 
           <div className="grid grid-cols-2 gap-4">
@@ -204,6 +212,7 @@ export default function SignUpPage() {
           >
             Already have an account? Sign In
           </button>
+
         </form>
       </div>
     </div>

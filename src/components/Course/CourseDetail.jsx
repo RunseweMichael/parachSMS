@@ -1,6 +1,6 @@
-// src/components/CourseDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { BookOpen, Layers, PlayCircle, Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import api from "../../api";
 
 const CourseDetail = () => {
@@ -37,11 +37,10 @@ const CourseDetail = () => {
       await api.delete(`courses/modules/${moduleId}/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      alert("Module deleted successfully!");
       fetchCourse();
     } catch (err) {
-      alert("Failed to delete module.");
       console.error(err);
+      alert("Failed to delete module.");
     }
   };
 
@@ -52,136 +51,116 @@ const CourseDetail = () => {
       await api.delete(`courses/lessons/${lessonId}/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      alert("Lesson deleted successfully!");
       fetchCourse();
     } catch (err) {
-      alert("Failed to delete lesson.");
       console.error(err);
+      alert("Failed to delete lesson.");
     }
   };
 
   if (loading)
     return (
-      <div style={styles.center}>
-        <div style={styles.spinner}></div>
-        <p style={styles.loadingText}>Loading course details...</p>
+      <div className="flex flex-col items-center justify-center h-[70vh] text-slate-600">
+        <div className="w-10 h-10 border-4 border-slate-300 border-t-blue-600 rounded-full animate-spin" />
+        <p className="mt-3 text-sm">Loading course details...</p>
       </div>
     );
 
-  if (error) return <p style={styles.error}>{error}</p>;
+  if (error) return <p className="text-center text-red-500 font-semibold mt-10">{error}</p>;
   if (!course) return null;
 
   return (
-    <div style={styles.container}>
-      {/* Course Header */}
-      <div style={styles.header}>
-        <h2 style={styles.title}>{course.course_name}</h2>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-2xl shadow-md">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-blue-900 flex items-center gap-2">
+          <BookOpen className="w-7 h-7 text-blue-700" /> {course.course_name}
+        </h2>
       </div>
 
-      <hr style={styles.divider} />
-
-      {/* Modules & Lessons */}
-      <div>
-        <div style={styles.moduleHeader}>
-          <h4 style={styles.moduleTitle}>📚 Modules</h4>
-          <Link to={`/admin/modules/add?course=${course.id}`} style={{ ...styles.button, ...styles.addSmall }}>
-  ➕ Add Module
-</Link>
-
-
+      {/* Modules Section */}
+      <div className="mt-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-2xl font-semibold text-blue-800 flex items-center gap-2">
+            <Layers className="w-6 h-6 text-blue-700" /> Modules
+          </h3>
+          <Link
+            to={`/admin/modules/add?course=${course.id}`}
+            className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-md text-sm hover:bg-green-700"
+          >
+            <Plus className="w-4 h-4" /> Add Module
+          </Link>
         </div>
 
-        {course.modules?.length > 0 ? (
+        {course.modules?.length ? (
           course.modules.map((module) => (
-            <div key={module.id} style={styles.moduleCard}>
-              <div style={styles.moduleCardBody}>
-                <div style={styles.moduleHeaderFlex}>
-                  <h5 style={styles.moduleName}>📗 {module.title}</h5>
-                  <div>
-                    <Link
-  to={`/admin/modules/edit/${module.id}`}
-  style={{ ...styles.button, ...styles.editSmall }}
->
-  Edit
-</Link>
-
-                    <button
-                      style={{ ...styles.button, ...styles.deleteSmall }}
-                      onClick={() => deleteModule(module.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-
-                <ul style={styles.lessonList}>
-                  {module.lessons?.length > 0 ? (
-                    module.lessons.map((lesson) => (
-                      <li key={lesson.id} style={styles.lessonItem}>
-                        <span>📘 {lesson.title}</span>
-                        <div>
-                          <Link
-                            to={`/admin/lessons/edit/${lesson.id}`}
-                            style={{ ...styles.button, ...styles.editSmall }}
-                          >
-                            Edit
-                          </Link>
-                          <button
-                            style={{ ...styles.button, ...styles.deleteSmall }}
-                            onClick={() => deleteLesson(lesson.id)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </li>
-                    ))
-                  ) : (
-                    <li style={styles.noLesson}>No lessons found.</li>
-                  )}
-                </ul>
-
-                <div>
+            <div key={module.id} className="bg-slate-50 p-5 rounded-xl shadow-sm border border-slate-200 mb-5">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="text-xl font-semibold text-slate-900 flex items-center gap-2">📗 {module.title}</h4>
+                <div className="flex gap-2">
                   <Link
-                    to={`/admin/lessons/add?module=${module.id}`}
-                    style={{ ...styles.button, ...styles.addSmall }}
+                    to={`/admin/modules/edit/${module.id}`}
+                    className="flex items-center gap-1 bg-blue-600 text-white px-2 py-1 rounded-md text-xs hover:bg-blue-700"
                   >
-                    ➕ Add Lesson
+                    <Pencil className="w-4 h-4" /> Edit
                   </Link>
+                  <button
+                    onClick={() => deleteModule(module.id)}
+                    className="flex items-center gap-1 bg-red-600 text-white px-2 py-1 rounded-md text-xs hover:bg-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete
+                  </button>
                 </div>
+              </div>
+
+              {/* Lessons */}
+              <ul className="space-y-3">
+                {module.lessons?.length ? (
+                  module.lessons.map((lesson) => (
+                    <li key={lesson.id} className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 flex justify-between items-center">
+                      <div className="flex items-start gap-3">
+                        <PlayCircle className="w-6 h-6 text-blue-600" />
+                        <span className="text-lg font-medium text-slate-800">{lesson.title}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Link
+                          to={`/admin/lessons/edit/${lesson.id}`}
+                          className="flex items-center gap-1 bg-blue-500 text-white px-2 py-1 rounded-md text-xs hover:bg-blue-600"
+                        >
+                          <Pencil className="w-4 h-4" /> Edit
+                        </Link>
+                        <button
+                          onClick={() => deleteLesson(lesson.id)}
+                          className="flex items-center gap-1 bg-red-500 text-white px-2 py-1 rounded-md text-xs hover:bg-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" /> Delete
+                        </button>
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-slate-500 italic">No lessons available.</p>
+                )}
+              </ul>
+
+              {/* Add Lesson */}
+              <div className="mt-4">
+                <Link
+                  to={`/admin/lessons/add?module=${module.id}`}
+                  className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-md text-sm hover:bg-green-700"
+                >
+                  <Plus className="w-4 h-4" /> Add Lesson
+                </Link>
               </div>
             </div>
           ))
         ) : (
-          <p style={styles.noModules}>No modules found for this course.</p>
+          <p className="text-slate-500 italic">No modules found for this course.</p>
         )}
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: { maxWidth: "800px", margin: "50px auto", padding: "20px", fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" },
-  center: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh" },
-  spinner: { width: "50px", height: "50px", border: "5px solid #2563eb", borderTop: "5px solid transparent", borderRadius: "50%", animation: "spin 1s linear infinite" },
-  loadingText: { marginTop: "15px", color: "#4b5563", fontSize: "16px" },
-  error: { color: "#dc2626", textAlign: "center", fontWeight: "600", marginTop: "50px" },
-  header: { textAlign: "center", marginBottom: "30px" },
-  title: { fontSize: "28px", fontWeight: "700", color: "#2563eb" },
-  divider: { margin: "30px 0", borderColor: "#d1d5db" },
-  moduleHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" },
-  moduleTitle: { fontSize: "20px", fontWeight: "700", color: "#1e40af" },
-  add: { backgroundColor: "#16a34a", color: "#fff" },
-  moduleCard: { backgroundColor: "#f9fafb", borderRadius: "10px", boxShadow: "0 4px 20px rgba(0,0,0,0.05)", marginBottom: "20px" },
-  moduleCardBody: { padding: "15px 20px" },
-  moduleHeaderFlex: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  moduleName: { fontSize: "18px", fontWeight: "600" },
-  lessonList: { listStyle: "none", padding: 0, marginTop: "10px" },
-  lessonItem: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", backgroundColor: "#fff", borderRadius: "6px", marginBottom: "6px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" },
-  noLesson: { padding: "8px 12px", fontStyle: "italic", color: "#6b7280" },
-  addSmall: { backgroundColor: "#16a34a", color: "#fff", fontSize: "13px", padding: "5px 10px", marginTop: "10px" },
-  editSmall: { backgroundColor: "#3b82f6", color: "#fff", fontSize: "13px", padding: "5px 10px", marginRight: "5px" },
-  deleteSmall: { backgroundColor: "#ef4444", color: "#fff", fontSize: "13px", padding: "5px 10px" },
-  noModules: { textAlign: "center", color: "#6b7280", fontStyle: "italic", marginTop: "20px" },
 };
 
 export default CourseDetail;

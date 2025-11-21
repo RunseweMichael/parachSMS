@@ -8,6 +8,7 @@ const EnquiryForm = () => {
     email: "",
     phone: "",
     gender: "Male",
+    center: "", // added center field
     message: "",
     status: "NEW",
     course: "", // store course ID
@@ -35,6 +36,7 @@ const EnquiryForm = () => {
         setFormData({
           ...res.data,
           course: res.data.course?.id || "",
+          center: res.data.center || "",
         });
       });
     }
@@ -62,17 +64,13 @@ const EnquiryForm = () => {
       <h2 style={styles.title}>{id ? "Edit Enquiry" : "Add Enquiry"}</h2>
       <form onSubmit={handleSubmit} style={styles.form}>
         {/* Text Inputs */}
-        {[
-          { label: "Name", key: "name", type: "text" },
-          { label: "Email", key: "email", type: "email" },
-          { label: "Phone", key: "phone", type: "text" },
-        ].map(field => (
-          <div style={styles.field} key={field.key}>
-            <label style={styles.label}>{field.label}</label>
+        {["name", "email", "phone"].map((key) => (
+          <div style={styles.field} key={key}>
+            <label style={styles.label}>{key.charAt(0).toUpperCase() + key.slice(1)}</label>
             <input
-              type={field.type}
-              value={formData[field.key]}
-              onChange={e => setFormData({ ...formData, [field.key]: e.target.value })}
+              type={key === "email" ? "email" : "text"}
+              value={formData[key]}
+              onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
               required
               style={styles.input}
             />
@@ -84,16 +82,32 @@ const EnquiryForm = () => {
           <label style={styles.label}>Course</label>
           <select
             value={formData.course}
-            onChange={e => setFormData({ ...formData, course: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, course: e.target.value })}
             required
             style={styles.select}
           >
             <option value="">Select a course</option>
-            {courses.map(course => (
+            {courses.map((course) => (
               <option key={course.id} value={course.id}>
                 {course.course_name}
               </option>
             ))}
+          </select>
+        </div>
+
+        {/* Center Dropdown */}
+        <div style={styles.field}>
+          <label style={styles.label}>Center</label>
+          <select
+            value={formData.center}
+            onChange={(e) => setFormData({ ...formData, center: e.target.value })}
+            required
+            style={styles.select}
+          >
+            <option value="">Select a center</option>
+            <option value="Orogun">Orogun</option>
+            <option value="Samonda">Samonda</option>
+            <option value="Online">Online</option>
           </select>
         </div>
 
@@ -102,7 +116,7 @@ const EnquiryForm = () => {
           <label style={styles.label}>Gender</label>
           <select
             value={formData.gender}
-            onChange={e => setFormData({ ...formData, gender: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
             style={styles.select}
           >
             <option>Male</option>
@@ -117,7 +131,7 @@ const EnquiryForm = () => {
           <textarea
             rows="4"
             value={formData.message}
-            onChange={e => setFormData({ ...formData, message: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
             required
             style={styles.textarea}
           />
@@ -129,7 +143,7 @@ const EnquiryForm = () => {
             type="checkbox"
             id="consent"
             checked={formData.consent}
-            onChange={e => setFormData({ ...formData, consent: e.target.checked })}
+            onChange={(e) => setFormData({ ...formData, consent: e.target.checked })}
             required
             style={styles.checkbox}
           />

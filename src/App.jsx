@@ -29,29 +29,20 @@ import PaymentPage from "./pages/PaymentPage";
 import PaymentHistory from "./pages/PaymentHistory";
 import StudentPaymentHistory from "./components/Students/StudentPaymentHistory";
 
-<<<<<<< HEAD
-/* === NEW FRONTEND IMPORTS === */
-import AuthForm from './views/Student-auth/Authform.jsx';
-// import Admin from './layout/Admin.jsx';
-=======
 /* === NEW FRONTEND IMPORTS (STUDENT INTERFACE) === */
 import SignUpPage from './views/Student-auth/SignUpPage.jsx';
 import SignInPage from './views/Student-auth/SignInPage.jsx';
 import Admin from './layout/Admin.jsx';
->>>>>>> 24dbefce3589e95aa9f7858374215e87b7c4e016
 
 import CertificateDashboard from "./views/Student-Interface/CertificateDashboard.jsx";
 import PaymentDashboard from "./views/Student-Interface/PaymentDashboard.jsx";
 import Settings from "./views/Student-Interface/Settings.jsx";
 import StudentDashboard from "./views/Student-Interface/Dashboard.jsx";
 
-<<<<<<< HEAD
-=======
 /* === AUTH CHECK === */
 const user = localStorage.getItem("token") || localStorage.getItem("user_id");
 
 /* === PROTECTED ROUTE WRAPPER === */
->>>>>>> 24dbefce3589e95aa9f7858374215e87b7c4e016
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   console.log("Token from ProtectedRoute:", token);
@@ -64,14 +55,9 @@ function App() {
       <Toaster position="top-center" />
 
       <Routes>
-<<<<<<< HEAD
-        {/* === NEW AUTH ROUTES === */}
-        <Route path="/auth" element={<AuthForm />} />
-=======
         {/* === AUTH === */}
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/signin" element={<SignInPage />} />
->>>>>>> 24dbefce3589e95aa9f7858374215e87b7c4e016
         <Route path="/AdminLogin" element={<Login />} />
 
         {/* === PUBLIC STUDENT ROUTES === */}
@@ -81,7 +67,8 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/enquiries/add" element={<EnquiryForm />} />
-        <Route path="/enquiries/edit/:id" element={<EnquiryForm />} />
+        {/* <Route path="/enquiries/edit/:id" element={<EnquiryForm />} /> */}
+
 
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/payment" element={<PaymentPage />} />
@@ -95,11 +82,7 @@ function App() {
           path="/student/*"
           element={
             <ProtectedRoute>
-<<<<<<< HEAD
-              <AdminLayout />
-=======
               <Admin />
->>>>>>> 24dbefce3589e95aa9f7858374215e87b7c4e016
             </ProtectedRoute>
           }
         >
@@ -116,7 +99,7 @@ function App() {
             OLD ADMIN PANEL ( /super-admin/* )
         ====================================== */}
         <Route
-          path="/super-admin/*"
+          path="/admin/*"
           element={
             <ProtectedRoute>
               <AdminLayout />
@@ -125,14 +108,11 @@ function App() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
 
-<<<<<<< HEAD
           {/* ADMIN DASHBOARD */}
           <Route index element={<Dashboard />} />
 
           {/* STUDENTS */}
-=======
           <Route path="dashboard" element={<Dashboard />} />
->>>>>>> 24dbefce3589e95aa9f7858374215e87b7c4e016
           <Route path="students" element={<StudentManagement />} />
           <Route path="certificates" element={<CertificateManagement />} />
           <Route path="notifications" element={<Notifications />} />
@@ -141,7 +121,6 @@ function App() {
           <Route path="coupons" element={<CouponAdmin />} />
           <Route path="staff-management" element={<StaffManagement />} />
 
-<<<<<<< HEAD
           {/* EQUIRIES LIST */}
           <Route path="enquiries">
             <Route index element={<EnquiryList />} />
@@ -150,9 +129,6 @@ function App() {
           </Route>
 
           {/* COURSES */}
-=======
-          {/* Courses */}
->>>>>>> 24dbefce3589e95aa9f7858374215e87b7c4e016
           <Route path="courses">
             <Route index element={<CourseList />} />
             <Route path="add" element={<CourseForm />} />
@@ -173,16 +149,9 @@ function App() {
           </Route>
         </Route>
 
-<<<<<<< HEAD
-        {/* DEFAULT REDIRECT */}
-        <Route path="/" element={<Navigate to="/admin" />} />
-
-
-=======
         {/* === DEFAULT === */}
-     <Route path="/" element={<Navigate to="/signin" replace />} />
+        <Route path="/" element={<Navigate to="/signin" replace />} />
         <Route path="*" element={<h2>404 Not Found</h2>} />
->>>>>>> 24dbefce3589e95aa9f7858374215e87b7c4e016
       </Routes>
     </BrowserRouter>
   );

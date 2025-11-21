@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; 
 import { Link } from "react-router-dom";
 import { FiEdit, FiTrash2, FiMail } from "react-icons/fi";
 import api from "../../api";
@@ -10,8 +10,14 @@ const EnquiryList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [centerFilter, setCenterFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [courseFilter, setCourseFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+
+  const CENTER_OPTIONS = ["Orogun", "Samonda", "Online"];
+  const STATUS_OPTIONS = ["NEW", "FOLLOWED_UP"];
 
   // Fetch enquiries and courses
   const fetchData = async () => {
@@ -39,8 +45,8 @@ const EnquiryList = () => {
     if (!window.confirm("Delete this enquiry?")) return;
     try {
       await api.delete(`enquiries/enquiries/${id}/`);
-      setEnquiries((prev) => prev.filter((e) => e.id !== id));
-      setFiltered((prev) => prev.filter((e) => e.id !== id));
+      setEnquiries(prev => prev.filter(e => e.id !== id));
+      setFiltered(prev => prev.filter(e => e.id !== id));
     } catch (err) {
       console.error(err);
       alert("Failed to delete enquiry.");
@@ -51,12 +57,8 @@ const EnquiryList = () => {
     const newStatus = enquiry.status === "NEW" ? "FOLLOWED_UP" : "NEW";
     try {
       await api.patch(`enquiries/enquiries/${enquiry.id}/`, { status: newStatus });
-      setEnquiries((prev) =>
-        prev.map((e) => (e.id === enquiry.id ? { ...e, status: newStatus } : e))
-      );
-      setFiltered((prev) =>
-        prev.map((e) => (e.id === enquiry.id ? { ...e, status: newStatus } : e))
-      );
+      setEnquiries(prev => prev.map(e => e.id === enquiry.id ? { ...e, status: newStatus } : e));
+      setFiltered(prev => prev.map(e => e.id === enquiry.id ? { ...e, status: newStatus } : e));
     } catch (err) {
       console.error(err);
       alert("Failed to update status.");
@@ -74,23 +76,43 @@ const EnquiryList = () => {
     }
   };
 
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearch(value);
-    const filteredData = enquiries.filter(
-      (e) =>
-        e.name.toLowerCase().includes(value.toLowerCase()) ||
-        e.email.toLowerCase().includes(value.toLowerCase()) ||
-        e.phone.includes(value)
-    );
-    setFiltered(filteredData);
+  const getCourseName = (id) => {
+    const course = courses.find(c => c.id === id);
+    return course ? course.course_name : "—";
+  };
+
+  // ------------------ FILTER FUNCTION ------------------
+  const applyFilters = () => {
+    let temp = [...enquiries];
+
+    if (search.trim()) {
+      const s = search.toLowerCase();
+      temp = temp.filter(e =>
+        e.name.toLowerCase().includes(s) ||
+        e.email.toLowerCase().includes(s) ||
+        e.phone.includes(s)
+      );
+    }
+
+    if (centerFilter !== "All") {
+      temp = temp.filter(e => e.center === centerFilter);
+    }
+
+    if (statusFilter !== "All") {
+      temp = temp.filter(e => e.status === statusFilter);
+    }
+
+    if (courseFilter !== "All") {
+      temp = temp.filter(e => e.course === courseFilter);
+    }
+
+    setFiltered(temp);
     setCurrentPage(1);
   };
 
-  const getCourseName = (id) => {
-    const course = courses.find((c) => c.id === id);
-    return course ? course.course_name : "—";
-  };
+  useEffect(() => {
+    applyFilters();
+  }, [search, centerFilter, statusFilter, courseFilter, enquiries]);
 
   // Pagination
   const indexOfLast = currentPage * itemsPerPage;
@@ -104,20 +126,54 @@ const EnquiryList = () => {
     return <p className="text-center mt-16 text-red-600 font-semibold">{error}</p>;
 
   return (
-    <div className="max-w-[1200px] mx-auto p-6">
+    <div className="max-w-full mx-auto p-6">
       <h2 className="text-3xl font-bold mb-6 text-blue-800 flex items-center gap-2">
         📩 Enquiries Dashboard
       </h2>
 
-      {/* Top bar */}
-      <div className="flex flex-col md:flex-row justify-between mb-4 gap-3">
+      {/* Top bar: Search + Filters + Add */}
+      <div className="flex flex-col md:flex-row justify-between mb-6 gap-3 flex-wrap">
         <input
           type="text"
           placeholder="Search by name, email or phone..."
           value={search}
-          onChange={handleSearch}
+          onChange={e => setSearch(e.target.value)}
           className="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
+        <select
+          value={centerFilter}
+          onChange={e => setCenterFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="All">All Centers</option>
+          {CENTER_OPTIONS.map(center => (
+            <option key={center} value={center}>{center}</option>
+          ))}
+        </select>
+
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="All">All Statuses</option>
+          {STATUS_OPTIONS.map(status => (
+            <option key={status} value={status}>{status}</option>
+          ))}
+        </select>
+
+        <select
+          value={courseFilter}
+          onChange={e => setCourseFilter(Number(e.target.value))}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="All">All Courses</option>
+          {courses.map(course => (
+            <option key={course.id} value={course.id}>{course.course_name}</option>
+          ))}
+        </select>
+
         <Link
           to="/admin/enquiries/add"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center gap-2 justify-center"
@@ -127,8 +183,8 @@ const EnquiryList = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto shadow-lg rounded-lg">
-        <table className="min-w-full bg-white divide-y divide-gray-200">
+      <div className="overflow-hidden shadow-lg rounded-lg border border-gray-200">
+        <table className="min-w-full divide-y divide-gray-200 table-auto">
           <thead className="bg-blue-800 text-white">
             <tr>
               <th className="px-3 py-2 text-left text-sm">#</th>
@@ -137,6 +193,7 @@ const EnquiryList = () => {
               <th className="px-3 py-2 text-left text-sm">Phone</th>
               <th className="px-3 py-2 text-left text-sm">Gender</th>
               <th className="px-3 py-2 text-left text-sm">Course</th>
+              <th className="px-3 py-2 text-left text-sm">Center</th>
               <th className="px-3 py-2 text-center text-sm">Consent</th>
               <th className="px-3 py-2 text-center text-sm">Status</th>
               <th className="px-3 py-2 text-left text-sm">Created</th>
@@ -146,7 +203,7 @@ const EnquiryList = () => {
           <tbody className="divide-y divide-gray-200">
             {currentItems.length === 0 && (
               <tr>
-                <td colSpan="10" className="text-center py-4 text-gray-500">
+                <td colSpan="11" className="text-center py-4 text-gray-500">
                   No enquiries found.
                 </td>
               </tr>
@@ -160,10 +217,13 @@ const EnquiryList = () => {
                 <td className="px-3 py-2">{enquiry.phone}</td>
                 <td className="px-3 py-2">{enquiry.gender}</td>
                 <td className="px-3 py-2">{getCourseName(enquiry.course)}</td>
+                <td className="px-3 py-2">{enquiry.center || "—"}</td>
                 <td className="px-3 py-2 text-center">{enquiry.consent ? "✅" : "❌"}</td>
                 <td
-                  className={`px-3 py-1 text-white font-semibold rounded-full text-center cursor-pointer ${
-                    enquiry.status === "FOLLOWED_UP" ? "bg-green-500" : "bg-red-500"
+                  className={`px-3 py-1 text-sm font-semibold rounded-full text-center cursor-pointer transition-colors ${
+                    enquiry.status === "FOLLOWED_UP" 
+                      ? "bg-green-100 text-green-800" 
+                      : "bg-red-100 text-red-800"
                   }`}
                   onClick={() => toggleStatus(enquiry)}
                 >
@@ -172,7 +232,7 @@ const EnquiryList = () => {
                 <td className="px-3 py-2">{new Date(enquiry.created_at).toLocaleDateString()}</td>
                 <td className="px-3 py-2 flex justify-center gap-2">
                   <Link
-                    to={`/enquiries/edit/${enquiry.id}`}
+                    to={`/admin/enquiries/edit/${enquiry.id}`}
                     className="bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-full"
                   >
                     <FiEdit />
@@ -201,7 +261,7 @@ const EnquiryList = () => {
         <div className="flex justify-center mt-4 gap-2 flex-wrap">
           <button
             className="px-3 py-1 border rounded hover:bg-gray-200 disabled:opacity-50"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
             ◀
@@ -219,7 +279,7 @@ const EnquiryList = () => {
           ))}
           <button
             className="px-3 py-1 border rounded hover:bg-gray-200 disabled:opacity-50"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
           >
             ▶

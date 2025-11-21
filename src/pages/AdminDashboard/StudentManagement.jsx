@@ -21,44 +21,34 @@ const StudentManagement = () => {
       setLoading(true);
       let data = [];
 
-      if (filter === "defaulters") {
-        const res = await api.get("/admin-panel/students/defaulters/");
-        data = (res.data || []).map(s => ({
-          id: s.id,
-          name: s.name || "—",
-          email: s.email,
-          phone_number: s.phone_number || "—",
-          course_name: s.course_name || (s.course?.course_name || "—"),
-          amount_paid: Number(s.amount_paid || 0),
-          amount_owed: Number(s.amount_owed || 0),
-          discount: Number(s.discounted_price || 0),
-          next_due_date: s.next_due_date || null,
-          is_active: s.is_active,
-          is_staff: s.is_staff
-        }));
-      } else {
-        const res = await api.get("/students/users/");
-        data = (res.data || []).map(s => ({
-          id: s.id,
-          name: s.name || "—",
-          email: s.email,
-          phone_number: s.phone_number || "—",
-          course_name: s.course_name || (s.course?.course_name || "—"),
-          amount_paid: Number(s.amount_paid || 0),
-          amount_owed: Number(s.amount_owed || 0),
-          discount: Number(s.discounted_price || 0),
-          next_due_date: s.next_due_date || null,
-          is_active: s.is_active,
-          is_staff: s.is_staff
-        }));
-      }
+      const endpoint =
+        filter === "defaulters"
+          ? "/admin-panel/students/defaulters/"
+          : "/students/users/";
+
+      const res = await api.get(endpoint);
+      data = (res.data || []).map((s) => ({
+        id: s.id,
+        name: s.name || "—",
+        email: s.email,
+        phone_number: s.phone_number || "—",
+        course_name: s.course_name || (s.course?.course_name || "—"),
+        amount_paid: Number(s.amount_paid || 0),
+        amount_owed: Number(s.amount_owed || 0),
+        discount: Number(s.discounted_price || 0),
+        next_due_date: s.next_due_date || null,
+        is_active: s.is_active,
+        is_staff: s.is_staff,
+        center: s.center || "Orogun",
+        address: s.address || "",
+      }));
 
       // filter out staff users
-      data = data.filter(s => !s.is_staff);
+      data = data.filter((s) => !s.is_staff);
 
       // additional filters
-      if (filter === "active") data = data.filter(s => s.is_active);
-      if (filter === "inactive") data = data.filter(s => !s.is_active);
+      if (filter === "active") data = data.filter((s) => s.is_active);
+      if (filter === "inactive") data = data.filter((s) => !s.is_active);
 
       setStudents(data);
       setSelectedStudents([]);
@@ -70,24 +60,25 @@ const StudentManagement = () => {
     }
   };
 
+  // ---------------- ACTION HANDLERS ----------------
   const handleNotifyDefaulters = async () => {
-    if (!selectedStudents.length) {
-      alert("Please select defaulters to notify.");
-      return;
-    }
+  if (!selectedStudents.length) {
+    alert("Please select defaulters to notify.");
+    return;
+  }
+  if (!window.confirm(`Send notifications to ${selectedStudents.length} defaulters?`)) return;
 
-    if (!window.confirm(`Send notifications to ${selectedStudents.length} defaulters?`)) return;
+  try {
+    const res = await api.post("/admin-panel/notify_defaulters/", {
+      student_ids: selectedStudents
+    });
+    alert(res.data.message || "Notifications sent successfully!");
+  } catch (err) {
+    console.error("Failed to send notifications:", err);
+    alert(err?.response?.data?.error || "Failed to send notifications");
+  }
+};
 
-    try {
-      const res = await api.post("/admin-panel/notify_defaulters/", {
-        student_ids: selectedStudents,
-      });
-      alert(res.data.message || "Notifications sent successfully!");
-    } catch (err) {
-      console.error("Failed to send notifications:", err);
-      alert(err?.response?.data?.error || "Failed to send notifications");
-    }
-  };
 
   const handleToggleActive = async (studentId) => {
     try {
@@ -108,9 +99,10 @@ const StudentManagement = () => {
     if (!window.confirm(`${action} ${selectedStudents.length} students?`)) return;
 
     try {
-      const endpoint = action === "activate"
-        ? "/admin-panel/students/bulk_activate/"
-        : "/admin-panel/students/bulk_deactivate/";
+      const endpoint =
+        action === "activate"
+          ? "/admin-panel/students/bulk_activate/"
+          : "/admin-panel/students/bulk_deactivate/";
 
       const res = await api.post(endpoint, { student_ids: selectedStudents });
       alert(res.data.message);
@@ -123,11 +115,18 @@ const StudentManagement = () => {
 
   const handleExport = async () => {
     try {
-      const response = await api.post("/admin-panel/export/", { type: "students" }, { responseType: 'blob' });
+      const response = await api.post(
+        "/admin-panel/export/",
+        { type: "students" },
+        { responseType: "blob" }
+      );
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `students_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute(
+        "download",
+        `students_${new Date().toISOString().split("T")[0]}.csv`
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -137,18 +136,15 @@ const StudentManagement = () => {
     }
   };
 
-  const filteredStudents = students.filter(s =>
-    `${s.name} ${s.email}`.toLowerCase().includes(search.toLowerCase())
-  );
-
+  // ---------------- SELECTION ----------------
   const handleSelectAll = (e) => {
-    if (e.target.checked) setSelectedStudents(filteredStudents.map(s => s.id));
+    if (e.target.checked) setSelectedStudents(filteredStudents.map((s) => s.id));
     else setSelectedStudents([]);
   };
 
   const handleSelectStudent = (id) => {
     if (selectedStudents.includes(id)) {
-      setSelectedStudents(selectedStudents.filter(sid => sid !== id));
+      setSelectedStudents(selectedStudents.filter((sid) => sid !== id));
     } else {
       setSelectedStudents([...selectedStudents, id]);
     }
@@ -161,10 +157,19 @@ const StudentManagement = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    const options = { month: "short", day: "2-digit" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  // ---------------- FILTERED STUDENTS (search by name/email/course/center) ----------------
+  const filteredStudents = students.filter((s) =>
+    [s.name, s.email, s.course_name, s.center]
+      .join(" ")
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
+
+  // ---------------- JSX ----------------
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -179,14 +184,14 @@ const StudentManagement = () => {
       <div style={styles.controls}>
         <input
           type="text"
-          placeholder="🔍 Search by name or email..."
+          placeholder="🔍 Search by name, email, course, or center..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           style={styles.searchBox}
         />
         <select
           value={filter}
-          onChange={e => setFilter(e.target.value)}
+          onChange={(e) => setFilter(e.target.value)}
           style={styles.filterSelect}
         >
           <option value="all">All Students</option>
@@ -196,28 +201,31 @@ const StudentManagement = () => {
         </select>
       </div>
 
-      {/* Bulk Actions */}
       {selectedStudents.length > 0 && (
         <div style={styles.bulkActions}>
           <span>{selectedStudents.length} selected</span>
-
           {filter !== "defaulters" && (
             <>
-              <button style={styles.bulkBtn} onClick={() => handleBulkAction("activate")}>
+              <button
+                style={styles.bulkBtn}
+                onClick={() => handleBulkAction("activate")}
+              >
                 Activate Selected
               </button>
-              <button style={{ ...styles.bulkBtn, backgroundColor: "#f44336" }} onClick={() => handleBulkAction("deactivate")}>
+              <button
+                style={{ ...styles.bulkBtn, backgroundColor: "#f44336" }}
+                onClick={() => handleBulkAction("deactivate")}
+              >
                 Deactivate Selected
               </button>
             </>
           )}
-
           {filter === "defaulters" && (
             <button
               style={{ ...styles.bulkBtn, backgroundColor: "#FF9800" }}
               onClick={handleNotifyDefaulters}
             >
-              Send Notification to Selected Defaulters
+              Notify Selected Defaulters
             </button>
           )}
         </div>
@@ -232,12 +240,22 @@ const StudentManagement = () => {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th><input type="checkbox" onChange={handleSelectAll} checked={selectedStudents.length === filteredStudents.length} /></th>
+                <th>
+                  <input
+                    type="checkbox"
+                    onChange={handleSelectAll}
+                    checked={
+                      selectedStudents.length === filteredStudents.length &&
+                      filteredStudents.length > 0
+                    }
+                  />
+                </th>
                 <th>#</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Course</th>
+                <th>Center</th>
                 <th>Amount Paid</th>
                 <th>Amount Owed</th>
                 <th>Discount</th>
@@ -250,32 +268,51 @@ const StudentManagement = () => {
             <tbody>
               {filteredStudents.map((s, i) => (
                 <tr key={s.id} style={styles.tr}>
-                  <td><input type="checkbox" checked={selectedStudents.includes(s.id)} onChange={() => handleSelectStudent(s.id)} /></td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.includes(s.id)}
+                      onChange={() => handleSelectStudent(s.id)}
+                    />
+                  </td>
                   <td>{i + 1}</td>
                   <td>{s.name}</td>
                   <td>{s.email}</td>
                   <td>{s.phone_number}</td>
                   <td>{s.course_name}</td>
+                  <td>{s.center}</td>
                   <td>${s.amount_paid.toFixed(2)}</td>
                   <td>${s.amount_owed.toFixed(2)}</td>
                   <td>${s.discount.toFixed(2)}</td>
                   <td>{formatDate(s.next_due_date)}</td>
                   <td>
-                    <span style={{
-                      ...styles.badge,
-                      backgroundColor: s.is_active ? "#d4edda" : "#f8d7da",
-                      color: s.is_active ? "#155724" : "#721c24"
-                    }}>
+                    <span
+                      style={{
+                        ...styles.badge,
+                        backgroundColor: s.is_active ? "#d4edda" : "#f8d7da",
+                        color: s.is_active ? "#155724" : "#721c24",
+                      }}
+                    >
                       {s.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td>
-                    <button style={styles.iconBtn} onClick={() => openEdit(s)} title="Edit Student">
+                    <button
+                      style={styles.iconBtn}
+                      onClick={() => openEdit(s)}
+                      title="Edit Student"
+                    >
                       <FaEdit />
                     </button>
                   </td>
                   <td>
-                    <button style={{ ...styles.iconBtn, color: s.is_active ? "#f44336" : "#4CAF50" }} onClick={() => handleToggleActive(s.id)}>
+                    <button
+                      style={{
+                        ...styles.iconBtn,
+                        color: s.is_active ? "#f44336" : "#4CAF50",
+                      }}
+                      onClick={() => handleToggleActive(s.id)}
+                    >
                       {s.is_active ? <FaToggleOff /> : <FaToggleOn />}
                     </button>
                   </td>
@@ -289,8 +326,15 @@ const StudentManagement = () => {
       {showEditModal && editingStudent && (
         <EditStudentModal
           student={editingStudent}
-          onClose={() => { setShowEditModal(false); setEditingStudent(null); }}
-          onSuccess={() => { fetchStudents(); setShowEditModal(false); setEditingStudent(null); }}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingStudent(null);
+          }}
+          onSuccess={() => {
+            fetchStudents();
+            setShowEditModal(false);
+            setEditingStudent(null);
+          }}
         />
       )}
     </div>
@@ -305,12 +349,13 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
     next_due_date: student.next_due_date || "",
     name: student.name || "",
     phone_number: student.phone_number || "",
-    address: student.address || ""
+    address: student.address || "",
+    center: student.center || "Orogun",
   });
   const [saving, setSaving] = useState(false);
 
   const handleChange = (key, value) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -328,7 +373,8 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
         phone_number: formData.phone_number,
         address: formData.address,
         amount_paid: formData.amount_paid,
-        next_due_date: formData.next_due_date || null
+        next_due_date: formData.next_due_date || null,
+        center: formData.center,
       });
       alert("Student updated successfully.");
       onSuccess();
@@ -342,42 +388,83 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
 
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={styles.modal} onClick={e => e.stopPropagation()}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <h3 style={styles.modalTitle}>Edit Student — {student.name}</h3>
         <form onSubmit={handleSubmit}>
           <div style={styles.formGroup}>
             <label style={styles.label}>Email</label>
-            <input value={formData.email} onChange={e => handleChange('email', e.target.value)} style={styles.input} />
+            <input
+              value={formData.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              style={styles.input}
+            />
           </div>
-
           <div style={styles.formGroup}>
             <label style={styles.label}>Full Name</label>
-            <input value={formData.name} onChange={e => handleChange('name', e.target.value)} style={styles.input} />
+            <input
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              style={styles.input}
+            />
           </div>
-
           <div style={styles.formGroup}>
             <label style={styles.label}>Phone</label>
-            <input value={formData.phone_number} onChange={e => handleChange('phone_number', e.target.value)} style={styles.input} />
+            <input
+              value={formData.phone_number}
+              onChange={(e) => handleChange("phone_number", e.target.value)}
+              style={styles.input}
+            />
           </div>
-
           <div style={styles.formGroup}>
             <label style={styles.label}>Address</label>
-            <input value={formData.address} onChange={e => handleChange('address', e.target.value)} style={styles.input} />
+            <input
+              value={formData.address}
+              onChange={(e) => handleChange("address", e.target.value)}
+              style={styles.input}
+            />
           </div>
-
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Center</label>
+            <select
+              value={formData.center}
+              onChange={(e) => handleChange("center", e.target.value)}
+              style={styles.input}
+            >
+              <option value="Orogun">Orogun</option>
+              <option value="Samonda">Samonda</option>
+              <option value="Online">Online</option>
+            </select>
+          </div>
           <div style={styles.formGroup}>
             <label style={styles.label}>Amount Paid</label>
-            <input type="number" step="0.01" value={formData.amount_paid} onChange={e => handleChange('amount_paid', e.target.value)} style={styles.input} />
+            <input
+              type="number"
+              step="0.01"
+              value={formData.amount_paid}
+              onChange={(e) => handleChange("amount_paid", e.target.value)}
+              style={styles.input}
+            />
           </div>
-
           <div style={styles.formGroup}>
             <label style={styles.label}>Next Due Date</label>
-            <input type="date" value={formData.next_due_date || ""} onChange={e => handleChange('next_due_date', e.target.value)} style={styles.input} />
+            <input
+              type="date"
+              value={formData.next_due_date || ""}
+              onChange={(e) => handleChange("next_due_date", e.target.value)}
+              style={styles.input}
+            />
           </div>
-
           <div style={styles.modalActions}>
-            <button type="button" style={styles.cancelBtn} onClick={onClose}>Cancel</button>
-            <button type="submit" style={styles.saveBtn} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</button>
+            <button
+              type="button"
+              style={styles.cancelBtn}
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button type="submit" style={styles.saveBtn} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
           </div>
         </form>
       </div>
