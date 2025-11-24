@@ -83,7 +83,7 @@ export default function VerifyOTP() {
 
     toast.success("Email verified! Redirecting...");
 
-    setTimeout(() => navigate("/student/dashboard"), 1000);
+    setTimeout(() => navigate("/student"), 1000);
   } catch (err) {
     toast.error(err.response?.data?.error || "Invalid or expired OTP");
   } finally {

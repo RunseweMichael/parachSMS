@@ -2,7 +2,6 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Components
-import AdminNavbar from "../component/Navbars/AdminNavbar.jsx";
 import Sidebar from "../component/Sidebar/Sidebar.jsx";
 import HeaderStats from "../component/Headers/HeaderStats.jsx";
 // import FooterAdmin from "../component/Footers/FooterAdmin.jsx";

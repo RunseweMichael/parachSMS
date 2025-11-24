@@ -25,7 +25,7 @@ import Profile from './components/Students/Profile';
 import CourseDetails from './components/Students/CourseDetails';
 import PaymentPage from './pages/PaymentPage';
 import StudentPaymentHistory from './components/Students/StudentPaymentHistory';
-import LandingChoicePage from './views/Student-Interface/LandingChoicePage.jsx';
+import LandingChoicePage from './views/Student-Interface/LandingChoicePage.jsx'
 // Admin Pages
 import Dashboard from './pages/AdminDashboard/Dashboard';
 import StudentManagement from './pages/AdminDashboard/StudentManagement';
@@ -45,7 +45,7 @@ import LessonForm from './components/Course/LessonForm';
 
 // Enquiries
 import EnquiryList from './components/Enquiries/EnquiryList';
-import EnquiryForm from './components/Enquiries/EnquiryForm';
+import EnquiryForm from './views/Student-Interface/Enquiry.jsx';
 
 // Protected route wrapper with role checking
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -118,6 +118,7 @@ function App() {
           <Route path="certificate" element={<CertificateDashboard />} />
           <Route path="payment" element={<PaymentDashboard />} />
           <Route path="settings" element={<Settings />} />
+
         </Route>
 
         {/* ADMIN DASHBOARD - Fixed with proper role protection */}
@@ -161,7 +162,7 @@ function App() {
         </Route>
 
         {/* DEFAULT REDIRECT */}
-        <Route path="/" element={<Navigate to="/signin" replace />} />
+        <Route path="/" element={<Navigate to="/choose" replace />} />
         <Route path="*" element={<h2>404 Not Found</h2>} />
 
       </Routes>

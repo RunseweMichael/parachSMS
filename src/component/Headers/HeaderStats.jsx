@@ -53,9 +53,6 @@ export default function HeaderStats() {
 
         <div className="px-4 md:px-10 mx-auto w-full relative z-10">
 
-          {/* --------------------------------------------------------
-              👇 NEW: Welcome User Block
-          --------------------------------------------------------- */}
           <div className="mb-10">
             <h1 className="text-white text-3xl md:text-4xl font-bold drop-shadow-sm">
               Welcome {student ? ` ${student.name}` : ""}! 👋

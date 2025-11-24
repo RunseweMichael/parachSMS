@@ -37,7 +37,7 @@ export default function CardStats({
             {statSubtitle}
           </h5>
           <div className="flex items-baseline">
-            <span className="text-3xl font-bold text-white">{statTitle}</span>
+            <span className=" font-medium text-white">{statTitle}</span>
           
           </div>
           <p className="mt-1 text-xs text-gray-400">{statDescripiron}</p>
