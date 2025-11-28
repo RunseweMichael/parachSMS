@@ -20,6 +20,7 @@ const EnquiryForm = () => {
     status: "NEW",
     course: "",
     consent: false,
+    center: "",
   });
 
   const [courses, setCourses] = useState([]);
@@ -89,7 +90,7 @@ const EnquiryForm = () => {
       else await api.post("enquiries/enquiries/", formData);
 
       setSuccess(true);
-      setTimeout(() => navigate("/"), 1500);
+      setTimeout(() => navigate("/admin/enquiries"), 1500);
     } catch (err) {
       const msg =
         err.response?.data?.non_field_errors?.[0] ||
@@ -254,6 +255,32 @@ const EnquiryForm = () => {
                   </label>
                 ))}
               </motion.div>
+
+              <motion.div
+                    variants={fadeIn}
+                    initial="hidden"
+                    animate="show"
+                    transition={{ delay: 0.65 }}
+                  >
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Center
+                  </label>
+
+                  <select
+                    value={formData.center}
+                    onChange={(e) =>
+                    setFormData({ ...formData, center: e.target.value })
+                }
+                  required
+                  className="w-full px-5 py-4 rounded-xl border border-gray-200 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all"
+                >
+                  <option value="">Select a center</option>
+                  <option value="Orogun">Orogun</option>
+                  <option value="Samonda">Samonda</option>
+                  <option value="Online">Online</option>
+                </select>
+              </motion.div>
+
 
               {/* Message */}
               <motion.div variants={fadeIn} initial="hidden" animate="show" transition={{ delay: 0.7 }}>

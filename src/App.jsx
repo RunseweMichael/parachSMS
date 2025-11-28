@@ -35,6 +35,7 @@ import ActivityLog from './pages/AdminDashboard/ActivityLog';
 import PaymentHistory from './pages/PaymentHistory';
 import CouponAdmin from './pages/CouponAdmin';
 import StaffManagement from './pages/StaffManagement';
+import AdminInternshipRequests from './pages/AdminInternshipRequests.jsx';
 
 // Courses
 import CourseList from './components/Course/CourseList';
@@ -52,7 +53,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   const token = localStorage.getItem('token');
   
   if (!token) {
-    return <Navigate to="/signin" replace />;
+    return <Navigate to="/signin" />;
   }
 
   // If role is required, check it
@@ -63,11 +64,11 @@ const ProtectedRoute = ({ children, requiredRole }) => {
       
       if (userRole !== requiredRole) {
         // Redirect based on actual role
-        return <Navigate to={userRole === 'student' ? '/student/dashboard' : '/signin'} replace />;
+        return <Navigate to={userRole === 'student' ? '/student/dashboard' : '/signin'} />;
       }
     } catch (error) {
       console.error('Role check error:', error);
-      return <Navigate to="/signin" replace />;
+      return <Navigate to="/signin" />;
     }
   }
 
@@ -98,9 +99,8 @@ function App() {
 
         {/* ENQUIRIES */}
         <Route path="/enquiries">
-          <Route index element={<EnquiryList />} />
+          {/* <Route index element={<EnquiryList />} /> */}
           <Route path="add" element={<EnquiryForm />} />
-          <Route path="edit/:id" element={<EnquiryForm />} />
         </Route>
 
         {/* STUDENT DASHBOARD */}
@@ -112,7 +112,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" />} />
           <Route path="dashboard" element={<StudentDashboard />} />
           <Route path="profile" element={<Profile />} />
           <Route path="certificate" element={<CertificateDashboard />} />
@@ -130,7 +130,9 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" />} />
+
+          <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="students" element={<StudentManagement />} />
           <Route path="certificates" element={<CertificateManagement />} />
@@ -139,6 +141,7 @@ function App() {
           <Route path="payments/history" element={<PaymentHistory />} />
           <Route path="coupons" element={<CouponAdmin />} />
           <Route path="staff-management" element={<StaffManagement />} />
+          <Route path="internship-requests" element={<AdminInternshipRequests />} />
 
           {/* COURSE ROUTES */}
           <Route path="courses">
@@ -154,6 +157,13 @@ function App() {
             <Route path="edit/:id" element={<ModuleForm />} />
           </Route>
 
+          {/* ENQUIRIES */}
+        <Route path="enquiries">
+          <Route index element={<EnquiryList />} />
+          <Route path="add" element={<EnquiryForm />} />
+          <Route path="edit/:id" element={<EnquiryForm />} />
+        </Route>
+
           {/* LESSON ROUTES */}
           <Route path="lessons">
             <Route path="add" element={<LessonForm />} />
@@ -162,7 +172,7 @@ function App() {
         </Route>
 
         {/* DEFAULT REDIRECT */}
-        <Route path="/" element={<Navigate to="/choose" replace />} />
+        <Route path="/" element={<Navigate to="/choose" />} />
         <Route path="*" element={<h2>404 Not Found</h2>} />
 
       </Routes>

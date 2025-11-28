@@ -30,7 +30,7 @@ export default function SignUpPage() {
     phone_number: "",
     address: "",
     consent: false,
-    center: "",       // ✅ NEW FIELD
+    center: "", // ✅ added
   });
 
   const [courses, setCourses] = useState([]);
@@ -38,7 +38,6 @@ export default function SignUpPage() {
   const [courseLoading, setCourseLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
-  // for input focus animation control
   const inputOrderRef = useRef(0);
 
   useEffect(() => {
@@ -55,17 +54,19 @@ export default function SignUpPage() {
       });
   }, []);
 
-  // micro validation helpers
+  // Validation
   const validate = () => {
     const e = {};
     if (!formData.name.trim()) e.name = "Name required";
     if (!formData.email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) e.email = "Valid email required";
     if (!formData.password || formData.password.length < 6) e.password = "Password (min 6)";
     if (!formData.course) e.course = "Please choose a course";
+    if (!formData.center) e.center = "Center required"; // ✅ added
     if (!formData.phone_number) e.phone_number = "Phone required";
     if (!formData.address) e.address = "Address required";
     if (!formData.birth_date) e.birth_date = "Birth date required";
     if (!formData.consent) e.consent = "Consent required";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -73,11 +74,7 @@ export default function SignUpPage() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
-
-    // optimistic immediate validation for the field
     setErrors((prev) => ({ ...prev, [name]: undefined }));
-
-    // track input order for subtle staggered focus animation
     inputOrderRef.current += 1;
   };
 
@@ -85,7 +82,6 @@ export default function SignUpPage() {
     e.preventDefault();
 
     if (!validate()) {
-      // micro toast + shake handled by AnimatePresence in UI
       toast.error("Please fix the highlighted fields");
       return;
     }
@@ -115,13 +111,11 @@ export default function SignUpPage() {
     }
   };
 
-  // animation variants
+  // Animation
   const container = {
     hidden: {},
     show: {
-      transition: {
-        staggerChildren: 0.06,
-      },
+      transition: { staggerChildren: 0.06 },
     },
   };
 
@@ -146,7 +140,7 @@ export default function SignUpPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-4 py-5">
         <div className="w-full z-10 max-w-2xl relative">
-          {/* background orbs floating (kept separate) */}
+
           <FloatingBackground />
 
           <motion.div
@@ -154,11 +148,10 @@ export default function SignUpPage() {
             variants={container}
             initial="hidden"
             animate="show"
-            role="main"
-            aria-live="polite"
           >
             <form onSubmit={handleSubmit} className="p-6 md:p-8 lg:p-10">
-              {/* header */}
+
+              {/* Header */}
               <motion.div variants={headerVariant} className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold shadow-lg mb-4">
                   P
@@ -168,12 +161,9 @@ export default function SignUpPage() {
               </motion.div>
 
               <motion.div className="grid md:grid-cols-2 gap-5" layout>
+
                 {/* Name */}
-                <motion.div
-                  variants={fieldVariant(0)}
-                  animate={errors.name ? shake : undefined}
-                  className="relative"
-                >
+                <motion.div variants={fieldVariant(0)} animate={errors.name ? shake : undefined} className="relative">
                   <User className="absolute left-3 top-3.5 text-gray-400" size={20} />
                   <input
                     type="text"
@@ -182,18 +172,13 @@ export default function SignUpPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
                       errors.name ? "border-red-400 bg-red-50" : "border-gray-300 bg-white/70"
                     }`}
                   />
                   <AnimatePresence>
                     {errors.name && (
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="text-xs text-red-600 mt-1"
-                      >
+                      <motion.p className="text-xs text-red-600 mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <AlertCircle className="inline mr-1" size={12} /> {errors.name}
                       </motion.p>
                     )}
@@ -210,20 +195,20 @@ export default function SignUpPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
                       errors.email ? "border-red-400 bg-red-50" : "border-gray-300 bg-white/70"
                     }`}
                   />
                   <AnimatePresence>
                     {errors.email && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-red-600 mt-1">
+                      <motion.p className="text-xs text-red-600 mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <AlertCircle className="inline mr-1" size={12} /> {errors.email}
                       </motion.p>
                     )}
                   </AnimatePresence>
                 </motion.div>
 
-                {/* Password full width */}
+                {/* Password */}
                 <motion.div variants={fieldVariant(2)} className="relative md:col-span-2">
                   <Lock className="absolute left-3 top-3.5 text-gray-400" size={20} />
                   <input
@@ -234,13 +219,13 @@ export default function SignUpPage() {
                     onChange={handleChange}
                     required
                     minLength="6"
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
                       errors.password ? "border-red-400 bg-red-50" : "border-gray-300 bg-white/70"
                     }`}
                   />
                   <AnimatePresence>
                     {errors.password && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-red-600 mt-1">
+                      <motion.p className="text-xs text-red-600 mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <AlertCircle className="inline mr-1" size={12} /> {errors.password}
                       </motion.p>
                     )}
@@ -257,20 +242,20 @@ export default function SignUpPage() {
                     value={formData.phone_number}
                     onChange={handleChange}
                     required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
                       errors.phone_number ? "border-red-400 bg-red-50" : "border-gray-300 bg-white/70"
                     }`}
                   />
                   <AnimatePresence>
                     {errors.phone_number && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-red-600 mt-1">
+                      <motion.p className="text-xs text-red-600 mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <AlertCircle className="inline mr-1" size={12} /> {errors.phone_number}
                       </motion.p>
                     )}
                   </AnimatePresence>
                 </motion.div>
 
-                {/* Course select */}
+                {/* Course */}
                 <motion.div variants={fieldVariant(4)} className="relative">
                   <BookOpen className="absolute left-3 top-3.5 text-gray-400" size={20} />
                   <select
@@ -278,25 +263,67 @@ export default function SignUpPage() {
                     value={formData.course}
                     onChange={handleChange}
                     required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border appearance-none transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border appearance-none transition ${
                       errors.course ? "border-red-400 bg-red-50" : "border-gray-300 bg-white/70"
                     }`}
                   >
                     <option value="">Choose Course</option>
-                    {courseLoading ? <option>Loading...</option> : courses.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.course_name} (₦{Number(c.price).toLocaleString()})
-                      </option>
-                    ))}
+                    {courseLoading ? (
+                      <option>Loading...</option>
+                    ) : (
+                      courses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.course_name} (₦{Number(c.price).toLocaleString()})
+                        </option>
+                      ))
+                    )}
                   </select>
                   <AnimatePresence>
                     {errors.course && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-red-600 mt-1">
+                      <motion.p className="text-xs text-red-600 mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <AlertCircle className="inline mr-1" size={12} /> {errors.course}
                       </motion.p>
                     )}
                   </AnimatePresence>
                 </motion.div>
+
+                {/* Center */}
+<motion.div
+  variants={fieldVariant(4.5)}
+  animate={errors.center ? shake : undefined}
+  className="relative"
+>
+  <MapPin className="absolute left-3 top-3.5 text-gray-400" size={20} />
+
+  <select
+    name="center"
+    value={formData.center}
+    onChange={handleChange}
+    required
+    className={`w-full pl-11 pr-4 py-3 rounded-xl border bg-white/70 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+      errors.center ? "border-red-400 bg-red-50" : "border-gray-300"
+    }`}
+  >
+    <option value="">Select a center</option>
+    <option value="Orogun">Orogun</option>
+    <option value="Samonda">Samonda</option>
+    <option value="Online">Online</option>
+  </select>
+
+  {/* Error Message */}
+  <AnimatePresence>
+    {errors.center && (
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="text-xs text-red-600 mt-1"
+      >
+        <AlertCircle className="inline mr-1" size={12} /> {errors.center}
+      </motion.p>
+    )}
+  </AnimatePresence>
+</motion.div>
 
                 {/* Gender */}
                 <motion.div variants={fieldVariant(5)} className="relative">
@@ -320,13 +347,13 @@ export default function SignUpPage() {
                     value={formData.birth_date}
                     onChange={handleChange}
                     required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
                       errors.birth_date ? "border-red-400 bg-red-50" : "border-gray-300 bg-white/70"
                     }`}
                   />
                   <AnimatePresence>
                     {errors.birth_date && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-red-600 mt-1">
+                      <motion.p className="text-xs text-red-600 mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <AlertCircle className="inline mr-1" size={12} /> {errors.birth_date}
                       </motion.p>
                     )}
@@ -343,13 +370,13 @@ export default function SignUpPage() {
                     value={formData.address}
                     onChange={handleChange}
                     required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border resize-none transition ${
                       errors.address ? "border-red-400 bg-red-50" : "border-gray-300 bg-white/70"
                     }`}
                   />
                   <AnimatePresence>
                     {errors.address && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-red-600 mt-1">
+                      <motion.p className="text-xs text-red-600 mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <AlertCircle className="inline mr-1" size={12} /> {errors.address}
                       </motion.p>
                     )}
@@ -358,7 +385,14 @@ export default function SignUpPage() {
 
                 {/* Consent */}
                 <motion.label variants={fieldVariant(8)} className="flex items-start gap-3 cursor-pointer md:col-span-2 -mb-2">
-                  <input type="checkbox" name="consent" checked={formData.consent} onChange={handleChange} required className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-blue-500" />
+                  <input
+                    type="checkbox"
+                    name="consent"
+                    checked={formData.consent}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  />
                   <span className="text-sm text-gray-700 leading-tight">
                     <CheckSquare className="inline mr-1 text-green-500" size={16} />
                     I agree to receive updates & messages via WhatsApp/SMS
@@ -375,28 +409,31 @@ export default function SignUpPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
                     disabled={loading || courseLoading}
-                    className="w-full py-4 text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl shadow-lg hover:shadow-xl transform transition-all disabled:opacity-70 flex items-center justify-center gap-3"
+                    className="w-full py-4 text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl shadow-lg hover:shadow-xl disabled:opacity-70 flex items-center justify-center gap-3"
                   >
                     {loading ? (
                       <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                       </svg>
                     ) : null}
                     {loading ? "Creating Account..." : "Register Now"}
                   </motion.button>
 
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-center text-gray-600 mt-4">
-                    Already have an account?{' '}
-                    <Link to="/signin" className="text-blue-600 font-bold hover:underline">Sign In</Link>
+                  <motion.p className="text-center text-gray-600 mt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+                    Already have an account?{" "}
+                    <Link to="/signin" className="text-blue-600 font-bold hover:underline">
+                      Sign In
+                    </Link>
                   </motion.p>
                 </motion.div>
-
               </motion.div>
             </form>
           </motion.div>
 
-          <p className="text-center text-gray-500 text-xs mt-6 relative z-10">© 2025 Parach Computers, Orogun, Ibadan</p>
+          <p className="text-center text-gray-500 text-xs mt-6 relative z-10">
+            © 2025 Parach Computers, Orogun, Ibadan
+          </p>
         </div>
       </div>
     </>

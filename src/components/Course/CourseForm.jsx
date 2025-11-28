@@ -17,23 +17,33 @@ const CourseForm = () => {
   const { id } = useParams();
 
   useEffect(() => {
-    const fetchCourse = async () => {
-      if (id) {
-        try {
-          const token = localStorage.getItem("token");
-          const res = await api.get(`courses/courses/${id}/`, {
-            headers: { Authorization: `Token ${token}` },
-          });
-          setFormData(res.data);
-        } catch (err) {
-          console.error(err);
-          alert("Failed to fetch course data.");
-        }
-      }
-    };
+  const fetchCourse = async () => {
+    if (id) {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await api.get(`courses/courses/${id}/`, {
+          headers: { Authorization: `Token ${token}` },
+        });
 
-    fetchCourse();
-  }, [id]);
+        setFormData({
+          course_name: res.data.course_name || "",
+          price: res.data.price || "",
+          duration: res.data.duration || "",
+          skills: res.data.skills || "",
+          status: res.data.status,
+          resource_link: res.data.resource_link || "",
+        });
+
+      } catch (err) {
+        console.error(err);
+        alert("Failed to fetch course data.");
+      }
+    }
+  };
+
+  fetchCourse();
+}, [id]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,7 +60,7 @@ const CourseForm = () => {
         });
         alert("Course created!");
       }
-      navigate("/"); // Redirect after submission
+      navigate("/admin/courses"); // Redirect after submission
     } catch (err) {
       console.error(err);
       alert("Error submitting the form.");

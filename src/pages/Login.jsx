@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
@@ -8,6 +8,15 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // ✅ CLEAR ANY STUDENT SESSION WHEN ADMIN LOGIN PAGE OPENS
+  useEffect(() => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("username");
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -15,11 +24,14 @@ const Login = () => {
 
     try {
       const response = await api.post('students/login/', credentials);
+
+      // Store new admin session
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user_id', response.data.user_id);
       localStorage.setItem('username', response.data.username);
+      localStorage.setItem('role', "admin");  // optional but helpful
 
-      // ✅ Reliable redirect
+      // Reliable redirect
       window.location.replace("/admin");
     } catch (err) {
       console.error('Login error:', err);
@@ -70,7 +82,6 @@ const Login = () => {
 };
 
 // (styles unchanged)
-
 
 const styles = {
   container: {

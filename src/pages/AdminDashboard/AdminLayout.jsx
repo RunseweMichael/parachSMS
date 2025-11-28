@@ -63,6 +63,7 @@ const AdminLayout = () => {
     { path: "/admin/payments/history", icon: <FaUsers />, label: "Payments" },
     { path: "/admin/coupons", icon: <FaTicketAlt />, label: "Coupons" },
     {path: "/admin/enquiries", icon: <FaUsers />, label: "Enquiries"},
+    {path:"/admin/internship-requests", icon: <FaUsers />, label: "Internship Requests"},
     {
       path: "/admin/notifications",
       icon: <FaBell />,
@@ -82,7 +83,8 @@ const AdminLayout = () => {
         "/admin/staff-management",
         "/admin/coupons",
         "/admin/activity",
-        "/admin/certificates"
+        "/admin/certificates",
+        // "/admin/payments/history",
       ];
       return !hiddenForStaff.includes(item.path);
     }
