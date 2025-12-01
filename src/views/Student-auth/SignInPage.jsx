@@ -86,6 +86,7 @@ export default function SignInPage() {
           navigate("/student/dashboard");
         }
       }, 1200);
+
     } catch (err) {
       console.log("LOGIN ERROR:", err.response?.data);
 
@@ -105,7 +106,6 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-6 relative z-10 overflow-hidden">
 
- 
       <FloatingBackground />
 
       <motion.div
@@ -130,6 +130,14 @@ export default function SignInPage() {
             {success}
           </p>
         )}
+
+        {/* Redirect → Reset Password */}
+        <p
+          onClick={() => navigate("/reset-password")}
+          className="text-right text-sm text-blue-600 hover:underline cursor-pointer mb-4"
+        >
+          Forgot Password?
+        </p>
 
         <div className="space-y-4 mb-6">
 

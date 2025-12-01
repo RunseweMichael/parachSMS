@@ -10,8 +10,10 @@ import {
   Menu,
   X,
   Moon,
-  Sun
+  Sun,
+  Bell
 } from "lucide-react";
+import api from "../../api";
 import useLogout from "../../hooks/useLogout"; // <-- NEW
 
 export default function Sidebar() {
@@ -36,12 +38,50 @@ export default function Sidebar() {
     localStorage.setItem("darkMode", darkMode.toString());
   }, [darkMode]);
 
+  const [isCertApproved, setIsCertApproved] = useState(false);
+  const [showBadge, setShowBadge] = useState(false);
+
+  // How long the badge should be visible (milliseconds)
+  const BADGE_DURATION_MS = 10000; // 10s
+
   const menuItems = [
     { name: "Dashboard", icon: <Home className="w-5 h-5" />, path: "/student/dashboard" },
     { name: "Profile", icon: <User className="w-5 h-5" />, path: "/student/profile" },
     { name: "Certificate", icon: <FileText className="w-5 h-5" />, path: "/student/certificate" },
-    { name: "Payment", icon: <CreditCard className="w-5 h-5" />, path: "/student/payment" }
+    { name: "Payment", icon: <CreditCard className="w-5 h-5" />, path: "/student/payment" },
+    { name: "Internship", icon: <CreditCard className="w-5 h-5" />, path: "/student/internship" }
   ];
+
+  // Check if the student has any approved certificates
+  useEffect(() => {
+    let mounted = true;
+
+    const checkCertificates = async () => {
+      try {
+        const res = await api.get("certificates/certificates/");
+        const certs = res.data || [];
+        const approved = certs.some((c) => c.is_approved === true || c.is_approved === "true" || c.is_approved === 1);
+        if (!mounted) return;
+        setIsCertApproved(approved);
+
+        // Show badge once when approval is first observed
+        const badgeShown = localStorage.getItem("internshipBadgeShown") === "true";
+        if (approved && !badgeShown) {
+          setShowBadge(true);
+          localStorage.setItem("internshipBadgeShown", "true");
+          setTimeout(() => setShowBadge(false), BADGE_DURATION_MS);
+        }
+      } catch (err) {
+        // silently fail; sidebar shouldn't break if API fails
+        console.debug("Could not fetch certificates for sidebar badge", err);
+      }
+    };
+
+    checkCertificates();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <>
@@ -69,6 +109,42 @@ export default function Sidebar() {
           <ul className="flex flex-col gap-2 px-3">
             {menuItems.map((item) => {
               const active = location.pathname === item.path;
+
+              // Special handling for Internship item: remain dormant until certificate approved
+              if (item.name === "Internship") {
+                if (isCertApproved) {
+                  return (
+                    <li key={item.name}>
+                      <Link
+                        to={item.path}
+                        className={`flex items-center gap-2 p-3 rounded-lg transition-all 
+                      ${active ? "bg-white/20 text-white font-semibold shadow-md"
+                      : "text-blue-100 hover:bg-white/10 hover:text-white"}`}
+                      >
+                        {item.icon}
+                        {open && <span className="text-sm">{item.name}</span>}
+                        {showBadge && (
+                          <Bell className="w-4 h-4 text-amber-300 ml-2 animate-pulse" />
+                        )}
+                      </Link>
+                    </li>
+                  );
+                }
+
+                // Not approved yet: show dormant, non-clickable item
+                return (
+                  <li key={item.name}>
+                    <div
+                      title="Available after certificate approval"
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-all text-blue-100 opacity-50 cursor-not-allowed`}
+                    >
+                      {item.icon}
+                      {open && <span className="text-sm">{item.name}</span>}
+                    </div>
+                  </li>
+                );
+              }
+
               return (
                 <li key={item.name}>
                   <Link
@@ -143,6 +219,38 @@ export default function Sidebar() {
               <ul className="flex flex-col gap-3">
                 {menuItems.map((item) => {
                   const active = location.pathname === item.path;
+
+                  if (item.name === "Internship") {
+                    if (isCertApproved) {
+                      return (
+                        <li key={item.name}>
+                          <Link
+                            to={item.path}
+                            onClick={() => setMobileOpen(false)}
+                            className={`flex items-center gap-3 p-3 rounded-lg transition-all
+                            ${active ? "bg-white/20 text-white" : "text-blue-100 hover:bg-white/10"}`}
+                          >
+                            {item.icon}
+                            <span className="text-sm">{item.name}</span>
+                            {showBadge && <Bell className="w-4 h-4 text-amber-300 ml-2 animate-pulse" />}
+                          </Link>
+                        </li>
+                      );
+                    }
+
+                    return (
+                      <li key={item.name}>
+                        <div
+                          className="flex items-center gap-3 p-3 rounded-lg text-blue-100 opacity-50 cursor-not-allowed"
+                          title="Available after certificate approval"
+                        >
+                          {item.icon}
+                          <span className="text-sm">{item.name}</span>
+                        </div>
+                      </li>
+                    );
+                  }
+
                   return (
                     <li key={item.name}>
                       <Link

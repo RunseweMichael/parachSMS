@@ -9,6 +9,7 @@ export default function VerifyOTP() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(45);
@@ -62,30 +63,64 @@ export default function VerifyOTP() {
 
   if (otpCode.length !== 6) return toast.error("Enter all 6 digits");
 
+  if (!password) return toast.error("Enter your password");
+
   setLoading(true);
   try {
-    const res = await apiPublic.post("students/verify-otp/", {
+    // Step 1: Verify OTP
+    const verifyRes = await apiPublic.post("students/verify-otp/", {
       email,
       code: otpCode,
     });
-    console.log("OTP RESPONSE:", res.data);
+    console.log("OTP RESPONSE:", verifyRes.data);
+    toast.success("Email verified!");
 
-    // 🚀 SAVE TOKEN (Adjust this to match your backend)
-    if (res.data.token) {
-      localStorage.setItem("token", res.data.token);
-    }
-    if (res.data.access) {
-      localStorage.setItem("token", res.data.access);
-    }
-    if (res.data.key) {
-      localStorage.setItem("token", res.data.key);
+    // Step 2: Log in with email, password, and OTP code to get token
+    const loginRes = await apiPublic.post("students/login/", {
+      email,
+      password,
+      code: otpCode,
+    });
+    console.log("LOGIN RESPONSE:", loginRes.data);
+
+    // 🚀 SAVE TOKEN from login response
+    if (loginRes.data.token) {
+      localStorage.setItem("token", loginRes.data.token);
+      console.log("✅ Token saved from login response");
+    } else {
+      console.error("❌ No token in login response:", loginRes.data);
+      toast.error("Login failed: No token received");
+      setLoading(false);
+      return;
     }
 
-    toast.success("Email verified! Redirecting...");
+    // 🚀 SAVE ROLE (ensure role is set for protected routes)
+    const userRole = loginRes.data.role || loginRes.data.user_role || "student";
+    localStorage.setItem("role", userRole);
 
-    setTimeout(() => navigate("/student"), 1000);
+    // 🚀 SAVE USER INFO if available in response
+    if (loginRes.data.user) {
+      localStorage.setItem("user", JSON.stringify(loginRes.data.user));
+    }
+    if (loginRes.data.user_id) {
+      localStorage.setItem("user_id", loginRes.data.user_id);
+    }
+    if (loginRes.data.username) {
+      localStorage.setItem("username", loginRes.data.username);
+    }
+
+    // Debug: log saved token and role
+    console.log('Saved token (localStorage.token):', localStorage.getItem('token'));
+    console.log('Saved role (localStorage.role):', localStorage.getItem('role'));
+
+    toast.success("Logged in! Redirecting to dashboard...");
+
+    // Redirect to dashboard
+    navigate("/student/dashboard", { replace: true });
   } catch (err) {
-    toast.error(err.response?.data?.error || "Invalid or expired OTP");
+    const errorMsg = err.response?.data?.error || err.response?.data?.message || "Verification or login failed";
+    toast.error(errorMsg);
+    console.error("Verification/Login error:", err.response?.data);
   } finally {
     setLoading(false);
   }
@@ -139,6 +174,19 @@ export default function VerifyOTP() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
+                  required
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-300 bg-white/70 focus:ring-2 focus:ring-blue-500 transition"
+                />
+              </div>
+
+              {/* Password Field */}
+              <div className="relative">
+                <Shield className="absolute left-3 top-3.5 text-gray-500" size={20} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
                   required
                   className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-300 bg-white/70 focus:ring-2 focus:ring-blue-500 transition"
                 />

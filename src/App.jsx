@@ -48,23 +48,39 @@ import LessonForm from './components/Course/LessonForm';
 import EnquiryList from './components/Enquiries/EnquiryList';
 import EnquiryForm from './views/Student-Interface/Enquiry.jsx';
 
+// Internship
+import Internship from './views/Student-Interface/Internship.jsx';
+
 // Protected route wrapper with role checking
 const ProtectedRoute = ({ children, requiredRole }) => {
   const token = localStorage.getItem('token');
+  const userRole = localStorage.getItem('role');
+  const user = localStorage.getItem('user');
+  
+  console.log('[ProtectedRoute] Checking access:', {
+    hasToken: !!token,
+    requiredRole,
+    userRole,
+    userExists: !!user,
+  });
   
   if (!token) {
+    console.log('[ProtectedRoute] No token → redirecting to /signin');
     return <Navigate to="/signin" />;
   }
 
   // If role is required, check it
   if (requiredRole) {
     try {
-      const userRole = localStorage.getItem('role') || 
+      const checkRole = localStorage.getItem('role') || 
                        JSON.parse(localStorage.getItem('user'))?.role;
       
-      if (userRole !== requiredRole) {
+      console.log('[ProtectedRoute] Checking role:', { requiredRole, checkRole, match: checkRole === requiredRole });
+      
+      if (checkRole !== requiredRole) {
         // Redirect based on actual role
-        return <Navigate to={userRole === 'student' ? '/student/dashboard' : '/signin'} />;
+        console.log('[ProtectedRoute] Role mismatch → redirecting');
+        return <Navigate to={checkRole === 'student' ? '/student/dashboard' : '/signin'} />;
       }
     } catch (error) {
       console.error('Role check error:', error);
@@ -72,6 +88,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     }
   }
 
+  console.log('[ProtectedRoute] Access granted, rendering children');
   return children;
 };
 
@@ -117,6 +134,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="certificate" element={<CertificateDashboard />} />
           <Route path="payment" element={<PaymentDashboard />} />
+          <Route path="internship" element={<Internship />} />
           <Route path="settings" element={<Settings />} />
 
         </Route>

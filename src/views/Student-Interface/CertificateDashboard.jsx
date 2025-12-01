@@ -1,14 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Star, Eye, EyeOff, Lock, Download } from "lucide-react";
+import api from "../../api";
 
-const Certificates = ({ user }) => {
+const Certificates = () => {
+  const [certificates, setCertificates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [visibleCerts, setVisibleCerts] = useState({});
   const [hasLeftReview, setHasLeftReview] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  // Fetch certificates on component mount
+  useEffect(() => {
+    const fetchCertificates = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get("certificates/certificates/");
+        // Deduplicate by id in case the backend returns duplicates
+        const uniqueById = Array.from(
+          new Map(res.data.map((c) => [c.id, c])).values()
+        );
+        setCertificates(uniqueById);
+        setError("");
+      } catch (err) {
+        console.error("Failed to fetch certificates:", err);
+        setError("Failed to load certificates. Please try again.");
+        setCertificates([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCertificates();
+  }, []);
+
   const [formData, setFormData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
+    name: "",
+    email: "",
     duration: "3 months",
     startDate: "",
   });
@@ -34,37 +61,7 @@ const Certificates = ({ user }) => {
     link.click();
   };
 
-  const handleSubmitRequest = async () => {
-  try {
-    const payload = {
-      student_name: formData.name,
-      student_email: formData.email,
-      duration: formData.duration,
-      preferred_start_date: formData.startDate,
-    };
-
-    const response = await fetch(
-      "http://127.0.0.1:8000/api/internship-requests/",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    if (response.ok) {
-      alert("Internship request submitted successfully!");
-      setShowModal(false);
-    } else {
-      const errorData = await response.json();
-      console.error(errorData);
-      alert("Failed to submit request.");
-    }
-  } catch (error) {
-    console.error(error);
-    alert("Error sending internship request");
-  }
-};
+ 
 
 
   // Custom Tailwind Button
@@ -82,13 +79,7 @@ const Certificates = ({ user }) => {
       <div className="px-6 py-6">
         <h6 className="text-xl font-bold text-gray-800 mb-4">My Certificates</h6>
 
-        {/* Request Internship Button */}
-        <Button
-          className="mb-4 bg-purple-600 hover:bg-purple-700 text-white"
-          onClick={() => setShowModal(true)}
-        >
-          Request Internship
-        </Button>
+ 
 
         {/* Review Banner */}
         {!hasLeftReview && (
@@ -107,69 +98,82 @@ const Certificates = ({ user }) => {
         )}
 
         {/* Certificates */}
-        {user?.certificates?.length > 0 ? (
-          user.certificates.map((cert) => {
-            const imageUrl = cert.certificate_file?.startsWith("http")
-              ? cert.certificate_file
-              : `http://127.0.0.1:8000${cert.certificate_file}`;
+        {loading ? (
+          <p className="text-center text-gray-500 py-8">Loading certificates...</p>
+        ) : error ? (
+          <p className="text-center text-red-500 py-8">{error}</p>
+        ) : certificates.length > 0 ? (
+          certificates
+            .filter((cert) => {
+              // Only show approved certificates to students
+              const approved =
+                cert.is_approved === true ||
+                cert.is_approved === "true" ||
+                cert.is_approved === 1;
+              return approved;
+            })
+            .map((cert) => {
+              const imageUrl = cert.certificate_file?.startsWith("http")
+                ? cert.certificate_file
+                : `http://127.0.0.1:8000/media/${cert.certificate_file}`;
 
-            return (
-              <div
-                key={cert.id}
-                className="mb-5 p-4 bg-gray-50 rounded-xl shadow-sm hover:shadow-md"
-              >
-                {!hasLeftReview ? (
-                  <div className="text-center py-6 text-gray-500">
-                    <Lock className="mx-auto mb-2" size={32} />
-                    <p>Certificate locked. Please leave a review to unlock.</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex gap-2 justify-center mb-3">
-                      <button
-                        onClick={() => toggleCertificateView(cert.id)}
-                        className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700"
-                      >
-                        {visibleCerts[cert.id] ? (
-                          <EyeOff size={14} />
-                        ) : (
-                          <Eye size={14} />
-                        )}
-                        {visibleCerts[cert.id] ? "Hide" : "View"}
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          handleDownloadCertificate(
-                            imageUrl,
-                            `${user?.name || "certificate"}.pdf`
-                          )
-                        }
-                        className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700"
-                      >
-                        <Download size={14} /> Download
-                      </button>
+              return (
+                <div
+                  key={cert.id}
+                  className="mb-5 p-4 bg-gray-50 rounded-xl shadow-sm hover:shadow-md"
+                >
+                  {!hasLeftReview ? (
+                    <div className="text-center py-6 text-gray-500">
+                      <Lock className="mx-auto mb-2" size={32} />
+                      <p>Certificate locked. Please leave a review to unlock.</p>
                     </div>
+                  ) : (
+                    <>
+                      <div className="flex gap-2 justify-center mb-3">
+                        <button
+                          onClick={() => toggleCertificateView(cert.id)}
+                          className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700"
+                        >
+                          {visibleCerts[cert.id] ? (
+                            <EyeOff size={14} />
+                          ) : (
+                            <Eye size={14} />
+                          )}
+                          {visibleCerts[cert.id] ? "Hide" : "View"}
+                        </button>
 
-                    {/* Certificate Preview */}
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ${
-                        visibleCerts[cert.id]
-                          ? "max-h-[500px] opacity-100"
-                          : "max-h-0 opacity-0"
-                      }`}
-                    >
-                      <img
-                        src={imageUrl}
-                        alt="Certificate"
-                        className="w-full rounded-lg shadow-md border mt-2"
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })
+                        <button
+                          onClick={() =>
+                            handleDownloadCertificate(
+                              imageUrl,
+                              `${cert.course_name || "certificate"}.pdf`
+                            )
+                          }
+                          className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700"
+                        >
+                          <Download size={14} /> Download
+                        </button>
+                      </div>
+
+                      {/* Certificate Preview */}
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ${
+                          visibleCerts[cert.id]
+                            ? "max-h-[500px] opacity-100"
+                            : "max-h-0 opacity-0"
+                        }`}
+                      >
+                        <img
+                          src={imageUrl}
+                          alt="Certificate"
+                          className="w-full rounded-lg shadow-md border mt-2"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })
         ) : (
           <p className="text-center text-gray-500 py-8">
             No certificates yet.

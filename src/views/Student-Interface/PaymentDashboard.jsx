@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { CreditCard, Wallet, History, User, BookOpen, Loader2, CheckCircle } from "lucide-react";
-import axios from "axios";
+import api from "../../api";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 
@@ -19,9 +19,7 @@ export default function PaymentDashboard() {
 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const API_BASE = import.meta.env.VITE_API_BASE_URL;
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Token ${token}` };
+  // Use shared api instance (baseURL + auth interceptor) from `src/services/api.js`
 
   const getMinimumAmount = () => {
   if (!balance || !balance.amount_owed) return 0;
@@ -32,24 +30,24 @@ export default function PaymentDashboard() {
   const fetchUserData = useCallback(async () => {
     try {
       const [resUser, resBalance] = await Promise.all([
-        axios.get(`${API_BASE}/students/me/`, { headers }),
-        axios.get(`${API_BASE}/payments/get_balance/`, { headers }),
+        api.get("students/me/"),
+        api.get("payments/get_balance/"),
       ]);
       setUser(resUser.data);
       setBalance(resBalance.data);
     } catch (err) {
       setErrorMsg("Failed to load your information.");
     }
-  }, [API_BASE]);
+  }, []);
 
   const fetchTransactions = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_BASE}/payments/student-transactions/`, { headers });
+      const res = await api.get("payments/student-transactions/");
       setTransactions(res.data);
     } catch (e) {
       console.error("Transaction fetch failed", e);
     }
-  }, [API_BASE]);
+  }, []);
 
   useEffect(() => {
     fetchUserData();
@@ -61,8 +59,8 @@ export default function PaymentDashboard() {
     if (!reference) return;
 
     setVerifying(true);
-    axios
-      .get(`${API_BASE}/payments/verify/${reference}/`, { headers })
+    api
+      .get(`payments/verify/${reference}/`)
       .then((res) => {
         if (res.data.success) {
           alert(`Payment of ₦${res.data.amount_paid.toLocaleString()} verified successfully! 🎉`);
@@ -73,7 +71,7 @@ export default function PaymentDashboard() {
       })
       .catch(() => setErrorMsg("Payment verification failed."))
       .finally(() => setVerifying(false));
-  }, [searchParams, navigate, API_BASE, headers, fetchUserData, fetchTransactions]);
+  }, [searchParams, navigate, fetchUserData, fetchTransactions]);
 
  const handlePayNow = async () => {
   setErrorMsg("");
@@ -92,13 +90,12 @@ export default function PaymentDashboard() {
 
   setLoading(true);
   try {
-    const response = await axios.post(
-      `${API_BASE}/payments/initialize/`,
+    const response = await api.post(
+      "payments/initialize/",
       { 
         amount: Number(amount), 
         coupon_code: couponCode || undefined 
-      },
-      { headers }
+      }
     );
 
     window.location.href = response.data.authorization_url;

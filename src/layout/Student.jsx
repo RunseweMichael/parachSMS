@@ -11,6 +11,7 @@ import Dashboard from "../views/Student-Interface/Dashboard.jsx";
 import Payment from "../views/Student-Interface/PaymentDashboard.jsx";
 import Settings from "../views/Student-Interface/StudentProfile.jsx";
 import Certificate from "../views/Student-Interface/CertificateDashboard.jsx";
+import Internship from "../views/Student-Interface/Internship.jsx";
 export default function Admin() {
   return (
     <>
@@ -25,6 +26,7 @@ export default function Admin() {
             <Route path="payment" element={<Payment />} />
             <Route path="profile" element={<Settings />} />
             <Route path="certificate" element={<Certificate />} />
+            <Route path="internship" element={<Internship />} />
 
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="*" element={<Navigate to="dashboard" replace />} />
