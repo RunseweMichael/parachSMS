@@ -48,6 +48,9 @@ import LessonForm from './components/Course/LessonForm';
 import EnquiryList from './components/Enquiries/EnquiryList';
 import EnquiryForm from './views/Student-Interface/Enquiry.jsx';
 
+import TaskManagement from './components/Students/TaskManagementSystem.jsx'
+import SkillsProgress from './pages/SkillsProgress.jsx';
+
 // Protected route wrapper with role checking
 const ProtectedRoute = ({ children, requiredRole }) => {
   const token = localStorage.getItem('token');
@@ -90,6 +93,9 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/choose" element={<LandingChoicePage />} />
+
+        <Route path="tasks" element={<TaskManagement />} />
+        <Route path="skills-progress" element={<SkillsProgress />} />
 
         {/* PUBLIC STUDENT ROUTES */}
         <Route path="/course/:id" element={<CourseDetails />} />

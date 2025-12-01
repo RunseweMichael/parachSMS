@@ -25,6 +25,7 @@ export default function Admin() {
             <Route path="payment" element={<Payment />} />
             <Route path="profile" element={<Settings />} />
             <Route path="certificate" element={<Certificate />} />
+            
 
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="*" element={<Navigate to="dashboard" replace />} />

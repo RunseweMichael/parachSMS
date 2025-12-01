@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Moon,
+  TrendingUp,
   Sun
 } from "lucide-react";
 import useLogout from "../../hooks/useLogout"; // <-- NEW
@@ -40,7 +41,9 @@ export default function Sidebar() {
     { name: "Dashboard", icon: <Home className="w-5 h-5" />, path: "/student/dashboard" },
     { name: "Profile", icon: <User className="w-5 h-5" />, path: "/student/profile" },
     { name: "Certificate", icon: <FileText className="w-5 h-5" />, path: "/student/certificate" },
-    { name: "Payment", icon: <CreditCard className="w-5 h-5" />, path: "/student/payment" }
+    { name: "Payment", icon: <CreditCard className="w-5 h-5" />, path: "/student/payment" },
+    { name: "Tasks", icon: <FileText className="w-5 h-5" />, path: "/tasks" },
+    { name: "Skills Progress", icon: <TrendingUp className="w-5 h-5" />, path: "/skills-progress" },
   ];
 
   return (
