@@ -10,8 +10,13 @@ import {
   Menu,
   X,
   Moon,
+<<<<<<< HEAD
   Sun,
   Bell
+=======
+  TrendingUp,
+  Sun
+>>>>>>> 4b98c3c06d93fe7eff37714035451b0cd25fa0d6
 } from "lucide-react";
 import api from "../../api";
 import useLogout from "../../hooks/useLogout"; // <-- NEW
@@ -49,7 +54,12 @@ export default function Sidebar() {
     { name: "Profile", icon: <User className="w-5 h-5" />, path: "/student/profile" },
     { name: "Certificate", icon: <FileText className="w-5 h-5" />, path: "/student/certificate" },
     { name: "Payment", icon: <CreditCard className="w-5 h-5" />, path: "/student/payment" },
+<<<<<<< HEAD
     { name: "Internship", icon: <CreditCard className="w-5 h-5" />, path: "/student/internship" }
+=======
+    { name: "Tasks", icon: <FileText className="w-5 h-5" />, path: "/tasks" },
+    { name: "Skills Progress", icon: <TrendingUp className="w-5 h-5" />, path: "/skills-progress" },
+>>>>>>> 4b98c3c06d93fe7eff37714035451b0cd25fa0d6
   ];
 
   // Check if the student has any approved certificates
