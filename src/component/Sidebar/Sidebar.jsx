@@ -10,59 +10,46 @@ import {
   Menu,
   X,
   Moon,
-<<<<<<< HEAD
   Sun,
-  Bell
-=======
+  Bell,
   TrendingUp,
-  Sun
->>>>>>> 4b98c3c06d93fe7eff37714035451b0cd25fa0d6
 } from "lucide-react";
 import api from "../../api";
-import useLogout from "../../hooks/useLogout"; // <-- NEW
+import useLogout from "../../hooks/useLogout";
 
 export default function Sidebar() {
   const [open, setOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const logout = useLogout(); // <-- NEW centralized logout
+  const logout = useLogout();
 
-  // Load dark mode setting
   useEffect(() => {
     const saved = localStorage.getItem("darkMode");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     setDarkMode(saved === "true" || (!saved && prefersDark));
   }, []);
 
-  // Apply dark mode
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
-
     localStorage.setItem("darkMode", darkMode.toString());
   }, [darkMode]);
 
   const [isCertApproved, setIsCertApproved] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
-
-  // How long the badge should be visible (milliseconds)
-  const BADGE_DURATION_MS = 10000; // 10s
+  const BADGE_DURATION_MS = 10000;
 
   const menuItems = [
     { name: "Dashboard", icon: <Home className="w-5 h-5" />, path: "/student/dashboard" },
     { name: "Profile", icon: <User className="w-5 h-5" />, path: "/student/profile" },
     { name: "Certificate", icon: <FileText className="w-5 h-5" />, path: "/student/certificate" },
     { name: "Payment", icon: <CreditCard className="w-5 h-5" />, path: "/student/payment" },
-<<<<<<< HEAD
-    { name: "Internship", icon: <CreditCard className="w-5 h-5" />, path: "/student/internship" }
-=======
-    { name: "Tasks", icon: <FileText className="w-5 h-5" />, path: "/tasks" },
-    { name: "Skills Progress", icon: <TrendingUp className="w-5 h-5" />, path: "/skills-progress" },
->>>>>>> 4b98c3c06d93fe7eff37714035451b0cd25fa0d6
+    { name: "Internship", icon: <CreditCard className="w-5 h-5" />, path: "/student/internship" },
+    { name: "Tasks", icon: <FileText className="w-5 h-5" />, path: "/student/task" },
+    { name: "Skills Progress", icon: <TrendingUp className="w-5 h-5" />, path: "/student/skills-progress" },
   ];
 
-  // Check if the student has any approved certificates
   useEffect(() => {
     let mounted = true;
 
@@ -74,7 +61,6 @@ export default function Sidebar() {
         if (!mounted) return;
         setIsCertApproved(approved);
 
-        // Show badge once when approval is first observed
         const badgeShown = localStorage.getItem("internshipBadgeShown") === "true";
         if (approved && !badgeShown) {
           setShowBadge(true);
@@ -82,7 +68,6 @@ export default function Sidebar() {
           setTimeout(() => setShowBadge(false), BADGE_DURATION_MS);
         }
       } catch (err) {
-        // silently fail; sidebar shouldn't break if API fails
         console.debug("Could not fetch certificates for sidebar badge", err);
       }
     };
@@ -108,10 +93,6 @@ export default function Sidebar() {
             </div>
             {open && <span className="text-lg font-semibold tracking-wide">Parach ICT</span>}
           </Link>
-
-          {/* <button onClick={() => setOpen(!open)} className="p-2 rounded-lg hover:bg-white/10">
-            {open ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button> */}
         </div>
 
         {/* Navigation */}
@@ -120,7 +101,6 @@ export default function Sidebar() {
             {menuItems.map((item) => {
               const active = location.pathname === item.path;
 
-              // Special handling for Internship item: remain dormant until certificate approved
               if (item.name === "Internship") {
                 if (isCertApproved) {
                   return (
@@ -129,7 +109,7 @@ export default function Sidebar() {
                         to={item.path}
                         className={`flex items-center gap-2 p-3 rounded-lg transition-all 
                       ${active ? "bg-white/20 text-white font-semibold shadow-md"
-                      : "text-blue-100 hover:bg-white/10 hover:text-white"}`}
+                        : "text-blue-100 hover:bg-white/10 hover:text-white"}`}
                       >
                         {item.icon}
                         {open && <span className="text-sm">{item.name}</span>}
@@ -141,7 +121,6 @@ export default function Sidebar() {
                   );
                 }
 
-                // Not approved yet: show dormant, non-clickable item
                 return (
                   <li key={item.name}>
                     <div
@@ -161,7 +140,7 @@ export default function Sidebar() {
                     to={item.path}
                     className={`flex items-center gap-3 p-3 rounded-lg transition-all 
                       ${active ? "bg-white/20 text-white font-semibold shadow-md"
-                      : "text-blue-100 hover:bg-white/10 hover:text-white"}`}
+                        : "text-blue-100 hover:bg-white/10 hover:text-white"}`}
                   >
                     {item.icon}
                     {open && <span className="text-sm">{item.name}</span>}
@@ -187,7 +166,7 @@ export default function Sidebar() {
         {/* LOGOUT */}
         <div className="px-3 pb-4">
           <button
-            onClick={logout}     // <-- uses central logout handler
+            onClick={logout}
             className="flex items-center gap-3 text-blue-100 hover:bg-white/10 hover:text-white
                        rounded-lg p-3 transition-all w-full text-left"
           >
@@ -197,29 +176,34 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* MOBILE TOP BAR */}
-      <div className="md:hidden fixed top-0 left-0 w-full z-40 flex items-center justify-between 
-                      px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
-        <Link to="/student/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">P</div>
-          <span className="font-semibold">Parach ICT</span>
-        </Link>
-
-        <button onClick={() => setMobileOpen(true)} className="p-2 hover:bg-white/10">
+      {/* MOBILE HAMBURGER BUTTON - SIDE */}
+      <div className="md:hidden fixed left-0 top-1/2 transform -translate-y-1/2 z-40">
+        <button 
+          onClick={() => setMobileOpen(true)}
+          className="bg-gradient-to-b from-blue-600 to-indigo-700 text-white p-3 rounded-r-lg shadow-lg hover:shadow-xl transition-shadow"
+        >
           <Menu className="w-6 h-6" />
         </button>
       </div>
 
-      {/* MOBILE DRAWER */}
+      {/* MOBILE SIDEBAR DRAWER */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 flex">
+        <div className="fixed inset-0 z-50 flex md:hidden">
           {/* Overlay */}
-          <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div 
+            className="flex-1 bg-black/50 backdrop-blur-sm" 
+            onClick={() => setMobileOpen(false)} 
+          />
 
-          <div className="w-64 bg-gradient-to-b from-blue-600 to-indigo-700 text-white p-5 flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold">Menu</h2>
-              <button onClick={() => setMobileOpen(false)} className="p-2 hover:bg-white/10">
+          {/* Sidebar */}
+          <div className="w-64 bg-gradient-to-b from-blue-600 to-indigo-700 text-white p-5 flex flex-col shadow-xl">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/20">
+              <Link to="/student/dashboard" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">P</div>
+                <span className="font-semibold">Parach ICT</span>
+              </Link>
+              <button onClick={() => setMobileOpen(false)} className="p-2 hover:bg-white/10 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -278,6 +262,17 @@ export default function Sidebar() {
               </ul>
             </nav>
 
+            {/* Dark Mode */}
+            <div className="mt-4 pt-4 border-t border-white/20">
+              <button 
+                onClick={() => setDarkMode(!darkMode)}
+                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all"
+              >
+                {darkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                <span className="text-sm">Dark Mode</span>
+              </button>
+            </div>
+
             {/* Logout */}
             <button
               onClick={() => {
@@ -285,7 +280,7 @@ export default function Sidebar() {
                 logout();
               }}
               className="flex items-center gap-3 text-blue-100 hover:bg-white/10 hover:text-white 
-                         rounded-lg p-3 mt-4 w-full text-left"
+                         rounded-lg p-3 mt-2 w-full text-left"
             >
               <LogOut className="w-5 h-5" />
               <span className="text-sm">Log Out</span>

@@ -2,7 +2,10 @@
 import React from 'react';
 import './App.css';
 import { Toaster } from 'react-hot-toast';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+   
+//404 page
+import NotFound from './component/404page.jsx';
 
 // Auth & Layouts
 import Login from './pages/Login';
@@ -26,6 +29,7 @@ import CourseDetails from './components/Students/CourseDetails';
 import PaymentPage from './pages/PaymentPage';
 import StudentPaymentHistory from './components/Students/StudentPaymentHistory';
 import LandingChoicePage from './views/Student-Interface/LandingChoicePage.jsx'
+
 // Admin Pages
 import Dashboard from './pages/AdminDashboard/Dashboard';
 import StudentManagement from './pages/AdminDashboard/StudentManagement';
@@ -48,13 +52,10 @@ import LessonForm from './components/Course/LessonForm';
 import EnquiryList from './components/Enquiries/EnquiryList';
 import EnquiryForm from './views/Student-Interface/Enquiry.jsx';
 
-<<<<<<< HEAD
 // Internship
 import Internship from './views/Student-Interface/Internship.jsx';
-=======
-import TaskManagement from './components/Students/TaskManagementSystem.jsx'
+import TaskManagement from './views/Student-Interface/TaskManagementSystem.jsx'
 import SkillsProgress from './pages/SkillsProgress.jsx';
->>>>>>> 4b98c3c06d93fe7eff37714035451b0cd25fa0d6
 
 // Protected route wrapper with role checking
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -71,7 +72,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   
   if (!token) {
     console.log('[ProtectedRoute] No token → redirecting to /signin');
-    return <Navigate to="/signin" />;
+    return <Navigate to="/signin" replace />;
   }
 
   // If role is required, check it
@@ -85,11 +86,11 @@ const ProtectedRoute = ({ children, requiredRole }) => {
       if (checkRole !== requiredRole) {
         // Redirect based on actual role
         console.log('[ProtectedRoute] Role mismatch → redirecting');
-        return <Navigate to={checkRole === 'student' ? '/student/dashboard' : '/signin'} />;
+        return <Navigate to={checkRole === 'student' ? '/student/dashboard' : '/signin'} replace />;
       }
     } catch (error) {
       console.error('Role check error:', error);
-      return <Navigate to="/signin" />;
+      return <Navigate to="/signin" replace />;
     }
   }
 
@@ -103,7 +104,6 @@ function App() {
       <Toaster position="top-center" />
 
       <Routes>
-
         {/* PUBLIC AUTH ROUTES */}
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
@@ -113,9 +113,6 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/choose" element={<LandingChoicePage />} />
 
-        <Route path="tasks" element={<TaskManagement />} />
-        <Route path="skills-progress" element={<SkillsProgress />} />
-
         {/* PUBLIC STUDENT ROUTES */}
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/payment" element={<PaymentPage />} />
@@ -124,11 +121,10 @@ function App() {
 
         {/* ENQUIRIES */}
         <Route path="/enquiries">
-          {/* <Route index element={<EnquiryList />} /> */}
           <Route path="add" element={<EnquiryForm />} />
         </Route>
 
-        {/* STUDENT DASHBOARD */}
+        {/* STUDENT DASHBOARD - FIXED: Removed nested Routes inside Student layout */}
         <Route
           path="/student/*"
           element={
@@ -136,18 +132,9 @@ function App() {
               <Student />
             </ProtectedRoute>
           }
-        >
-          <Route index element={<Navigate to="dashboard" />} />
-          <Route path="dashboard" element={<StudentDashboard />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="certificate" element={<CertificateDashboard />} />
-          <Route path="payment" element={<PaymentDashboard />} />
-          <Route path="internship" element={<Internship />} />
-          <Route path="settings" element={<Settings />} />
+        />
 
-        </Route>
-
-        {/* ADMIN DASHBOARD - Fixed with proper role protection */}
+        {/* ADMIN DASHBOARD */}
         <Route
           path="/admin/*"
           element={
@@ -156,9 +143,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="dashboard" />} />
-
-          <Route index element={<Dashboard />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="students" element={<StudentManagement />} />
           <Route path="certificates" element={<CertificateManagement />} />
@@ -184,11 +169,11 @@ function App() {
           </Route>
 
           {/* ENQUIRIES */}
-        <Route path="enquiries">
-          <Route index element={<EnquiryList />} />
-          <Route path="add" element={<EnquiryForm />} />
-          <Route path="edit/:id" element={<EnquiryForm />} />
-        </Route>
+          <Route path="enquiries">
+            <Route index element={<EnquiryList />} />
+            <Route path="add" element={<EnquiryForm />} />
+            <Route path="edit/:id" element={<EnquiryForm />} />
+          </Route>
 
           {/* LESSON ROUTES */}
           <Route path="lessons">
@@ -198,9 +183,8 @@ function App() {
         </Route>
 
         {/* DEFAULT REDIRECT */}
-        <Route path="/" element={<Navigate to="/choose" />} />
-        <Route path="*" element={<h2>404 Not Found</h2>} />
-
+        <Route path="/" element={<Navigate to="/choose" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
