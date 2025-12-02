@@ -6,7 +6,14 @@ const PaymentHistory = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ student: "", course: "" });
-  const [sortConfig, setSortConfig] = useState({ key: "created_at", direction: "desc" });
+  const [sortConfig, setSortConfig] = useState({
+    key: "created_at",
+    direction: "desc",
+  });
+
+  /* ⭐ NEW: Pagination State */
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -16,9 +23,12 @@ const PaymentHistory = () => {
       if (!token) return;
 
       try {
-        const res = await axios.get(`${API_BASE}/payments/transactions/?status=success`, {
-          headers: { Authorization: `Token ${token}` },
-        });
+        const res = await axios.get(
+          `${API_BASE}/payments/transactions/?status=success`,
+          {
+            headers: { Authorization: `Token ${token}` },
+          }
+        );
         setTransactions(res.data);
       } catch (err) {
         console.error("Error fetching transactions:", err);
@@ -29,6 +39,11 @@ const PaymentHistory = () => {
 
     fetchTransactions();
   }, [API_BASE]);
+
+  /* ⭐ Reset page when filtering */
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
 
   if (loading) {
     return (
@@ -42,28 +57,48 @@ const PaymentHistory = () => {
   // Filter
   const filteredTransactions = transactions.filter(
     (t) =>
-      (!filter.student || t.user_name?.toLowerCase().includes(filter.student.toLowerCase())) &&
-      (!filter.course || t.user_course?.toLowerCase().includes(filter.course.toLowerCase()))
+      (!filter.student ||
+        t.user_name?.toLowerCase().includes(filter.student.toLowerCase())) &&
+      (!filter.course ||
+        t.user_course?.toLowerCase().includes(filter.course.toLowerCase()))
   );
 
   // Sort
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     const key = sortConfig.key;
-    let aVal = key === "amount" ? parseFloat(a[key]) : new Date(a[key] || a.created_at);
-    let bVal = key === "amount" ? parseFloat(b[key]) : new Date(b[key] || b.created_at);
+    let aVal =
+      key === "amount"
+        ? parseFloat(a[key])
+        : new Date(a[key] || a.created_at);
+    let bVal =
+      key === "amount"
+        ? parseFloat(b[key])
+        : new Date(b[key] || b.created_at);
 
     if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
     if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
     return 0;
   });
 
+  // ⭐ Pagination Slicing
+  const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedTransactions = sortedTransactions.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
   const requestSort = (key) => {
     let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") direction = "desc";
+    if (sortConfig.key === key && sortConfig.direction === "asc")
+      direction = "desc";
     setSortConfig({ key, direction });
   };
 
-  const totalPaid = filteredTransactions.reduce((acc, t) => acc + parseFloat(t.amount), 0);
+  const totalPaid = filteredTransactions.reduce(
+    (acc, t) => acc + parseFloat(t.amount),
+    0
+  );
 
   // CSV Export
   const downloadCSV = () => {
@@ -93,11 +128,10 @@ const PaymentHistory = () => {
     document.body.removeChild(link);
   };
 
-  // ✅ Download server-generated PDF receipt
   const downloadReceipt = (tx) => {
     if (tx.status !== "success") return;
 
-    const url = `${API_BASE}/payments/download/${tx.reference}/`; // make sure this endpoint returns the PDF
+    const url = `${API_BASE}/payments/download/${tx.reference}/`;
     const link = document.createElement("a");
     link.href = url;
     link.target = "_blank";
@@ -135,7 +169,9 @@ const PaymentHistory = () => {
       {/* Total Paid */}
       <div style={styles.totalPaidContainer}>
         <span style={styles.totalPaidLabel}>Total Paid:</span>
-        <span style={styles.totalPaidValue}>₦{totalPaid.toLocaleString()}</span>
+        <span style={styles.totalPaidValue}>
+          ₦{totalPaid.toLocaleString()}
+        </span>
       </div>
 
       {/* Table */}
@@ -143,28 +179,44 @@ const PaymentHistory = () => {
         <table style={styles.table}>
           <thead style={styles.thead}>
             <tr>
-              <th style={styles.th} onClick={() => requestSort("user_name")}>Student Name</th>
-              <th style={styles.th} onClick={() => requestSort("user_course")}>Course</th>
-              <th style={styles.th} onClick={() => requestSort("reference")}>Reference</th>
-              <th style={styles.th} onClick={() => requestSort("amount")}>Amount</th>
-              <th style={styles.th} onClick={() => requestSort("created_at")}>Date</th>
-              <th style={styles.th} onClick={() => requestSort("status")}>Status</th>
+              <th style={styles.th} onClick={() => requestSort("user_name")}>
+                Student Name
+              </th>
+              <th style={styles.th} onClick={() => requestSort("user_course")}>
+                Course
+              </th>
+              <th style={styles.th} onClick={() => requestSort("reference")}>
+                Reference
+              </th>
+              <th style={styles.th} onClick={() => requestSort("amount")}>
+                Amount
+              </th>
+              <th style={styles.th} onClick={() => requestSort("created_at")}>
+                Date
+              </th>
+              <th style={styles.th} onClick={() => requestSort("status")}>
+                Status
+              </th>
               <th style={styles.th}>Receipt</th>
             </tr>
           </thead>
+
           <tbody>
-            {sortedTransactions.map((tx, idx) => (
+            {paginatedTransactions.map((tx, idx) => (
               <tr
                 key={tx.id}
                 style={{
                   ...styles.tr,
-                  backgroundColor: idx % 2 === 0 ? "#f9fafb" : "#ffffff",
+                  backgroundColor:
+                    idx % 2 === 0 ? "#f9fafb" : "#ffffff",
                 }}
               >
                 <td style={styles.td}>{tx.user_name || "N/A"}</td>
                 <td style={styles.td}>{tx.user_course || "N/A"}</td>
                 <td style={styles.td}>{tx.reference}</td>
-                <td style={styles.td}>₦{parseFloat(tx.amount).toLocaleString()}</td>
+                <td style={styles.td}>
+                  ₦{parseFloat(tx.amount).toLocaleString()}
+                </td>
                 <td style={styles.td}>
                   {new Date(tx.created_at).toLocaleString("en-NG", {
                     dateStyle: "medium",
@@ -176,13 +228,15 @@ const PaymentHistory = () => {
                     style={{
                       padding: "4px 8px",
                       borderRadius: 6,
-                      backgroundColor: tx.status === "success" ? "#16a34a" : "#dc2626",
+                      backgroundColor:
+                        tx.status === "success" ? "#16a34a" : "#dc2626",
                       color: "#fff",
                       fontWeight: 600,
                       fontSize: 12,
                     }}
                   >
-                    {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                    {tx.status.charAt(0).toUpperCase() +
+                      tx.status.slice(1)}
                   </span>
                 </td>
                 <td style={styles.td}>
@@ -209,14 +263,54 @@ const PaymentHistory = () => {
           </tbody>
         </table>
       </div>
+
+      {/* ⭐ Pagination */}
+      <div style={styles.pagination}>
+        <button
+          style={styles.pageBtn}
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((p) => p - 1)}
+        >
+          ‹ Prev
+        </button>
+
+        {[...Array(totalPages)].map((_, i) => (
+          <button
+            key={i}
+            style={{
+              ...styles.pageNumber,
+              backgroundColor:
+                currentPage === i + 1 ? "#1D4ED8" : "#fff",
+              color:
+                currentPage === i + 1 ? "#fff" : "#1D4ED8",
+            }}
+            onClick={() => setCurrentPage(i + 1)}
+          >
+            {i + 1}
+          </button>
+        ))}
+
+        <button
+          style={styles.pageBtn}
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((p) => p + 1)}
+        >
+          Next ›
+        </button>
+      </div>
     </div>
   );
 };
 
-// Styles same as before
+// Styles
 const styles = {
   container: { padding: "20px", maxWidth: "1000px", margin: "0 auto" },
-  heading: { fontSize: "28px", fontWeight: "700", color: "#1D4ED8", marginBottom: "20px" },
+  heading: {
+    fontSize: "28px",
+    fontWeight: "700",
+    color: "#1D4ED8",
+    marginBottom: "20px",
+  },
   totalPaidContainer: {
     backgroundColor: "#f9fafb",
     border: "1px solid #e5e7eb",
@@ -228,7 +322,11 @@ const styles = {
     alignItems: "center",
   },
   totalPaidLabel: { fontWeight: "600", color: "#374151" },
-  totalPaidValue: { color: "#16A34A", fontWeight: "700", fontSize: "18px" },
+  totalPaidValue: {
+    color: "#16A34A",
+    fontWeight: "700",
+    fontSize: "18px",
+  },
   tableWrapper: { overflowX: "auto" },
   table: {
     width: "100%",
@@ -239,7 +337,7 @@ const styles = {
   },
   thead: { backgroundColor: "#1D4ED8", color: "#ffffff" },
   th: { padding: "12px", textAlign: "left", cursor: "pointer" },
-  tr: { borderBottom: "1px solid #E5E7EB", transition: "background-color 0.2s" },
+  tr: { borderBottom: "1px solid #E5E7EB" },
   td: { padding: "12px", color: "#374151" },
   inputFilter: {
     padding: "6px 10px",
@@ -275,6 +373,31 @@ const styles = {
     height: "48px",
     marginBottom: "10px",
     animation: "spin 1s linear infinite",
+  },
+
+  /* ⭐ Pagination Styles */
+  pagination: {
+    marginTop: 20,
+    display: "flex",
+    gap: "8px",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  pageBtn: {
+    padding: "8px 12px",
+    border: "1px solid #1D4ED8",
+    backgroundColor: "#fff",
+    borderRadius: 6,
+    cursor: "pointer",
+    color: "#1D4ED8",
+    fontWeight: 600,
+  },
+  pageNumber: {
+    padding: "8px 12px",
+    border: "1px solid #1D4ED8",
+    borderRadius: 6,
+    cursor: "pointer",
+    fontWeight: 600,
   },
 };
 

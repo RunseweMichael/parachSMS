@@ -47,14 +47,9 @@ import LessonForm from './components/Course/LessonForm';
 // Enquiries
 import EnquiryList from './components/Enquiries/EnquiryList';
 import EnquiryForm from './views/Student-Interface/Enquiry.jsx';
-
-<<<<<<< HEAD
-// Internship
 import Internship from './views/Student-Interface/Internship.jsx';
-=======
 import TaskManagement from './components/Students/TaskManagementSystem.jsx'
 import SkillsProgress from './pages/SkillsProgress.jsx';
->>>>>>> 4b98c3c06d93fe7eff37714035451b0cd25fa0d6
 
 // Protected route wrapper with role checking
 const ProtectedRoute = ({ children, requiredRole }) => {

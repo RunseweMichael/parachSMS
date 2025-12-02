@@ -154,8 +154,9 @@ export default function TaskManagementSystem() {
 
       // find matching course in our sample dataset (fallback)
       const course = coursesData.courses.find(c =>
-        c.name === courseName || c.id === courseName || c.id === Number(courseName)
-      ) || null;
+      c.name.toLowerCase() === courseName?.toLowerCase()
+      ) || null;  
+
 
       setStudentCourse(course);
       // now fetch completed weeks and scores
