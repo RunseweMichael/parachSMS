@@ -26,7 +26,7 @@ import PaymentDashboard from './views/Student-Interface/PaymentDashboard.jsx';
 import Settings from './views/Student-Interface/StudentProfile.jsx';
 import Profile from './components/Students/Profile';
 import CourseDetails from './components/Students/CourseDetails';
-import PaymentPage from './pages/PaymentPage';
+import PaymentPage from '../src/views/Student-Interface/PaymentDashboard.jsx';
 import StudentPaymentHistory from './components/Students/StudentPaymentHistory';
 import LandingChoicePage from './views/Student-Interface/LandingChoicePage.jsx'
 
@@ -59,12 +59,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   const userRole = localStorage.getItem('role');
   const user = localStorage.getItem('user');
   
-  console.log('[ProtectedRoute] Checking access:', {
-    hasToken: !!token,
-    requiredRole,
-    userRole,
-    userExists: !!user,
-  });
+
   
   if (!token) {
     console.log('[ProtectedRoute] No token → redirecting to /signin');
@@ -77,7 +72,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
       const checkRole = localStorage.getItem('role') || 
                        JSON.parse(localStorage.getItem('user'))?.role;
       
-      console.log('[ProtectedRoute] Checking role:', { requiredRole, checkRole, match: checkRole === requiredRole });
+      
       
       if (checkRole !== requiredRole) {
         // Redirect based on actual role
@@ -90,7 +85,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     }
   }
 
-  console.log('[ProtectedRoute] Access granted, rendering children');
+  
   return children;
 };
 
