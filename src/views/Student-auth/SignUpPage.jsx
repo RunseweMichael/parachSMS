@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import FloatingBackground from "../../component/FloatingBackground";
+import logoImg from "../../assets/1000561121.jpg";
 
 // Fully-fluid animated SignUpPage
 export default function SignUpPage() {
@@ -153,10 +154,10 @@ export default function SignUpPage() {
 
               {/* Header */}
               <motion.div variants={headerVariant} className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold shadow-lg mb-4">
-                  P
+                <div className="inline-flex items-center justify-center font-bold mb-4">
+                  <img className="w-20 h-18 rounded-full  shadow-lg" src={logoImg} alt="" />
                 </div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Join Parach Computers</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Join Parach ICT Academy</h1>
                 <p className="text-gray-600 mt-2">Start your ICT journey today!</p>
               </motion.div>
 
@@ -255,38 +256,7 @@ export default function SignUpPage() {
                   </AnimatePresence>
                 </motion.div>
 
-                {/* Course */}
-                <motion.div variants={fieldVariant(4)} className="relative">
-                  <BookOpen className="absolute left-3 top-3.5 text-gray-400" size={20} />
-                  <select
-                    name="course"
-                    value={formData.course}
-                    onChange={handleChange}
-                    required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border appearance-none transition ${
-                      errors.course ? "border-red-400 bg-red-50" : "border-gray-300 bg-white/70"
-                    }`}
-                  >
-                    <option value="">Choose Course</option>
-                    {courseLoading ? (
-                      <option>Loading...</option>
-                    ) : (
-                      courses.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.course_name} (₦{Number(c.price).toLocaleString()})
-                        </option>
-                      ))
-                    )}
-                  </select>
-                  <AnimatePresence>
-                    {errors.course && (
-                      <motion.p className="text-xs text-red-600 mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                        <AlertCircle className="inline mr-1" size={12} /> {errors.course}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
+      
                 {/* Center */}
 <motion.div
   variants={fieldVariant(4.5)}
@@ -360,6 +330,38 @@ export default function SignUpPage() {
                   </AnimatePresence>
                 </motion.div>
 
+
+                          {/* Course */}
+                <motion.div variants={fieldVariant(4)} className="relative">
+                  <BookOpen className="absolute left-3 top-3.5 text-gray-400" size={20} />
+                  <select
+                    name="course"
+                    value={formData.course}
+                    onChange={handleChange}
+                    required
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border appearance-none transition ${
+                      errors.course ? "border-red-400 bg-red-50" : "border-gray-300 bg-white/70"
+                    }`}
+                  >
+                    <option value="">Choose Course</option>
+                    {courseLoading ? (
+                      <option>Loading...</option>
+                    ) : (
+                      courses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.course_name} (₦{Number(c.price).toLocaleString()})
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <AnimatePresence>
+                    {errors.course && (
+                      <motion.p className="text-xs text-red-600 mt-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <AlertCircle className="inline mr-1" size={12} /> {errors.course}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
                 {/* Address */}
                 <motion.div variants={fieldVariant(7)} className="relative md:col-span-2">
                   <MapPin className="absolute left-3 top-3.5 text-gray-400" size={20} />

@@ -38,12 +38,38 @@ export default function HeaderStats() {
       console.error("Failed to load modules:", err);
       setModules([]);
     }
-  ;
-    
   };
 
   const paid = parseFloat(student?.amount_paid || 0);
   const owed = parseFloat(student?.amount_owed || 0);
+
+  // -----------------------------
+  // Format due date
+  // -----------------------------
+  const formatDueDate = (dateString) => {
+    if (!dateString) return null;
+    
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to compare dates only
+    date.setHours(0, 0, 0, 0);
+    
+    // Calculate days remaining
+    const timeDiff = date.getTime() - today.getTime();
+    const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+    // Format the date
+    const formattedDate = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    
+    return { formattedDate, daysRemaining };
+  };
+
+  // Use next_due_date from the student object
+  const dueDate = student?.next_due_date ? formatDueDate(student.next_due_date) : null;
 
   return (
     <>
@@ -69,7 +95,7 @@ export default function HeaderStats() {
                 statTitle={`₦${paid.toLocaleString()} / ₦${owed.toLocaleString()}`}
                 statPercent={
                   owed > paid
-                    ? `${(owed - paid).toLocaleString()} Due`
+                    ? `₦${(owed - paid).toLocaleString()} Due`
                     : "Paid in Full"
                 }
                 statPercentColor="text-emerald-400"
@@ -90,25 +116,43 @@ export default function HeaderStats() {
               />
             </div>
 
-            {/* SALES */}
+            {/* NEXT DUE DATE */}
             <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
               <CardStats
-                statSubtitle=""
-                statTitle="-"
-                statPercent=""
-                statIconName="fas fa-users"
+                statSubtitle="NEXT DUE DATE"
+                statTitle={dueDate?.formattedDate || "Not set"}
+                statPercent={
+                  dueDate?.daysRemaining !== undefined && dueDate?.daysRemaining !== null
+                    ? dueDate.daysRemaining > 0 
+                      ? `${dueDate.daysRemaining} days left`
+                      : dueDate.daysRemaining === 0
+                      ? "Due today"
+                      : `${Math.abs(dueDate.daysRemaining)} days overdue`
+                    : ""
+                }
+                statPercentColor={
+                  dueDate?.daysRemaining !== undefined && dueDate?.daysRemaining !== null
+                    ? dueDate.daysRemaining > 7
+                      ? "text-emerald-400"
+                      : dueDate.daysRemaining > 0
+                      ? "text-yellow-400"
+                      : "text-red-400"
+                    : "text-gray-400"
+                }
                 statIconColor="bg-gradient-to-br from-pink-500 to-rose-500"
                 hoverEffect
               />
             </div>
 
-            {/* MODULE COUNT */}
+            {/* MODULE COUNT - CLICKABLE */}
             <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
               <CardStats
                 statSubtitle="COURSE MODULES"
-                statTitle={`${modules.length} Modules`}      
+                statTitle={`Course Resource`}      
                 statIconColor="bg-gradient-to-br from-cyan-500 to-blue-600"
                 hoverEffect
+                link={student?.course?.resource_link}
+                clickable={true}
               />
             </div>
 

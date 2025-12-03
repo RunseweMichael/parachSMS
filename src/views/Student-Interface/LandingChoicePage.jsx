@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import logoImg from "../../assets/1000561121.png";
 import {
   Cpu,
   MessageSquare,
@@ -103,12 +104,15 @@ export default function LandingChoicePage() {
           transition={{ duration: 0.9, ease: "easeOut" }}
           className="bg-white/40 backdrop-blur-2xl border border-white/30 shadow-2xl rounded-3xl p-10 max-w-md w-full text-center relative z-10"
         >
+          <div className="inline-flex items-center justify-center font-bold mb-4">
+            <img className="w-20 h-18 rounded-full   shadow-lg" src={logoImg} alt="" />
+           </div>
           <h1 className="text-4xl font-bold text-gray-900 drop-shadow-sm mb-4">
             Welcome to Parach ICT Academy
           </h1>
 
           <p className="text-gray-700 text-lg mb-10">
-            Choose what you want to do today.
+          What can we help you with today?
           </p>
 
           <div className="flex flex-col gap-4">
@@ -145,7 +149,7 @@ export default function LandingChoicePage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex justify-center items-center z-50"  onClick={() => setShowModal(false)}>
           <motion.div
             variants={modalVariants}
             initial="hidden"
@@ -160,7 +164,7 @@ export default function LandingChoicePage() {
               You’ll need an account to continue.
             </p>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3" >
               <button
                 className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition shadow-md hover:shadow-xl"
                 onClick={() => navigate("/signup")}
@@ -177,9 +181,9 @@ export default function LandingChoicePage() {
 
               <button
                 className="w-full py-3 bg-gray-300 text-gray-800 rounded-xl font-semibold hover:bg-gray-400 transition"
-                onClick={() => setShowModal(false)}
+                onClick={() => navigate("/enquiries/add")}
               >
-                No, Go Back
+                Enquiry and Information
               </button>
             </div>
           </motion.div>

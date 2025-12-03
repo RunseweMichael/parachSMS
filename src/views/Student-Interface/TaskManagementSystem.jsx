@@ -3,7 +3,6 @@ import {
   CheckCircle,
   XCircle,
   Award,
-  BookOpen,
   ChevronRight,
   Loader,
   Lock,
@@ -12,45 +11,13 @@ import {
   RefreshCw,
   Clock
 } from 'lucide-react';
+import api from "../../api";
 
-// Mock API service (replace with your actual api import)
-const apiService = {
-  async request(method, url, data = null, retries = 3) {
-    // Simulated API for demo purposes
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (url === "/students/me/") {
-      return {
-        id: 1,
-        name: "John Doe",
-        course: { id: 1, name: "Web Development" },
-        dashboard_locked: false,
-        next_due_date: null,
-        amount_owed: 0
-      };
-    }
-    
-    if (url.includes("/courses/")) {
-      return mockCoursesData[1];
-    }
-    
-    if (url === "/tasks/completed/") {
-      return [];
-    }
-    
-    if (url === "/tasks/submit/") {
-      return { success: true };
-    }
-    
-    throw new Error("API endpoint not found");
-  }
-};
 
-// Mock course data
 const mockCoursesData = {
   1: {
     id: 1,
-    name: "Web Development",
+    course_name: "Web Development",
     modules: [
       {
         id: 1,
@@ -61,41 +28,68 @@ const mockCoursesData = {
             weekNumber: 1,
             title: "Introduction to HTML",
             tasks: [
-              { id: 101, question: "What does HTML stand for?", options: ["Hyper Text Markup Language","High Tech Modern Language","Home Tool Markup Language","Hyperlinks and Text Markup Language"], correctAnswer: 0 },
-              { id: 102, question: "Which HTML tag is used for the largest heading?", options: ["<h6>", "<heading>", "<h1>", "<head>"], correctAnswer: 2 },
-              { id: 103, question: "What is the correct HTML element for inserting a line break?", options: ["<break>", "<br>", "<lb>", "<newline>"], correctAnswer: 1 },
-              { id: 104, question: "Which attribute is used to provide alternative text for an image?", options: ["title", "alt", "src", "longdesc"], correctAnswer: 1 },
-              { id: 105, question: "What is the correct HTML for creating a hyperlink?", options: ["<a url='http://example.com'>Example</a>","<a href='http://example.com'>Example</a>","<link>http://example.com</link>","<hyperlink>http://example.com</hyperlink>"], correctAnswer: 1 }
+              { id: 101, question: "What does HTML stand for?", options: ["Hyper Text Markup Language", "High Tech Modern Language", "Home Tool Markup Language"], correctAnswer: 0 },
+              { id: 102, question: "Which tag is used for largest heading?", options: ["<h1>", "<h6>", "<head>", "<title>"], correctAnswer: 0 },
+              { id: 103, question: "Correct tag for line break?", options: ["<break>", "<br>", "<lb>", "<newline>"], correctAnswer: 1 }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  4: {
+    id: 4,
+    course_name: "Data Analytics",
+    modules: [
+      {
+        id: 10,
+        name: "Introduction to Data Analytics",
+        weeks: [
+          {
+            id: 100,
+            weekNumber: 1,
+            title: "What is Data Analytics?",
+            tasks: [
+              { id: 1001, question: "Main goal of data analytics?", options: ["Design apps", "Turn data into insights", "Write code", "Make logos"], correctAnswer: 1 },
+              { id: 1002, question: "Which is NOT a type of analytics?", options: ["Descriptive", "Predictive", "Prescriptive", "Decorative"], correctAnswer: 3 },
+              { id: 1003, question: "ETL stands for?", options: ["Extract, Transform, Load", "Edit, Translate, Link", "Export, Type, Leave"], correctAnswer: 0 }
             ]
           },
           {
-            id: 2,
+            id: 101,
             weekNumber: 2,
-            title: "CSS Fundamentals",
+            title: "Excel for Data Analysis",
             tasks: [
-              { id: 201, question: "What does CSS stand for?", options: ["Computer Style Sheets","Cascading Style Sheets","Creative Style Sheets","Colorful Style Sheets"], correctAnswer: 1 },
-              { id: 202, question: "Which CSS property is used to change text color?", options: ["text-color", "font-color", "color", "text-style"], correctAnswer: 2 },
-              { id: 203, question: "How do you select an element with id 'header' in CSS?", options: [".header", "#header", "*header", "header"], correctAnswer: 1 },
-              { id: 204, question: "Which property is used to change the background color?", options: ["bgcolor", "background-color", "color", "bg-color"], correctAnswer: 1 },
-              { id: 205, question: "What is the default value of the position property?", options: ["relative", "fixed", "absolute", "static"], correctAnswer: 3 }
+              { id: 1011, question: "Function for average in Excel?", options: ["SUM()", "COUNT()", "AVERAGE()", "MEAN()"], correctAnswer: 2 },
+              { id: 1012, question: "Pivot Tables are used for?", options: ["Charts", "Summarizing large data", "Formatting", "Sorting"], correctAnswer: 1 },
+              { id: 1013, question: "VLOOKUP searches:", options: ["Horizontally", "Vertically", "Diagonally", "Randomly"], correctAnswer: 1 }
             ]
           }
         ]
       },
       {
-        id: 2,
-        name: "JavaScript Basics",
+        id: 11,
+        name: "Python & SQL for Analytics",
         weeks: [
           {
-            id: 3,
+            id: 102,
             weekNumber: 1,
-            title: "JavaScript Introduction",
+            title: "Python Pandas Basics",
             tasks: [
-              { id: 301, question: "Which keyword is used to declare a variable in JavaScript?", options: ["var","let","const","All of the above"], correctAnswer: 3 },
-              { id: 302, question: "What is the correct syntax for a JavaScript comment?", options: ["<!-- comment -->","// comment","# comment","/* comment"], correctAnswer: 1 },
-              { id: 303, question: "Which method is used to parse a string to an integer?", options: ["parseInt()","parseInteger()","toInteger()","int()"], correctAnswer: 0 },
-              { id: 304, question: "What will 'typeof null' return?", options: ["null","undefined","object","number"], correctAnswer: 2 },
-              { id: 305, question: "Which operator is used for strict equality?", options: ["==","===","=","!="], correctAnswer: 1 }
+              { id: 1021, question: "Main Python library for data analysis?", options: ["React", "Pandas", "Django", "Flask"], correctAnswer: 1 },
+              { id: 1022, question: "How to import pandas?", options: ["import pandas", "import pd", "from pandas import *", "All work"], correctAnswer: 3 },
+              { id: 1023, question: "SQL is used for?", options: ["Styling", "Databases", "Frontend", "Mobile"], correctAnswer: 1 }
+            ]
+          },
+          {
+            id: 103,
+            weekNumber: 2,
+            title: "Basic SQL Queries",
+            tasks: [
+              { id: 1031, question: "Command to select all data?", options: ["SELECT *", "GET ALL", "SHOW ALL", "READ *"], correctAnswer: 0 },
+              { id: 1032, question: "WHERE clause is used to?", options: ["Sort", "Filter rows", "Join tables", "Group"], correctAnswer: 1 },
+              { id: 1033, question: "JOIN combines tables using?", options: ["Same name", "Common column", "Order", "Size"], correctAnswer: 1 }
             ]
           }
         ]
@@ -120,133 +114,170 @@ export default function TaskManagementSystem() {
   const [quizTimer, setQuizTimer] = useState(null);
   const [showTimer, setShowTimer] = useState(false);
 
-  // Timer effect
+  // handleSubmit first — fixes hoisting
+  const handleSubmit = useCallback(async () => {
+    if (!selectedWeek || submitting) return;
+
+    let correctCount = 0;
+    selectedWeek.tasks.forEach(task => {
+      if (answers[task.id] === task.correctAnswer) correctCount++;
+    });
+
+    const percentage = Math.round((correctCount / selectedWeek.tasks.length) * 100);
+    const scoreData = { correct: correctCount, total: selectedWeek.tasks.length, percentage };
+
+    setScore(scoreData);
+    setSubmitted(true);
+    setShowTimer(false);
+
+    try {
+      setSubmitting(true);
+      await api.post("/tasks/submit/", {
+        week_id: selectedWeek.id,
+        module_id: selectedModule.id,
+        module_name: selectedModule.name,
+        course_id: studentCourse.id,
+        answers,
+        score: scoreData,
+        time_taken: 1800 - (quizTimer || 0)
+      });
+
+      setCompletedWeeks(prev => new Set([...prev, selectedWeek.id]));
+      setWeekScores(prev => ({ ...prev, [selectedWeek.id]: percentage }));
+    } catch (err) {
+      console.error("Submit failed:", err);
+      setError("Could not save results. Check connection.");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [selectedWeek, answers, selectedModule, studentCourse, quizTimer, submitting]);
+
+  // Timer effect — safe now
   useEffect(() => {
     if (!showTimer || !quizTimer || quizTimer <= 0) return;
-    
+
     const interval = setInterval(() => {
       setQuizTimer(prev => {
         if (prev <= 1) {
           setShowTimer(false);
-          return null;
+          handleSubmit();
+          return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [showTimer, quizTimer]);
+  }, [showTimer, quizTimer, handleSubmit]);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await apiService.request('GET', "/students/me/");
-      
-      const nextDue = data.next_due_date ? new Date(data.next_due_date) : null;
-      const today = new Date();
-      let computedLock = false;
-      
-      if (nextDue && nextDue < new Date(today.toDateString())) {
-        const amountOwed = Number(data.amount_owed ?? 0);
-        if (amountOwed > 0) computedLock = true;
-      }
-
-      const backendLock = typeof data.dashboard_locked === 'boolean' ? data.dashboard_locked : null;
-      const finalLocked = backendLock !== null ? backendLock : computedLock;
-
-      setStudent({ ...data, dashboard_locked: finalLocked });
-
-      if (finalLocked) {
-        setLoading(false);
-        return;
-      }
-
-      await Promise.all([
-        fetchCourseStructure(data),
-        fetchCompletedWeeks()
-      ]);
-
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchCourseStructure = useCallback(async (studentData) => {
-    try {
-      const courseName = studentData.course?.course_name || 
-                        studentData.course?.name || 
-                        studentData.course_name || 
-                        null;
-      const courseId = studentData.course?.id || null;
-      
-      let course = null;
-      
-      if (courseId) {
-        try {
-          const courseData = await apiService.request('GET', `/courses/${courseId}/`);
-          course = courseData;
-        } catch (err) {
-          console.warn("Backend course fetch failed, using mock data", err);
-          course = mockCoursesData[courseId] || null;
-        }
-      }
-      
-      if (!course && courseName) {
-        course = Object.values(mockCoursesData).find(c => c.name === courseName) || null;
-      }
-      
-      setStudentCourse(course);
-    } catch (err) {
-      console.error("Failed to fetch course structure:", err);
-      setError("Could not load course content. " + err.message);
-    }
-  }, []);
-
+  // fetchCompletedWeeks — before fetchProfile
   const fetchCompletedWeeks = useCallback(async () => {
     try {
-      const data = await apiService.request('GET', "/tasks/completed/");
-      
-      const completed = new Set(data.map(w => w.week_id));
+      const res = await api.get("/tasks/completed/");
+      const completed = new Set(res.data.map(item => item.week_id));
       setCompletedWeeks(completed);
 
       const scores = {};
-      data.forEach(w => {
-        scores[w.week_id] = w.percentage;
+      res.data.forEach(item => {
+        scores[item.week_id] = item.percentage;
       });
       setWeekScores(scores);
     } catch (err) {
-      console.error("Failed to fetch completed weeks:", err);
+      console.warn("No completed weeks yet");
     }
   }, []);
 
-  const isWeekUnlocked = useCallback((module, week) => {
-    if (!studentCourse) return false;
+  // fetchProfile — main loader
+ // fetchProfile — inside try block after getting studentData
+const fetchProfile = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError(null);
 
-    if (module.id === studentCourse.modules[0]?.id && week.weekNumber === 1) {
-      return true;
+    const res = await api.get("/students/users/");
+    const studentData = res.data[0];
+    if (!studentData) throw new Error("No profile found");
+
+    // Payment lock
+    const nextDue = studentData.next_due_date ? new Date(studentData.next_due_date) : null;
+    const today = new Date();
+    const isOverdue = nextDue && nextDue < new Date(today.toDateString());
+    const hasDebt = Number(studentData.amount_owed || 0) > 0;
+    const locked = isOverdue && hasDebt;
+
+    setStudent({ ...studentData, dashboard_locked: locked });
+    if (locked) return setLoading(false);
+
+    // THIS IS THE MAGIC — MAP BY STUDENT USER ID
+    const studentId = studentData.id; // e.g. 10, 12, 15, etc.
+    console.log("Student ID:", studentId);
+
+    let courseData = null;
+
+    // TRY REAL BACKEND FIRST
+    try {
+      const courseRes = await api.get(`/courses/${studentData.course.id}/`);
+      courseData = courseRes.data;
+      console.log("Loaded from backend");
+    } catch (err) {
+      console.warn("Backend course not ready, using student ID mapping");
     }
 
-    const previousWeek = module.weeks.find(w => w.weekNumber === week.weekNumber - 1);
-    if (previousWeek && completedWeeks.has(previousWeek.id)) {
-      return true;
-    }
+    // IF BACKEND FAILS → USE STUDENT ID TO PICK CORRECT MOCK COURSE
+    if (!courseData) {
+      const studentCourseMap = {
+        // ADD YOUR STUDENTS HERE — user_id → course mock data
+        10: mockCoursesData[1], // Afehbu George → Web Development
+        12: mockCoursesData[4], // Stanley George → Data Analytics
+        15: mockCoursesData[1], // Another web dev student
+        18: mockCoursesData[4], // Another data analytics student
+        // Add more students as needed
+      };
 
-    if (week.weekNumber === 1) {
-      const moduleIndex = studentCourse.modules.findIndex(m => m.id === module.id);
-      if (moduleIndex > 0) {
-        const previousModule = studentCourse.modules[moduleIndex - 1];
-        const lastWeekOfPrevModule = previousModule.weeks[previousModule.weeks.length - 1];
-        return completedWeeks.has(lastWeekOfPrevModule.id);
+      courseData = studentCourseMap[studentId];
+
+      if (!courseData) {
+        // Default fallback if student not in map
+        courseData = studentData.course.course_name.toLowerCase().includes("web")
+          ? mockCoursesData[1]
+          : mockCoursesData[4];
       }
     }
 
+    setStudentCourse(courseData);
+    await fetchCompletedWeeks();
+    setLoading(false);
+
+  } catch (err) {
+    setError("Failed to load course. Try again.");
+    setLoading(false);
+  }
+}, [fetchCompletedWeeks]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const getModuleProgress = useCallback((module) => {
+    const completed = module.weeks.filter(w => completedWeeks.has(w.id)).length;
+    return module.weeks.length ? (completed / module.weeks.length) * 100 : 0;
+  }, [completedWeeks]);
+
+  const isWeekUnlocked = useCallback((module, week) => {
+    if (!studentCourse) return false;
+    if (module.id === studentCourse.modules[0]?.id && week.weekNumber === 1) return true;
+
+    const prevWeek = module.weeks.find(w => w.weekNumber === week.weekNumber - 1);
+    if (prevWeek && completedWeeks.has(prevWeek.id)) return true;
+
+    if (week.weekNumber === 1) {
+      const modIdx = studentCourse.modules.findIndex(m => m.id === module.id);
+      if (modIdx > 0) {
+        const prevMod = studentCourse.modules[modIdx - 1];
+        const lastWeek = prevMod.weeks[prevMod.weeks.length - 1];
+        return completedWeeks.has(lastWeek.id);
+      }
+    }
     return false;
   }, [studentCourse, completedWeeks]);
 
@@ -256,7 +287,6 @@ export default function TaskManagementSystem() {
     setAnswers({});
     setSubmitted(false);
     setScore(null);
-    setQuizTimer(null);
   }, []);
 
   const handleWeekSelect = useCallback((week) => {
@@ -264,391 +294,290 @@ export default function TaskManagementSystem() {
     setAnswers({});
     setSubmitted(false);
     setScore(null);
-    setQuizTimer(30 * 60);
+    setQuizTimer(1800);
     setShowTimer(true);
   }, []);
 
-  const handleAnswerChange = useCallback((taskId, answerIndex) => {
-    setAnswers(prev => ({
-      ...prev,
-      [taskId]: answerIndex
-    }));
+  const handleAnswerChange = useCallback((taskId, index) => {
+    setAnswers(prev => ({ ...prev, [taskId]: index }));
   }, []);
-
-  const handleSubmit = useCallback(async () => {
-    if (!selectedWeek || submitting) return;
-
-    let correctCount = 0;
-    selectedWeek.tasks.forEach(task => {
-      if (answers[task.id] === task.correctAnswer) {
-        correctCount++;
-      }
-    });
-
-    const percentage = (correctCount / selectedWeek.tasks.length) * 100;
-    const scoreData = {
-      correct: correctCount,
-      total: selectedWeek.tasks.length,
-      percentage: percentage
-    };
-
-    setScore(scoreData);
-    setSubmitted(true);
-    setShowTimer(false);
-
-    try {
-      setSubmitting(true);
-      await apiService.request('POST', "/tasks/submit/", {
-        week_id: selectedWeek.id,
-        module_id: selectedModule.id,
-        module_name: selectedModule.name,
-        course_id: studentCourse?.id || null,
-        answers: answers,
-        score: scoreData,
-        time_taken: 30 * 60 - (quizTimer || 0)
-      });
-
-      setCompletedWeeks(prev => new Set([...prev, selectedWeek.id]));
-      setWeekScores(prev => ({ ...prev, [selectedWeek.id]: percentage }));
-    } catch (err) {
-      setError("Failed to save results: " + err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }, [selectedWeek, answers, selectedModule, studentCourse, quizTimer, submitting]);
 
   const handleReset = useCallback(() => {
     setAnswers({});
     setSubmitted(false);
     setScore(null);
-    setQuizTimer(30 * 60);
+    setQuizTimer(1800);
     setShowTimer(true);
   }, []);
 
-  const handleRetry = useCallback(() => {
-    fetchCompletedWeeks();
-  }, [fetchCompletedWeeks]);
-
-  const getModuleProgress = useCallback((module) => {
-    const completedInModule = module.weeks.filter(w => completedWeeks.has(w.id)).length;
-    return (completedInModule / module.weeks.length) * 100;
-  }, [completedWeeks]);
-
   const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <Loader className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Loading your course...</p>
-        </div>
-      </div>
-    );
-  }
+  // RENDER
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen"><Loader className="w-16 h-16 text-indigo-600 animate-spin" /><p className="ml-4 text-xl">Loading...</p></div>
+  );
 
-  if (error && !student) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6 max-w-md mx-auto">
-        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-gray-800 mb-2 text-center">Error</h2>
-        <p className="text-gray-600 mb-4 text-center">{error}</p>
-        <button
-          onClick={() => {
-            setError(null);
-            fetchProfile();
-          }}
-          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center justify-center gap-2 w-full"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Retry
-        </button>
-      </div>
-    );
-  }
+  if (error && !student) return (
+    <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-2xl shadow text-center">
+      <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+      <h2 className="text-2xl font-bold mb-3">Error</h2>
+      <p>{error}</p>
+      <button onClick={fetchProfile} className="mt-6 px-8 py-3 bg-indigo-600 text-white rounded-xl">
+        <RefreshCw className="inline w-5 h-5 mr-2" /> Retry
+      </button>
+    </div>
+  );
 
-  if (student?.dashboard_locked) {
-    return (
-      <div className="bg-white p-6 rounded-lg shadow text-center max-w-md mx-auto">
-        <Lock className="w-12 h-12 text-red-600 mx-auto mb-3" />
-        <h2 className="text-lg font-bold text-gray-800 mb-2">Dashboard Locked</h2>
-        <p className="text-gray-600 mb-3">Your payment is overdue. Please clear your outstanding balance.</p>
-        <p className="text-sm font-semibold">Due: {student.next_due_date || 'N/A'}</p>
-        <p className="text-sm font-semibold">Owed: ${Number(student.amount_owed || 0).toFixed(2)}</p>
-      </div>
-    );
-  }
+  if (student?.dashboard_locked) return (
+    <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-2xl shadow text-center">
+      <Lock className="w-16 h-16 text-red-600 mx-auto mb-4" />
+      <h2 className="text-2xl font-bold mb-3">Dashboard Locked</h2>
+      <p>Payment overdue. Clear balance to continue.</p>
+      <p className="mt-4 font-bold text-xl text-red-600">₦{Number(student.amount_owed || 0).toLocaleString()}</p>
+    </div>
+  );
 
-  if (!studentCourse) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6 max-w-md mx-auto text-center">
-        <XCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-        <h2 className="text-lg font-bold text-gray-800 mb-2">No Course Found</h2>
-        <p className="text-gray-600 mb-4">You're not registered for any course.</p>
-        <button
-          onClick={handleRetry}
-          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center justify-center gap-2 mx-auto"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Try Again
-        </button>
-      </div>
-    );
-  }
+  if (!studentCourse) return (
+    <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-2xl shadow text-center">
+      <XCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+      <h2 className="text-2xl font-bold mb-3">No Course Found</h2>
+      <p>Not enrolled in any course yet.</p>
+    </div>
+  );
 
   return (
-  <div className=" bg-gray-50 ">
-    <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <div className="bg-gray-50 min-h-screen py-8">
+      <div className="max-w-6xl mx-auto px-4">
 
-      {/* Clean Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900">Course Tasks</h1>
-       
-      </div>
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-gray-900">Course Tasks</h1>
+          <p className="text-2xl text-gray-600 mt-4">Welcome back, {student?.name}!</p>
+        </div>
 
-      {/* Course Summary */}
-      {studentCourse && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-10 text-center">
-          <h2 className="text-3xl font-bold text-gray-900">{studentCourse.name}</h2>
-          <p className="mt-3 text-gray-600">
-            {completedWeeks.size} week{completedWeeks.size !== 1 ? 's' : ''} completed out of{' '}
-            {studentCourse.modules.reduce((a, m) => a + m.weeks.length, 0)}
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-12 text-center border">
+          <h2 className="text-4xl font-bold text-indigo-700">{studentCourse.course_name}</h2>
+          <p className="text-xl text-gray-600 mt-4">
+            {completedWeeks.size} / {studentCourse.modules.reduce((a, m) => a + m.weeks.length, 0)} weeks completed
           </p>
         </div>
-      )}
 
-      {/* Module Selection */}
-      {!selectedModule && studentCourse && (
-        <div className="space-y-8">
-          <h2 className="text-2xl font-semibold text-gray-800 text-center">Select a Module</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {studentCourse.modules.map((module) => {
-              const progress = getModuleProgress(module);
-              const completed = module.weeks.filter(w => completedWeeks.has(w.id)).length;
-
-              return (
-                <button
-                  key={module.id}
-                  onClick={() => handleModuleSelect(module)}
-                  className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold text-gray-900">{module.name}</h3>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
-                  </div>
-
-                  <div className="mt-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-2">
-                      <span>Progress</span>
-                      <span className="font-medium">{completed}/{module.weeks.length}</span>
+        {!selectedModule && (
+          <div>
+            <h2 className="text-3xl font-bold text-center mb-10">Select a Module</h2>
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {studentCourse.modules.map(mod => {
+                const progress = getModuleProgress(mod);
+                const done = mod.weeks.filter(w => completedWeeks.has(w.id)).length;
+                return (
+                  <button
+                    key={mod.id}
+                    onClick={() => handleModuleSelect(mod)}
+                    className="bg-white rounded-2xl shadow hover:shadow-2xl border-2 border-gray-200 p-8 text-left transition-all hover:-translate-y-2"
+                  >
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-2xl font-bold">{mod.name}</h3>
+                      <ChevronRight className="w-8 h-8 text-indigo-600" />
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${progress}%` }}
-                      />
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span>Progress</span>
+                        <span className="font-bold">{done}/{mod.weeks.length}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-4">
+                        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-4 rounded-full transition-all" style={{ width: `${progress}%` }} />
+                      </div>
                     </div>
-                  </div>
-
-                  <p className="text-sm text-gray-500 mt-3">{module.weeks.length} week{module.weeks.length !== 1 ? 's' : ''}</p>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Week Selection */}
-      {selectedModule && !selectedWeek && (
-        <div>
+        {selectedModule && !selectedWeek && (
+  <div className="animate-fade-in">
+    {/* Back Button */}
+    <button
+      onClick={() => setSelectedModule(null)}
+      className="mb-10 flex items-center gap-3 text-indigo-600 hover:text-indigo-800 font-semibold text-lg transition-colors focus:outline-none"
+    >
+      Back to Modules
+    </button>
+
+    {/* Module Title */}
+    <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 text-gray-900">
+      {selectedModule.name}
+    </h2>
+
+    {/* Weeks Grid */}
+    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {selectedModule.weeks.map((week) => {
+        const unlocked = isWeekUnlocked(selectedModule, week);
+        const done = completedWeeks.has(week.id);
+      const weekScore = weekScores[week.id]; // ← Now correct!
+
+        return (
           <button
-            onClick={() => setSelectedModule(null)}
-            className="mb-8 text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 transition-colors"
+            key={week.id}
+            onClick={() => unlocked && handleWeekSelect(week)}
+            disabled={!unlocked}
+            className={`
+              relative overflow-hidden rounded-3xl shadow-lg transition-all duration-300 
+              focus:outline-none focus:ring-4 focus:ring-indigo-300
+              ${unlocked ? 'hover:scale-105 hover:shadow-2xl cursor-pointer' : 'cursor-not-allowed opacity-70'}
+            `}
           >
-            ← Back to Modules
-          </button>
-
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">{selectedModule.name}</h2>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {selectedModule.weeks.map((week) => {
-              const isUnlocked = isWeekUnlocked(selectedModule, week);
-              const isCompleted = completedWeeks.has(week.id);
-              const score = weekScores[week.id];
-
-              return (
-                <button
-                  key={week.id}
-                  onClick={() => isUnlocked && handleWeekSelect(week)}
-                  disabled={!isUnlocked}
-                  className={`relative p-6 rounded-xl border-2 transition-all ${
-                    isUnlocked
-                      ? isCompleted
-                        ? 'bg-emerald-50 border-emerald-300 hover:bg-emerald-100'
-                        : 'bg-white border-gray-300 hover:border-indigo-400 hover:shadow-md'
-                      : 'bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed'
-                  }`}
-                >
-                  {!isUnlocked && (
-                    <Lock className="absolute top-3 right-3 w-5 h-5 text-gray-400" />
-                  )}
-                  {isCompleted && (
-                    <Check className="absolute top-3 right-3 w-5 h-5 text-emerald-600" />
-                  )}
-
-                  <div className="text-left">
-                    <h3 className="text-xl font-semibold text-gray-900">Week {week.weekNumber}</h3>
-                    <p className="mt-2 text-gray-700">{week.title}</p>
-                    <p className="mt-3 text-sm text-gray-500">{week.tasks.length} questions</p>
-                    {isCompleted && score !== undefined && (
-                      <div className="mt-4 inline-flex items-center px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium">
-                        {score.toFixed(0)}% Score
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Quiz */}
-      {selectedWeek && !submitted && (
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <button
-              onClick={() => setSelectedWeek(null)}
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
+            {/* Card Background */}
+            <div
+              className={`
+                h-full p-8 border-4 rounded-3xl transition-all
+                ${unlocked
+                  ? done
+                    ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-500'
+                    : 'bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-400'
+                  : 'bg-gray-100 border-gray-300'
+                }
+              `}
             >
-              ← Back to Weeks
-            </button>
-
-            {showTimer && quizTimer > 0 && (
-              <div className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold ${
-                quizTimer < 300 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
-              }`}>
-                <Clock className="w-5 h-5" />
-                {formatTime(quizTimer)}
+              {/* Status Icons */}
+              <div className="absolute top-6 right-6">
+                {done ? (
+                  <CheckCircle className="w-12 h-12 text-emerald-600 drop-shadow-md" />
+                ) : !unlocked ? (
+                  <Lock className="w-10 h-10 text-gray-500" />
+                ) : null}
               </div>
-            )}
-          </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Week {selectedWeek.weekNumber}
-            </h2>
-            <p className="text-lg text-gray-600 mb-8">{selectedWeek.title}</p>
+              {/* Content */}
+              <div className="text-left pr-16">
+                <h3 className="text-3xl font-bold text-gray-800 mb-3">
+                  Week {week.weekNumber}
+                </h3>
+                <p className="text-xl text-gray-700 mb-6 leading-relaxed">
+                  {week.title}
+                </p>
 
-            <div className="space-y-8">
-              {selectedWeek.tasks.map((task, idx) => (
-                <div key={task.id} className="border-b border-gray-200 pb-8 last:border-0 last:pb-0">
-                  <h3 className="font-semibold text-gray-900 mb-4">
-                    Question {idx + 1} of {selectedWeek.tasks.length}
-                  </h3>
-                  <p className="text-lg text-gray-800 mb-6">{task.question}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-lg text-gray-600">
+                    {week.tasks?.length || 0} questions
+                  </span>
 
-                  <div className="space-y-3">
-                    {task.options.map((option, i) => (
-                      <label
-                        key={i}
-                        className={`flex items-center p-4 rounded-lg border cursor-pointer transition-all ${
-                          answers[task.id] === i
-                            ? 'border-indigo-500 bg-indigo-50'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={`q-${task.id}`}
-                          checked={answers[task.id] === i}
-                          onChange={() => handleAnswerChange(task.id, i)}
-                          className="w-5 h-5 text-indigo-600"
-                        />
-                        <span className="ml-4 text-gray-800">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              disabled={Object.keys(answers).length !== selectedWeek.tasks.length || submitting}
-              className="mt-10 w-full bg-indigo-600 text-white py-4 rounded-xl font-semibold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {submitting ? 'Submitting...' : 'Submit Answers'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Results */}
-      {submitted && score && (
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <Award className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Quiz Complete!</h2>
-            <div className="text-7xl font-bold text-indigo-600 mb-3">
-              {score.percentage.toFixed(0)}%
-            </div>
-            <p className="text-xl text-gray-600">
-              {score.correct} out of {score.total} correct
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-8">
-            {selectedWeek.tasks.map((task, idx) => {
-              const correct = answers[task.id] === task.correctAnswer;
-              return (
-                <div key={task.id} className={`p-6 rounded-xl ${correct ? 'bg-emerald-50' : 'bg-red-50'}`}>
-                  <div className="flex items-start gap-4">
-                    {correct ? (
-                      <CheckCircle className="w-7 h-7 text-emerald-600 mt-1" />
-                    ) : (
-                      <XCircle className="w-7 h-7 text-red-600 mt-1" />
-                    )}
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900 mb-3">{task.question}</p>
-                      <div className="text-sm">
-                        <p className="text-gray-700">
-                          <span className="font-medium">Your answer:</span> {task.options[answers[task.id]] || 'Not answered'}
-                        </p>
-                        {!correct && (
-                          <p className="mt-2 text-emerald-700">
-                            <span className="font-medium">Correct answer:</span> {task.options[task.correctAnswer]}
-                          </p>
-                        )}
-                      </div>
+                  {done && (
+                    <div className="px-5 py-2 bg-emerald-600 text-white font-bold text-xl rounded-full shadow-md">
+                      {weekScore || 0}%
                     </div>
-                  </div>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
 
-          <div className="flex gap-4 mt-10 max-w-md mx-auto">
-            <button
-              onClick={handleReset}
-              className="flex-1 bg-indigo-600 text-white py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
-            >
-              Retake Quiz
-            </button>
-            <button
-              onClick={() => setSelectedWeek(null)}
-              className="flex-1 bg-gray-600 text-white py-4 rounded-xl font-semibold hover:bg-gray-700 transition-colors"
-            >
-              Back to Weeks
-            </button>
-          </div>
-        </div>
-      )}
+              {/* Locked Overlay */}
+              {!unlocked && (
+                <div className="absolute inset-0 bg-black/10 rounded-3xl flex items-center justify-center">
+                  <p className="text-2xl font-bold text-gray-600">Locked</p>
+                </div>
+              )}
+            </div>
+          </button>
+        );
+      })}
     </div>
   </div>
-);
+)}
+
+        {/* SAFE QUIZ RENDERING */}
+        {selectedWeek && !submitted && selectedWeek.tasks && selectedWeek.tasks.length > 0 ? (
+          <div className="max-w-4xl mx-auto">
+            <div className="flex justify-between items-center mb-8">
+              <button onClick={() => setSelectedWeek(null)} className="text-indigo-600 font-bold">← Back</button>
+              {showTimer && quizTimer > 0 && (
+                <div className={`px-8 py-4 rounded-full text-xl font-bold shadow-lg ${quizTimer < 300 ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                  <Clock className="inline w-6 h-6 mr-3" />
+                  {formatTime(quizTimer)}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-3xl shadow-2xl p-10">
+              <h2 className="text-4xl font-bold mb-4">Week {selectedWeek.weekNumber}</h2>
+              <p className="text-2xl text-gray-600 mb-12">{selectedWeek.title}</p>
+
+              <div className="space-y-12">
+                {selectedWeek.tasks.map((task, i) => (
+                  <div key={task.id}>
+                    <p className="text-xl font-bold mb-6">Question {i + 1}</p>
+                    <p className="text-2xl mb-8">{task.question}</p>
+                    <div className="space-y-4">
+                      {task.options.map((opt, idx) => (
+                        <label key={idx} className={`block p-6 rounded-xl border-2 cursor-pointer transition-all ${answers[task.id] === idx ? 'border-indigo-600 bg-indigo-50' : 'border-gray-300 hover:bg-gray-50'}`}>
+                          <input
+                            type="radio"
+                            name={`q${task.id}`}
+                            checked={answers[task.id] === idx}
+                            onChange={() => handleAnswerChange(task.id, idx)}
+                            className="w-6 h-6 text-indigo-600"
+                          />
+                          <span className="ml-4 text-xl">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={handleSubmit}
+                disabled={Object.keys(answers).length !== selectedWeek.tasks.length || submitting}
+                className="w-full mt-12 py-6 bg-gradient-to-r from-indigo-600 to-purple-700 text-white text-2xl font-bold rounded-2xl hover:from-indigo-700 hover:to-purple-800 disabled:opacity-50"
+              >
+                {submitting ? 'Submitting...' : 'Submit Quiz'}
+              </button>
+            </div>
+          </div>
+        ) : selectedWeek ? (
+          <div className="text-center py-20">
+            <p className="text-2xl text-gray-600">No questions available for this week yet.</p>
+            <button onClick={() => setSelectedWeek(null)} className="mt-8 px-8 py-4 bg-indigo-600 text-white rounded-xl text-xl">
+              ← Back to Weeks
+            </button>
+          </div>
+        ) : null}
+
+        {/* Results */}
+        {submitted && score && (
+          <div className="max-w-4xl mx-auto text-center py-20">
+            <Award className="w-32 h-32 text-yellow-500 mx-auto mb-8" />
+            <h2 className="text-6xl font-bold mb-8">Quiz Complete!</h2>
+            <div className="text-9xl font-bold text-indigo-600 mb-8">{score.percentage}%</div>
+            <p className="text-3xl text-gray-700 mb-12">{score.correct} / {score.total} correct</p>
+
+            <div className="bg-white rounded-3xl shadow-2xl p-10 space-y-8">
+              {selectedWeek.tasks.map(task => {
+                const correct = answers[task.id] === task.correctAnswer;
+                return (
+                  <div key={task.id} className={`p-8 rounded-2xl ${correct ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                    <p className="text-xl font-bold mb-4">{task.question}</p>
+                    <p>Your answer: <strong>{task.options[answers[task.id]] || "Skipped"}</strong></p>
+                    {!correct && <p className="text-emerald-700 mt-3">Correct: <strong>{task.options[task.correctAnswer]}</strong></p>}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-8 mt-12 max-w-lg mx-auto">
+              <button onClick={handleReset} className="flex-1 py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-2xl font-bold rounded-2xl">
+                Retake Quiz
+              </button>
+              <button onClick={() => setSelectedWeek(null)} className="flex-1 py-5 bg-gray-700 hover:bg-gray-800 text-white text-2xl font-bold rounded-2xl">
+                Back to Weeks
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
