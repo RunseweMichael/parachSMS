@@ -13,6 +13,8 @@ import {
   FaTicketAlt,
   FaUserTie,
 } from "react-icons/fa";
+import logoImg from "../../assets/1000561121.jpg";
+
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -106,7 +108,22 @@ const AdminLayout = () => {
         }}
       >
         <div style={styles.sidebarHeader}>
-          <h2 style={styles.logo}>Admin Panel</h2>
+          <img
+            src={logoImg}
+            alt="Logo"
+            style={{
+              width: "60px",
+              height: "60px",
+              borderRadius: "50%",   // ⬅️ makes it circular
+              objectFit: "cover",
+              marginRight: "12px",
+              border: "2px solid white" // optional: adds a clean border
+            }}
+          />
+          <div>
+          <h6 style={styles.logo}>Parach ICT Academy</h6>
+          {/* <h3 style={styles.logo}>Admin Panel</h3> */}
+          </div>
           <button
             style={styles.toggleBtn}
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -226,8 +243,8 @@ const styles = {
     alignItems: "center",
   },
   logo: {
-    fontSize: "22px",
-    fontWeight: "700",
+    fontSize: "20px",
+    fontWeight: "600",
     margin: 0,
   },
   toggleBtn: {
