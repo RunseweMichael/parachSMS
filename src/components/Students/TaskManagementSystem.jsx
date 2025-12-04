@@ -10,6 +10,7 @@ import {
   Check
 } from 'lucide-react';
 import api from '../../api';
+import { Navigate } from 'react-router-dom';
 
 const coursesData = {
   courses: [
@@ -571,7 +572,7 @@ export default function TaskManagementSystem() {
                   Retake Test
                 </button>
                 <button
-                  onClick={() => setSelectedWeek(null)}
+                  onClick={() => Navigate}
                   className="flex-1 bg-gray-600 text-white py-4 rounded-xl font-semibold hover:bg-gray-700 transition-all"
                 >
                   Back to Weeks

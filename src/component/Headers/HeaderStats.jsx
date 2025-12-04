@@ -144,17 +144,6 @@ export default function HeaderStats() {
               />
             </div>
 
-            {/* MODULE COUNT - CLICKABLE */}
-            <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
-              <CardStats
-                statSubtitle="COURSE MODULES"
-                statTitle={`Course Resource`}      
-                statIconColor="bg-gradient-to-br from-cyan-500 to-blue-600"
-                hoverEffect
-                link={student?.course?.resource_link}
-                clickable={true}
-              />
-            </div>
 
           </div>
         </div>

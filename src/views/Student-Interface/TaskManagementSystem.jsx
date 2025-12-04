@@ -11,6 +11,7 @@ import {
   Clock
 } from 'lucide-react';
 import api from "../../api";
+import { useNavigate } from "react-router-dom";
 
 const mockCoursesData = {
   1: {
@@ -110,6 +111,7 @@ export default function TaskManagementSystem() {
   const [submitting, setSubmitting] = useState(false);
   const [quizTimer, setQuizTimer] = useState(null);
   const [showTimer, setShowTimer] = useState(false);
+  const navigate = useNavigate();
 
   // Submit handler
   const handleSubmit = useCallback(async () => {
@@ -565,8 +567,8 @@ const fetchProfile = useCallback(async () => {
               <button onClick={handleReset} className="flex-1 py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-2xl font-bold rounded-2xl">
                 Retake Quiz
               </button>
-              <button onClick={() => setSelectedWeek(null)} className="flex-1 py-5 bg-gray-700 hover:bg-gray-800 text-white text-2xl font-bold rounded-2xl">
-                Back to Weeks
+              <button onClick={() =>navigate("/student/skills-progress")} className="flex-1 py-5 bg-gray-700 hover:bg-gray-800 text-white text-2xl font-bold rounded-2xl">
+                Back to Progress
               </button>
             </div>
           </div>
