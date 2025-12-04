@@ -6,13 +6,11 @@ import {
   ChevronRight,
   Loader,
   Lock,
-  Check,
   AlertCircle,
   RefreshCw,
   Clock
 } from 'lucide-react';
 import api from "../../api";
-
 
 const mockCoursesData = {
   1: {
@@ -37,7 +35,6 @@ const mockCoursesData = {
       }
     ]
   },
-
   4: {
     id: 4,
     course_name: "Data Analytics",
@@ -114,9 +111,9 @@ export default function TaskManagementSystem() {
   const [quizTimer, setQuizTimer] = useState(null);
   const [showTimer, setShowTimer] = useState(false);
 
-  // handleSubmit first — fixes hoisting
+  // Submit handler
   const handleSubmit = useCallback(async () => {
-    if (!selectedWeek || submitting) return;
+    if (!selectedWeek || submitting || submitted) return;
 
     let correctCount = 0;
     selectedWeek.tasks.forEach(task => {
@@ -146,21 +143,20 @@ export default function TaskManagementSystem() {
       setWeekScores(prev => ({ ...prev, [selectedWeek.id]: percentage }));
     } catch (err) {
       console.error("Submit failed:", err);
-      setError("Could not save results. Check connection.");
+      setError("Failed to save. Check internet and try again.");
     } finally {
       setSubmitting(false);
     }
-  }, [selectedWeek, answers, selectedModule, studentCourse, quizTimer, submitting]);
+  }, [selectedWeek, answers, selectedModule, studentCourse, quizTimer, submitting, submitted]);
 
-  // Timer effect — safe now
+  // Timer
   useEffect(() => {
-    if (!showTimer || !quizTimer || quizTimer <= 0) return;
+    if (!showTimer || quizTimer <= 0) return;
 
     const interval = setInterval(() => {
       setQuizTimer(prev => {
         if (prev <= 1) {
-          setShowTimer(false);
-          handleSubmit();
+          handleSubmit(); // Auto-submit
           return 0;
         }
         return prev - 1;
@@ -170,7 +166,7 @@ export default function TaskManagementSystem() {
     return () => clearInterval(interval);
   }, [showTimer, quizTimer, handleSubmit]);
 
-  // fetchCompletedWeeks — before fetchProfile
+  // Fetch completed weeks
   const fetchCompletedWeeks = useCallback(async () => {
     try {
       const res = await api.get("/tasks/completed/");
@@ -183,65 +179,62 @@ export default function TaskManagementSystem() {
       });
       setWeekScores(scores);
     } catch (err) {
-      console.warn("No completed weeks yet");
+      console.warn("No completed tasks yet");
     }
   }, []);
 
-  // fetchProfile — main loader
- // fetchProfile — inside try block after getting studentData
+  // Main loader
+ // Main loader
 const fetchProfile = useCallback(async () => {
   try {
     setLoading(true);
     setError(null);
 
-    const res = await api.get("/students/users/");
-    const studentData = res.data[0];
+    const res = await api.get("/students/users/me");
+    
+    // DEBUG: Check exactly what the API returns in your browser console
+    console.log("API Response:", res.data); 
+
+    // FIX: Handle if response is an array OR a single object
+    const studentData = Array.isArray(res.data) ? res.data[0] : res.data;
+
     if (!studentData) throw new Error("No profile found");
 
     // Payment lock
     const nextDue = studentData.next_due_date ? new Date(studentData.next_due_date) : null;
     const today = new Date();
-    const isOverdue = nextDue && nextDue < new Date(today.toDateString());
+    const isOverdue = nextDue && nextDue < new Date(today.setHours(0,0,0,0));
     const hasDebt = Number(studentData.amount_owed || 0) > 0;
     const locked = isOverdue && hasDebt;
 
     setStudent({ ...studentData, dashboard_locked: locked });
-    if (locked) return setLoading(false);
+    
+    if (locked) {
+      setLoading(false);
+      return;
+    }
 
-    // THIS IS THE MAGIC — MAP BY STUDENT USER ID
-    const studentId = studentData.id; // e.g. 10, 12, 15, etc.
-    console.log("Student ID:", studentId);
+    const courseId = studentData.course?.id || studentData.course; // Handle if course is object or just ID
+    if (!courseId) throw new Error("No course assigned");
 
     let courseData = null;
 
-    // TRY REAL BACKEND FIRST
+    // Try real backend first
     try {
-      const courseRes = await api.get(`/courses/${studentData.course.id}/`);
-      courseData = courseRes.data;
-      console.log("Loaded from backend");
+      const backendRes = await api.get(`/courses/${courseId}/`);
+      courseData = backendRes.data;
+      console.log("Loaded course from backend");
     } catch (err) {
-      console.warn("Backend course not ready, using student ID mapping");
+      console.warn("Backend course not available, using frontend mock");
     }
 
-    // IF BACKEND FAILS → USE STUDENT ID TO PICK CORRECT MOCK COURSE
+    // Fallback to mock data using course ID
     if (!courseData) {
-      const studentCourseMap = {
-        // ADD YOUR STUDENTS HERE — user_id → course mock data
-        10: mockCoursesData[1], // Afehbu George → Web Development
-        12: mockCoursesData[4], // Stanley George → Data Analytics
-        15: mockCoursesData[1], // Another web dev student
-        18: mockCoursesData[4], // Another data analytics student
-        // Add more students as needed
-      };
-
-      courseData = studentCourseMap[studentId];
-
+      courseData = mockCoursesData[courseId];
       if (!courseData) {
-        // Default fallback if student not in map
-        courseData = studentData.course.course_name.toLowerCase().includes("web")
-          ? mockCoursesData[1]
-          : mockCoursesData[4];
+        throw new Error(`No course content for course ID: ${courseId}`);
       }
+      console.log("Using mock course:", courseData.course_name);
     }
 
     setStudentCourse(courseData);
@@ -249,7 +242,8 @@ const fetchProfile = useCallback(async () => {
     setLoading(false);
 
   } catch (err) {
-    setError("Failed to load course. Try again.");
+    console.error("Load failed:", err);
+    setError(err.message || "Failed to load dashboard. Please refresh.");
     setLoading(false);
   }
 }, [fetchCompletedWeeks]);
@@ -258,6 +252,7 @@ const fetchProfile = useCallback(async () => {
     fetchProfile();
   }, [fetchProfile]);
 
+  // Helper functions
   const getModuleProgress = useCallback((module) => {
     const completed = module.weeks.filter(w => completedWeeks.has(w.id)).length;
     return module.weeks.length ? (completed / module.weeks.length) * 100 : 0;
@@ -281,13 +276,11 @@ const fetchProfile = useCallback(async () => {
     return false;
   }, [studentCourse, completedWeeks]);
 
+  // --- FIXED: ADDED MISSING HANDLER ---
   const handleModuleSelect = useCallback((module) => {
     setSelectedModule(module);
-    setSelectedWeek(null);
-    setAnswers({});
-    setSubmitted(false);
-    setScore(null);
   }, []);
+  // ------------------------------------
 
   const handleWeekSelect = useCallback((week) => {
     setSelectedWeek(week);
@@ -311,6 +304,7 @@ const fetchProfile = useCallback(async () => {
   }, []);
 
   const formatTime = (seconds) => {
+    if (seconds === null) return "30:00";
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
@@ -399,94 +393,94 @@ const fetchProfile = useCallback(async () => {
         )}
 
         {selectedModule && !selectedWeek && (
-  <div className="animate-fade-in">
-    {/* Back Button */}
-    <button
-      onClick={() => setSelectedModule(null)}
-      className="mb-10 flex items-center gap-3 text-indigo-600 hover:text-indigo-800 font-semibold text-lg transition-colors focus:outline-none"
-    >
-      Back to Modules
-    </button>
-
-    {/* Module Title */}
-    <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 text-gray-900">
-      {selectedModule.name}
-    </h2>
-
-    {/* Weeks Grid */}
-    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {selectedModule.weeks.map((week) => {
-        const unlocked = isWeekUnlocked(selectedModule, week);
-        const done = completedWeeks.has(week.id);
-      const weekScore = weekScores[week.id]; // ← Now correct!
-
-        return (
-          <button
-            key={week.id}
-            onClick={() => unlocked && handleWeekSelect(week)}
-            disabled={!unlocked}
-            className={`
-              relative overflow-hidden rounded-3xl shadow-lg transition-all duration-300 
-              focus:outline-none focus:ring-4 focus:ring-indigo-300
-              ${unlocked ? 'hover:scale-105 hover:shadow-2xl cursor-pointer' : 'cursor-not-allowed opacity-70'}
-            `}
-          >
-            {/* Card Background */}
-            <div
-              className={`
-                h-full p-8 border-4 rounded-3xl transition-all
-                ${unlocked
-                  ? done
-                    ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-500'
-                    : 'bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-400'
-                  : 'bg-gray-100 border-gray-300'
-                }
-              `}
+          <div className="animate-fade-in">
+            {/* Back Button */}
+            <button
+              onClick={() => setSelectedModule(null)}
+              className="mb-10 flex items-center gap-3 text-indigo-600 hover:text-indigo-800 font-semibold text-lg transition-colors focus:outline-none"
             >
-              {/* Status Icons */}
-              <div className="absolute top-6 right-6">
-                {done ? (
-                  <CheckCircle className="w-12 h-12 text-emerald-600 drop-shadow-md" />
-                ) : !unlocked ? (
-                  <Lock className="w-10 h-10 text-gray-500" />
-                ) : null}
-              </div>
+              Back to Modules
+            </button>
 
-              {/* Content */}
-              <div className="text-left pr-16">
-                <h3 className="text-3xl font-bold text-gray-800 mb-3">
-                  Week {week.weekNumber}
-                </h3>
-                <p className="text-xl text-gray-700 mb-6 leading-relaxed">
-                  {week.title}
-                </p>
+            {/* Module Title */}
+            <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 text-gray-900">
+              {selectedModule.name}
+            </h2>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-lg text-gray-600">
-                    {week.tasks?.length || 0} questions
-                  </span>
+            {/* Weeks Grid */}
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {selectedModule.weeks.map((week) => {
+                const unlocked = isWeekUnlocked(selectedModule, week);
+                const done = completedWeeks.has(week.id);
+                const weekScore = weekScores[week.id];
 
-                  {done && (
-                    <div className="px-5 py-2 bg-emerald-600 text-white font-bold text-xl rounded-full shadow-md">
-                      {weekScore || 0}%
+                return (
+                  <button
+                    key={week.id}
+                    onClick={() => unlocked && handleWeekSelect(week)}
+                    disabled={!unlocked}
+                    className={`
+                      relative overflow-hidden rounded-3xl shadow-lg transition-all duration-300 
+                      focus:outline-none focus:ring-4 focus:ring-indigo-300
+                      ${unlocked ? 'hover:scale-105 hover:shadow-2xl cursor-pointer' : 'cursor-not-allowed opacity-70'}
+                    `}
+                  >
+                    {/* Card Background */}
+                    <div
+                      className={`
+                        h-full p-8 border-4 rounded-3xl transition-all
+                        ${unlocked
+                          ? done
+                            ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-500'
+                            : 'bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-400'
+                          : 'bg-gray-100 border-gray-300'
+                        }
+                      `}
+                    >
+                      {/* Status Icons */}
+                      <div className="absolute top-6 right-6">
+                        {done ? (
+                          <CheckCircle className="w-12 h-12 text-emerald-600 drop-shadow-md" />
+                        ) : !unlocked ? (
+                          <Lock className="w-10 h-10 text-gray-500" />
+                        ) : null}
+                      </div>
+
+                      {/* Content */}
+                      <div className="text-left pr-16">
+                        <h3 className="text-3xl font-bold text-gray-800 mb-3">
+                          Week {week.weekNumber}
+                        </h3>
+                        <p className="text-xl text-gray-700 mb-6 leading-relaxed">
+                          {week.title}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg text-gray-600">
+                            {week.tasks?.length || 0} questions
+                          </span>
+
+                          {done && (
+                            <div className="px-5 py-2 bg-emerald-600 text-white font-bold text-xl rounded-full shadow-md">
+                              {weekScore || 0}%
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Locked Overlay */}
+                      {!unlocked && (
+                        <div className="absolute inset-0 bg-black/10 rounded-3xl flex items-center justify-center">
+                          <p className="text-2xl font-bold text-gray-600">Locked</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Locked Overlay */}
-              {!unlocked && (
-                <div className="absolute inset-0 bg-black/10 rounded-3xl flex items-center justify-center">
-                  <p className="text-2xl font-bold text-gray-600">Locked</p>
-                </div>
-              )}
+                  </button>
+                );
+              })}
             </div>
-          </button>
-        );
-      })}
-    </div>
-  </div>
-)}
+          </div>
+        )}
 
         {/* SAFE QUIZ RENDERING */}
         {selectedWeek && !submitted && selectedWeek.tasks && selectedWeek.tasks.length > 0 ? (
