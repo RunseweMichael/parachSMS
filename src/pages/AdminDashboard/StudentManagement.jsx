@@ -1,10 +1,10 @@
-// src/components/StudentManagement.jsx
-import React, { useEffect, useState } from "react";
-import api from "../../api"; // your axios instance with auth
+import React, { useEffect, useState, useMemo } from "react";
+import api from "../../api";
 import { FaEdit, FaToggleOn, FaToggleOff, FaDownload } from "react-icons/fa";
 
 const StudentManagement = () => {
   const [students, setStudents] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -12,9 +12,23 @@ const StudentManagement = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   useEffect(() => {
     fetchStudents();
+    fetchCourses();
   }, [filter]);
+
+  const fetchCourses = async () => {
+    try {
+      const res = await api.get("/courses/courses/");
+      setCourses(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch courses:", err);
+    }
+  };
 
   const fetchStudents = async () => {
     try {
@@ -32,6 +46,7 @@ const StudentManagement = () => {
         name: s.name || "—",
         email: s.email,
         phone_number: s.phone_number || "—",
+        course_id: s.course?.id || null,
         course_name: s.course_name || (s.course?.course_name || "—"),
         amount_paid: Number(s.amount_paid || 0),
         amount_owed: Number(s.amount_owed || 0),
@@ -43,15 +58,14 @@ const StudentManagement = () => {
         address: s.address || "",
       }));
 
-      // filter out staff users
       data = data.filter((s) => !s.is_staff);
 
-      // additional filters
       if (filter === "active") data = data.filter((s) => s.is_active);
       if (filter === "inactive") data = data.filter((s) => !s.is_active);
 
       setStudents(data);
       setSelectedStudents([]);
+      setCurrentPage(1); // Reset pagination
     } catch (err) {
       console.error("Failed to fetch students:", err);
       alert("Failed to load students");
@@ -60,25 +74,44 @@ const StudentManagement = () => {
     }
   };
 
-  // ---------------- ACTION HANDLERS ----------------
+  // FILTERED STUDENTS
+  const filteredStudents = useMemo(() => {
+    return students.filter((s) =>
+      [s.name, s.email, s.course_name, s.center]
+        .join(" ")
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    );
+  }, [students, search]);
+
+  // PAGINATION LOGIC
+  const totalPages = Math.ceil(filteredStudents.length / pageSize);
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
   const handleNotifyDefaulters = async () => {
-  if (!selectedStudents.length) {
-    alert("Please select defaulters to notify.");
-    return;
-  }
-  if (!window.confirm(`Send notifications to ${selectedStudents.length} defaulters?`)) return;
+    if (!selectedStudents.length) {
+      alert("Please select defaulters to notify.");
+      return;
+    }
+    if (!window.confirm(`Send notifications to ${selectedStudents.length} defaulters?`)) return;
 
-  try {
-    const res = await api.post("/admin-panel/notify_defaulters/", {
-      student_ids: selectedStudents
-    });
-    alert(res.data.message || "Notifications sent successfully!");
-  } catch (err) {
-    console.error("Failed to send notifications:", err);
-    alert(err?.response?.data?.error || "Failed to send notifications");
-  }
-};
-
+    try {
+      const res = await api.post("/admin-panel/notify_defaulters/", {
+        student_ids: selectedStudents,
+      });
+      alert(res.data.message || "Notifications sent successfully!");
+    } catch (err) {
+      console.error("Failed to send notifications:", err);
+      alert(err?.response?.data?.error || "Failed to send notifications");
+    }
+  };
 
   const handleToggleActive = async (studentId) => {
     try {
@@ -136,9 +169,9 @@ const StudentManagement = () => {
     }
   };
 
-  // ---------------- SELECTION ----------------
   const handleSelectAll = (e) => {
-    if (e.target.checked) setSelectedStudents(filteredStudents.map((s) => s.id));
+    if (e.target.checked)
+      setSelectedStudents(paginatedStudents.map((s) => s.id));
     else setSelectedStudents([]);
   };
 
@@ -161,15 +194,6 @@ const StudentManagement = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // ---------------- FILTERED STUDENTS (search by name/email/course/center) ----------------
-  const filteredStudents = students.filter((s) =>
-    [s.name, s.email, s.course_name, s.center]
-      .join(" ")
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
-
-  // ---------------- JSX ----------------
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -233,99 +257,157 @@ const StudentManagement = () => {
 
       {loading ? (
         <p style={styles.message}>Loading students...</p>
-      ) : filteredStudents.length === 0 ? (
+      ) : paginatedStudents.length === 0 ? (
         <p style={styles.message}>No students found.</p>
       ) : (
-        <div style={styles.tableContainer}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    onChange={handleSelectAll}
-                    checked={
-                      selectedStudents.length === filteredStudents.length &&
-                      filteredStudents.length > 0
-                    }
-                  />
-                </th>
-                <th>#</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Course</th>
-                <th>Center</th>
-                <th>Amount Paid</th>
-                <th>Amount Owed</th>
-                <th>Discount</th>
-                <th>Next Due Date</th>
-                <th>Status</th>
-                <th>Edit</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStudents.map((s, i) => (
-                <tr key={s.id} style={styles.tr}>
-                  <td>
+        <>
+          <div style={styles.tableContainer}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th>
                     <input
                       type="checkbox"
-                      checked={selectedStudents.includes(s.id)}
-                      onChange={() => handleSelectStudent(s.id)}
+                      onChange={handleSelectAll}
+                      checked={
+                        selectedStudents.length === paginatedStudents.length &&
+                        paginatedStudents.length > 0
+                      }
                     />
-                  </td>
-                  <td>{i + 1}</td>
-                  <td>{s.name}</td>
-                  <td>{s.email}</td>
-                  <td>{s.phone_number}</td>
-                  <td>{s.course_name}</td>
-                  <td>{s.center}</td>
-                  <td>${s.amount_paid.toFixed(2)}</td>
-                  <td>${s.amount_owed.toFixed(2)}</td>
-                  <td>${s.discount.toFixed(2)}</td>
-                  <td>{formatDate(s.next_due_date)}</td>
-                  <td>
-                    <span
-                      style={{
-                        ...styles.badge,
-                        backgroundColor: s.is_active ? "#d4edda" : "#f8d7da",
-                        color: s.is_active ? "#155724" : "#721c24",
-                      }}
-                    >
-                      {s.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      style={styles.iconBtn}
-                      onClick={() => openEdit(s)}
-                      title="Edit Student"
-                    >
-                      <FaEdit />
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      style={{
-                        ...styles.iconBtn,
-                        color: s.is_active ? "#f44336" : "#4CAF50",
-                      }}
-                      onClick={() => handleToggleActive(s.id)}
-                    >
-                      {s.is_active ? <FaToggleOff /> : <FaToggleOn />}
-                    </button>
-                  </td>
+                  </th>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Course</th>
+                  <th>Center</th>
+                  <th>Amount Paid</th>
+                  <th>Amount Owed</th>
+                  <th>Discount</th>
+                  <th>Next Due Date</th>
+                  <th>Status</th>
+                  <th>Edit</th>
+                  <th>Actions</th>
                 </tr>
+              </thead>
+              <tbody>
+                {paginatedStudents.map((s, i) => (
+                  <tr key={s.id} style={styles.tr}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedStudents.includes(s.id)}
+                        onChange={() => handleSelectStudent(s.id)}
+                      />
+                    </td>
+                    <td>{(currentPage - 1) * pageSize + i + 1}</td>
+                    <td>{s.name}</td>
+                    <td>{s.email}</td>
+                    <td>{s.phone_number}</td>
+                    <td>{s.course_name}</td>
+                    <td>{s.center}</td>
+                    <td>₦{s.amount_paid.toLocaleString()}</td>
+                    <td>₦{s.amount_owed.toLocaleString()}</td>
+                    <td>₦{s.discount.toLocaleString()}</td>
+                    <td>{formatDate(s.next_due_date)}</td>
+                    <td>
+                      <span
+                        style={{
+                          ...styles.badge,
+                          backgroundColor: s.is_active ? "#d4edda" : "#f8d7da",
+                          color: s.is_active ? "#155724" : "#721c24",
+                        }}
+                      >
+                        {s.is_active ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        style={styles.iconBtn}
+                        onClick={() => openEdit(s)}
+                        title="Edit Student"
+                      >
+                        <FaEdit />
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        style={{
+                          ...styles.iconBtn,
+                          color: s.is_active ? "#f44336" : "#4CAF50",
+                        }}
+                        onClick={() => handleToggleActive(s.id)}
+                      >
+                        {s.is_active ? <FaToggleOff /> : <FaToggleOn />}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* PAGINATION CONTROLS */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: "15px",
+            }}
+          >
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              style={styles.filterSelect}
+            >
+              <option value={5}>5 per page</option>
+              <option value={10}>10 per page</option>
+              <option value={20}>20 per page</option>
+              <option value={50}>50 per page</option>
+            </select>
+
+            <div style={{ display: "flex", gap: "6px" }}>
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                style={styles.bulkBtn}
+              >
+                Prev
+              </button>
+              {[...Array(totalPages)].map((_, idx) => (
+                <button
+                  key={idx + 1}
+                  onClick={() => handlePageChange(idx + 1)}
+                  style={{
+                    ...styles.bulkBtn,
+                    backgroundColor:
+                      currentPage === idx + 1 ? "#2196F3" : "#e0e0e0",
+                    color: currentPage === idx + 1 ? "#fff" : "#000",
+                  }}
+                >
+                  {idx + 1}
+                </button>
               ))}
-            </tbody>
-          </table>
-        </div>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                style={styles.bulkBtn}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       {showEditModal && editingStudent && (
         <EditStudentModal
           student={editingStudent}
+          courses={courses}
           onClose={() => {
             setShowEditModal(false);
             setEditingStudent(null);
@@ -341,8 +423,7 @@ const StudentManagement = () => {
   );
 };
 
-// --------- Edit Student Modal ----------
-const EditStudentModal = ({ student, onClose, onSuccess }) => {
+const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     email: student.email || "",
     amount_paid: student.amount_paid ?? 0,
@@ -351,23 +432,39 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
     phone_number: student.phone_number || "",
     address: student.address || "",
     center: student.center || "Orogun",
+    course: student.course_id || "",
   });
   const [saving, setSaving] = useState(false);
+  const [courseChanging, setCourseChanging] = useState(false);
 
   const handleChange = (key, value) => {
+    if (key === "course" && value !== student.course_id) {
+      setCourseChanging(true);
+    }
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!formData.email) {
       alert("Email is required.");
       return;
     }
 
+    if (courseChanging) {
+      const confirmed = window.confirm(
+        "⚠️ WARNING: Changing the course will reset all payment information!\n\n" +
+        "• Amount Paid will be reset to ₦0\n" +
+        "• Amount Owed will be set to the new course price\n" +
+        "• All discounts will be removed\n\n" +
+        "Previous payment history will be preserved in transaction records.\n\n" +
+        "Do you want to continue?"
+      );
+      if (!confirmed) return;
+    }
+
     setSaving(true);
     try {
-      await api.put(`/students/users/${student.id}/`, {
+      const res = await api.put(`/students/users/${student.id}/`, {
         email: formData.email,
         name: formData.name,
         phone_number: formData.phone_number,
@@ -375,8 +472,15 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
         amount_paid: formData.amount_paid,
         next_due_date: formData.next_due_date || null,
         center: formData.center,
+        course: formData.course,
       });
-      alert("Student updated successfully.");
+      
+      if (res.data.warning) {
+        alert(`✅ ${res.data.warning}`);
+      } else {
+        alert("Student updated successfully.");
+      }
+      
       onSuccess();
     } catch (err) {
       console.error("Update failed:", err);
@@ -390,7 +494,14 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
     <div style={styles.modalOverlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <h3 style={styles.modalTitle}>Edit Student — {student.name}</h3>
-        <form onSubmit={handleSubmit}>
+        
+        {courseChanging && (
+          <div style={styles.warningBox}>
+            ⚠️ <strong>Warning:</strong> Changing course will reset payment data!
+          </div>
+        )}
+        
+        <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
           <div style={styles.formGroup}>
             <label style={styles.label}>Email</label>
             <input
@@ -399,6 +510,7 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
               style={styles.input}
             />
           </div>
+          
           <div style={styles.formGroup}>
             <label style={styles.label}>Full Name</label>
             <input
@@ -407,6 +519,7 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
               style={styles.input}
             />
           </div>
+          
           <div style={styles.formGroup}>
             <label style={styles.label}>Phone</label>
             <input
@@ -415,6 +528,7 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
               style={styles.input}
             />
           </div>
+          
           <div style={styles.formGroup}>
             <label style={styles.label}>Address</label>
             <input
@@ -423,6 +537,7 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
               style={styles.input}
             />
           </div>
+          
           <div style={styles.formGroup}>
             <label style={styles.label}>Center</label>
             <select
@@ -435,6 +550,28 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
               <option value="Online">Online</option>
             </select>
           </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>
+              Course {courseChanging && <span style={{color: '#f44336'}}>⚠️</span>}
+            </label>
+            <select
+              value={formData.course}
+              onChange={(e) => handleChange("course", e.target.value)}
+              style={{
+                ...styles.input,
+                ...(courseChanging ? {borderColor: '#f44336', borderWidth: 2} : {})
+              }}
+            >
+              <option value="">-- Select Course --</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.course_name} (₦{Number(c.price).toLocaleString()})
+                </option>
+              ))}
+            </select>
+          </div>
+          
           <div style={styles.formGroup}>
             <label style={styles.label}>Amount Paid</label>
             <input
@@ -443,8 +580,13 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
               value={formData.amount_paid}
               onChange={(e) => handleChange("amount_paid", e.target.value)}
               style={styles.input}
+              disabled={courseChanging}
             />
+            {courseChanging && (
+              <small style={{color: '#666'}}>Will be reset to ₦0 after course change</small>
+            )}
           </div>
+          
           <div style={styles.formGroup}>
             <label style={styles.label}>Next Due Date</label>
             <input
@@ -454,6 +596,7 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
               style={styles.input}
             />
           </div>
+          
           <div style={styles.modalActions}>
             <button
               type="button"
@@ -462,17 +605,24 @@ const EditStudentModal = ({ student, onClose, onSuccess }) => {
             >
               Cancel
             </button>
-            <button type="submit" style={styles.saveBtn} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+            <button 
+              type="button"
+              style={{
+                ...styles.saveBtn,
+                ...(courseChanging ? {backgroundColor: '#f44336'} : {})
+              }} 
+              disabled={saving}
+              onClick={handleSubmit}
+            >
+              {saving ? "Saving..." : courseChanging ? "Confirm & Reset Payments" : "Save Changes"}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
 };
 
-// ---------------- styles object ----------------
 const styles = {
   container: { padding: "30px", backgroundColor: "#f5f5f5", minHeight: "100vh" },
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" },
@@ -490,8 +640,9 @@ const styles = {
   iconBtn: { padding: "6px 10px", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "16px", backgroundColor: "transparent", color: "#2196F3", transition: "all 0.2s" },
   message: { textAlign: "center", padding: "40px", color: "#666", backgroundColor: "#fff", borderRadius: "12px" },
   modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
-  modal: { backgroundColor: "#fff", padding: "30px", borderRadius: "12px", width: "90%", maxWidth: "600px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" },
+  modal: { backgroundColor: "#fff", padding: "30px", borderRadius: "12px", width: "90%", maxWidth: "600px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" },
   modalTitle: { fontSize: "20px", fontWeight: "600", marginBottom: "20px", color: "#333" },
+  warningBox: { backgroundColor: "#fff3cd", border: "1px solid #ffc107", padding: "12px", borderRadius: "6px", marginBottom: "15px", color: "#856404" },
   formGroup: { marginBottom: "12px" },
   label: { display: "block", marginBottom: "6px", fontWeight: "500", color: "#333" },
   input: { width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", fontSize: "14px" },

@@ -52,10 +52,6 @@ import LessonForm from './components/Course/LessonForm';
 import EnquiryList from './components/Enquiries/EnquiryList';
 import EnquiryForm from './views/Student-Interface/Enquiry.jsx';
 
-// Internship
-import Internship from './views/Student-Interface/Internship.jsx';
-import TaskManagement from './views/Student-Interface/TaskManagementSystem.jsx'
-import SkillsProgress from './pages/SkillsProgress.jsx';
 
 // Protected route wrapper with role checking
 const ProtectedRoute = ({ children, requiredRole }) => {

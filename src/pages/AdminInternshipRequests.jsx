@@ -19,18 +19,18 @@ const AdminInternshipRequests = ({ apiBaseUrl = "http://127.0.0.1:8000/api", aut
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
 
+  // ⭐ PAGINATION
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Updated: TokenAuthentication format for DRF
   const buildFetchOptions = (method = "GET", body = null) => {
-    const token =
-      authToken ||
-      localStorage.getItem("token"); // Ensure this is the DRF token
+    const token = authToken || localStorage.getItem("token");
 
     const headers = { "Content-Type": "application/json" };
 
     if (token) {
-      headers["Authorization"] = `Token ${token}`; // <-- key change here
-    } else {
-      console.warn("⚠️ No auth token found, request will be anonymous!");
+      headers["Authorization"] = `Token ${token}`;
     }
 
     const opts = { method, headers, credentials: "include" };
@@ -80,8 +80,10 @@ const AdminInternshipRequests = ({ apiBaseUrl = "http://127.0.0.1:8000/api", aut
     }
   };
 
+  // FILTER + SEARCH
   const filtered = useMemo(() => {
     let list = [...requests];
+
     if (filter === "approved") list = list.filter((r) => r.is_approved);
     if (filter === "pending") list = list.filter((r) => !r.is_approved);
 
@@ -96,6 +98,18 @@ const AdminInternshipRequests = ({ apiBaseUrl = "http://127.0.0.1:8000/api", aut
 
     return list;
   }, [requests, query, filter]);
+
+  // ⭐ RESET PAGE WHEN FILTERS CHANGE
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, filter]);
+
+  // ⭐ PAGINATION SLICE
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filtered.slice(indexOfFirst, indexOfLast);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -157,11 +171,11 @@ const AdminInternshipRequests = ({ apiBaseUrl = "http://127.0.0.1:8000/api", aut
       {/* LIST */}
       {loading ? (
         <div className="text-center text-gray-600 py-10 animate-pulse">Loading…</div>
-      ) : filtered.length === 0 ? (
+      ) : currentItems.length === 0 ? (
         <div className="text-center text-gray-500 py-10">No internship requests found.</div>
       ) : (
         <div className="space-y-5">
-          {filtered.map((r) => {
+          {currentItems.map((r) => {
             const pdfUrl =
               r.internship_pdf?.startsWith("http") || r.internship_pdf?.startsWith("/")
                 ? r.internship_pdf
@@ -175,7 +189,7 @@ const AdminInternshipRequests = ({ apiBaseUrl = "http://127.0.0.1:8000/api", aut
                 className="bg-white p-6 rounded-2xl border shadow-md hover:shadow-lg transition-all"
               >
                 <div className="flex flex-col md:flex-row justify-between gap-6">
-                  {/* LEFT SIDE */}
+                  {/* LEFT */}
                   <div className="flex gap-5">
                     <div className="bg-blue-100 text-blue-700 p-3 rounded-full self-start shadow">
                       <User />
@@ -200,7 +214,7 @@ const AdminInternshipRequests = ({ apiBaseUrl = "http://127.0.0.1:8000/api", aut
                     </div>
                   </div>
 
-                  {/* RIGHT SIDE */}
+                  {/* RIGHT */}
                   <div className="flex items-center gap-3 md:self-center">
                     {r.is_approved ? (
                       <div className="flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-xl shadow-sm">
@@ -240,6 +254,39 @@ const AdminInternshipRequests = ({ apiBaseUrl = "http://127.0.0.1:8000/api", aut
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ⭐ PAGINATION UI */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6 gap-2 flex-wrap">
+          <button
+            className="px-3 py-1 border rounded hover:bg-gray-200 disabled:opacity-50"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ◀
+          </button>
+
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              className={`px-3 py-1 border rounded hover:bg-gray-200 ${
+                currentPage === i + 1 ? "bg-blue-600 text-white border-blue-600" : ""
+              }`}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            className="px-3 py-1 border rounded hover:bg-gray-200 disabled:opacity-50"
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            ▶
+          </button>
         </div>
       )}
     </div>

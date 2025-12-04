@@ -17,6 +17,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { FaNairaSign } from "react-icons/fa6";
+
 
 ChartJS.register(
   CategoryScale,
@@ -166,10 +168,10 @@ const Dashboard = () => {
         {/* ✅ Revenue Section visible only to superadmins */}
         {user?.is_superadmin && (
           <StatCard
-            icon={<FaDollarSign />}
+            icon={<FaNairaSign />}
             title="Total Revenue"
-            value={`$${stats.total_revenue.toLocaleString()}`}
-            subtitle={`$${stats.total_outstanding.toLocaleString()} outstanding`}
+            value={`₦${stats.total_revenue.toLocaleString()}`}
+            subtitle={`₦${stats.total_outstanding.toLocaleString()} outstanding`}
             color="#4CAF50"
           />
         )}
