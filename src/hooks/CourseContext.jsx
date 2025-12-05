@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 const CourseContext = createContext();
 
@@ -38,31 +38,37 @@ export const CourseProvider = ({ children }) => {
     ? Math.round((completedWeeks.size / totalWeeks) * 100) 
     : 0;
 
-  // Helper functions
-  const markWeekComplete = (weekId, score) => {
-    setCompletedWeeks(prev => new Set([...prev, weekId]));
+  // 1. USE CALLBACK TO PREVENT INFINITE LOOPS
+  const markWeekComplete = useCallback((weekId, score) => {
+    setCompletedWeeks(prev => {
+      const newSet = new Set(prev);
+      newSet.add(weekId);
+      return newSet;
+    });
     if (score !== undefined) {
       setWeekScores(prev => ({ ...prev, [weekId]: score }));
     }
-  };
+  }, []);
 
-  const setTotalWeeksCount = (count) => {
-    setTotalWeeks(count);
-  };
+  const setTotalWeeksCount = useCallback((count) => {
+    // Only update if the number is actually different
+    setTotalWeeks(prev => (prev !== count ? count : prev));
+  }, []);
 
-  const loadCompletedWeeks = (weeks, scores = {}) => {
+  const loadCompletedWeeks = useCallback((weeks, scores = {}) => {
     setCompletedWeeks(new Set(weeks));
     setWeekScores(scores);
-  };
+  }, []);
 
-  const resetProgress = () => {
+  const resetProgress = useCallback(() => {
     setCompletedWeeks(new Set());
     setTotalWeeks(0);
     setWeekScores({});
     localStorage.removeItem('courseProgress');
-  };
+  }, []);
 
-  const value = {
+  // 2. MEMOIZE THE VALUE OBJECT
+  const value = useMemo(() => ({
     completedWeeks,
     totalWeeks,
     weekScores,
@@ -72,7 +78,7 @@ export const CourseProvider = ({ children }) => {
     setTotalWeeksCount,
     loadCompletedWeeks,
     resetProgress
-  };
+  }), [completedWeeks, totalWeeks, weekScores, courseCompleted, completionPercentage, markWeekComplete, setTotalWeeksCount, loadCompletedWeeks, resetProgress]);
 
   return (
     <CourseContext.Provider value={value}>
@@ -81,7 +87,6 @@ export const CourseProvider = ({ children }) => {
   );
 };
 
-// Custom hook for easy access
 export const useCourseProgress = () => {
   const context = useContext(CourseContext);
   if (!context) {
