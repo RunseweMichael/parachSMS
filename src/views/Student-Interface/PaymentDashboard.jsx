@@ -62,7 +62,7 @@ export default function PaymentDashboard() {
 
           await fetchUserData();
           await fetchTransactions();
-          navigate("/dashboard", { replace: true });
+          navigate("/student/payment", { replace: true });
         } else if (attempt < 3) {
           setTimeout(() => verifyPayment(attempt + 1), 2000);
         } else {

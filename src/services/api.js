@@ -39,7 +39,7 @@ export const api = {
 
   // Initialize Payment
   initializePayment: async (data) => {
-    const response = await fetch(`${API_URL}/transactions/initialize/`, {
+    const response = await fetch(`${API_URL}/payments/initialize/`, {
       method: 'POST',
       headers: api.getHeaders(),
       body: JSON.stringify(data)
@@ -49,7 +49,7 @@ export const api = {
 
   // Verify Payment
   verifyPayment: async (reference) => {
-    const response = await fetch(`${API_URL}/verify/${reference}/`, {
+    const response = await fetch(`${API_URL}/payments/verify/${reference}/`, {
       headers: api.getHeaders()
     });
     return response.json();
