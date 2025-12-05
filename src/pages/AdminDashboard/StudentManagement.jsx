@@ -437,11 +437,21 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
   const [saving, setSaving] = useState(false);
   const [courseChanging, setCourseChanging] = useState(false);
 
+  // const handleChange = (key, value) => {
+  //   if (key === "course" && value !== student.course_id) {
+  //     setCourseChanging(true);
+  //   }
+  //   setFormData((prev) => ({ ...prev, [key]: value }));
+  // };
+
   const handleChange = (key, value) => {
     if (key === "course" && value !== student.course_id) {
       setCourseChanging(true);
+      // Reset amount_paid to 0 when course changes
+      setFormData((prev) => ({ ...prev, course: value, amount_paid: 0 }));
+    } else {
+      setFormData((prev) => ({ ...prev, [key]: value }));
     }
-    setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async () => {

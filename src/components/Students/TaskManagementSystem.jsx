@@ -13,79 +13,206 @@ import api from '../../api';
 import { useNavigate } from 'react-router-dom';
 const coursesData = {
   courses: [
+    // ====================================
+    // 5. WEB DEVELOPMENT - ID 5
+    // ====================================
     {
-      id: 1,
+      id: 5,
       name: "Web Development",
       modules: [
+        // HTML ---------------------- ID 12
         {
-          id: 1,
-          name: "HTML & CSS Basics",
+          id: 12,
+          name: "HTML",
           weeks: [
             {
-              id: 1,
+              id: 34, // UNIQUE
               weekNumber: 1,
-              title: "Introduction to HTML",
+              title: "HTML Basics",
               tasks: [
-                { id: 1, question: "What does HTML stand for?", options: ["Hyper Text Markup Language","High Tech Modern Language","Home Tool Markup Language","Hyperlinks and Text Markup Language"], correctAnswer: 0 },
-                { id: 2, question: "Which HTML tag is used for the largest heading?", options: ["<h6>", "<heading>", "<h1>", "<head>"], correctAnswer: 2 },
-                { id: 3, question: "What is the correct HTML element for inserting a line break?", options: ["<break>", "<br>", "<lb>", "<newline>"], correctAnswer: 1 },
-                { id: 4, question: "Which attribute is used to provide alternative text for an image?", options: ["title", "alt", "src", "longdesc"], correctAnswer: 1 },
-                { id: 5, question: "What is the correct HTML for creating a hyperlink?", options: ["<a url='http://example.com'>Example</a>","<a href='http://example.com'>Example</a>","<link>http://example.com</link>","<hyperlink>http://example.com</hyperlink>"], correctAnswer: 1 }
+                { id: 101, question: "HTML stands for?", options: ["Hyper Text Makeup Language", "Hyper Text Markup Language", "Home Tool Markup Language", "High Tech Markup Language"], correctAnswer: 1 },
+                { id: 102, question: "Which tag creates a link?", options: ["<link>", "<href>", "<a>", "<url>"], correctAnswer: 2 },
+                { id: 103, question: "Which tag creates a list?", options: ["<ul>", "<ls>", "<list>", "<li>"], correctAnswer: 0 }
               ]
             },
             {
-              id: 2,
+              id: 35, // UNIQUE
               weekNumber: 2,
-              title: "CSS Fundamentals",
+              title: "Forms",
               tasks: [
-                { id: 1, question: "What does CSS stand for?", options: ["Computer Style Sheets","Cascading Style Sheets","Creative Style Sheets","Colorful Style Sheets"], correctAnswer: 1 },
-                { id: 2, question: "Which CSS property is used to change text color?", options: ["text-color", "font-color", "color", "text-style"], correctAnswer: 2 },
-                { id: 3, question: "How do you select an element with id 'header' in CSS?", options: [".header", "#header", "*header", "header"], correctAnswer: 1 },
-                { id: 4, question: "Which property is used to change the background color?", options: ["bgcolor", "background-color", "color", "bg-color"], correctAnswer: 1 },
-                { id: 5, question: "What is the default value of the position property?", options: ["relative", "fixed", "absolute", "static"], correctAnswer: 3 }
+                { id: 104, question: "Which tag creates a form?", options: ["<form>", "<input>", "<text>", "<enter>"], correctAnswer: 0 },
+                { id: 105, question: "Which input type hides text?", options: ["email", "text", "password", "tel"], correctAnswer: 2 },
+                { id: 106, question: "Which attribute submits form?", options: ["send", "action", "direct", "method"], correctAnswer: 1 }
+              ]
+            },
+            {
+              id: 36, // UNIQUE
+              weekNumber: 3,
+              title: "Media Tags",
+              tasks: [
+                { id: 107, question: "Which tag displays images?", options: ["<pic>", "<img>", "<picture>", "<src>"], correctAnswer: 1 },
+                { id: 108, question: "Which tag embeds a video?", options: ["<video>", "<media>", "<vid>", "<mp4>"], correctAnswer: 0 },
+                { id: 109, question: "Which provides alternative text?", options: ["title", "alt", "src", "label"], correctAnswer: 1 }
               ]
             }
           ]
         },
+
+        // CSS ------------------------ ID 13
         {
-          id: 2,
-          name: "JavaScript Basics",
+          id: 13,
+          name: "CSS",
           weeks: [
             {
-              id: 3,
+              id: 37, // UNIQUE
               weekNumber: 1,
-              title: "JavaScript Introduction",
+              title: "CSS Basics",
               tasks: [
-                { id: 1, question: "Which keyword is used to declare a variable in JavaScript?", options: ["var","let","const","All of the above"], correctAnswer: 3 },
-                { id: 2, question: "What is the correct syntax for a JavaScript comment?", options: ["<!-- comment -->","// comment","# comment","/* comment"], correctAnswer: 1 },
-                { id: 3, question: "Which method is used to parse a string to an integer?", options: ["parseInt()","parseInteger()","toInteger()","int()"], correctAnswer: 0 },
-                { id: 4, question: "What will 'typeof null' return?", options: ["null","undefined","object","number"], correctAnswer: 2 },
-                { id: 5, question: "Which operator is used for strict equality?", options: ["==","===","=","!="], correctAnswer: 1 }
+                { id: 110, question: "CSS stands for?", options: ["Computer Style Sheets", "Cascading Style Sheets", "Creative Style Sheets", "Colorful Style Sheets"], correctAnswer: 1 },
+                { id: 111, question: "Which changes text color?", options: ["font-color", "color", "text", "text-color"], correctAnswer: 1 },
+                { id: 112, question: "Which selects an id?", options: [".id", "#id", "id", "@id"], correctAnswer: 1 }
+              ]
+            },
+            {
+              id: 38, // UNIQUE
+              weekNumber: 2,
+              title: "Layout",
+              tasks: [
+                { id: 113, question: "Which position is default?", options: ["relative", "static", "absolute", "fixed"], correctAnswer: 1 },
+                { id: 114, question: "Flexbox aligns items?", options: ["Vertically", "Horizontally", "Both", "None"], correctAnswer: 2 },
+                { id: 115, question: "Which creates a grid?", options: ["display:flex", "display:block", "display:grid", "grid:on"], correctAnswer: 2 }
+              ]
+            },
+            {
+              id: 39, // UNIQUE
+              weekNumber: 3,
+              title: "Styling",
+              tasks: [
+                { id: 116, question: "Which sets background color?", options: ["bg", "background-color", "color", "bg-color"], correctAnswer: 1 },
+                { id: 117, question: "Which changes font size?", options: ["font-size", "text-size", "size", "font"], correctAnswer: 0 },
+                { id: 118, question: "Which sets margin?", options: ["space", "margin", "padding", "offset"], correctAnswer: 1 }
+              ]
+            }
+          ]
+        },
+
+        // JavaScript --------------------- ID 14
+        {
+          id: 14,
+          name: "JavaScript",
+          weeks: [
+            {
+              id: 40, // UNIQUE
+              weekNumber: 1,
+              title: "JavaScript Basics",
+              tasks: [
+                { id: 119, question: "Which declares a variable?", options: ["let", "var", "const", "All of the above"], correctAnswer: 3 },
+                { id: 120, question: "Which logs output?", options: ["console.print", "log.console", "console.log", "print()"], correctAnswer: 2 },
+                { id: 121, question: "typeof null returns?", options: ["null", "object", "undefined", "number"], correctAnswer: 1 }
+              ]
+            },
+            {
+              id: 41, // UNIQUE
+              weekNumber: 2,
+              title: "Functions",
+              tasks: [
+                { id: 122, question: "How do you define a function?", options: ["func my()", "function my()", "make function()", "create fn()"], correctAnswer: 1 },
+                { id: 123, question: "Arrow functions use?", options: ["=>", "->", "<=", "==>"], correctAnswer: 0 },
+                { id: 124, question: "Functions return?", options: ["Variables", "Values", "Arrays", "Nothing"], correctAnswer: 1 }
+              ]
+            },
+            {
+              id: 42, // UNIQUE
+              weekNumber: 3,
+              title: "DOM Manipulation",
+              tasks: [
+                { id: 125, question: "Which selects an element?", options: ["select()", "find()", "querySelector()", "getElement()"], correctAnswer: 2 },
+                { id: 126, question: "Which changes HTML content?", options: ["innerText", "innerHTML", "textContent", "All of the above"], correctAnswer: 3 },
+                { id: 127, question: "Which listens to events?", options: ["event()", "listen()", "addEventListener()", "onEvent()"], correctAnswer: 2 }
               ]
             }
           ]
         }
       ]
     },
+
+    // ====================================
+    // 6. BACKEND DEVELOPMENT - ID 6
+    // ====================================
     {
-      id: 2,
-      name: "Python Programming",
+      id: 6,
+      name: "Backend Development",
       modules: [
+        // Python Basics ---------------------- ID 20
         {
-          id: 3,
-          name: "Python Fundamentals",
+          id: 20,
+          name: "Python Basics",
           weeks: [
             {
-              id: 4,
+              id: 50, // UNIQUE
               weekNumber: 1,
-              title: "Python Basics",
+              title: "Data Types and Variables",
               tasks: [
-                { id: 1, question: "Which keyword is used to define a function in Python?", options: ["function","def","func","define"], correctAnswer: 1 },
-                { id: 2, question: "What is the output of print(type([]))?", options: ["<class 'array'>","<class 'list'>","<class 'tuple'>","<class 'dict'>"], correctAnswer: 1 },
-                { id: 3, question: "Which method is used to add an element to the end of a list?", options: ["add()","append()","insert()","push()"], correctAnswer: 1 },
-                { id: 4, question: "What symbol is used for comments in Python?", options: ["//","/*","#","<!--"], correctAnswer: 2 },
-                { id: 5, question: "Which of the following is NOT a valid Python data type?", options: ["int","float","char","str"], correctAnswer: 2 }
-              ]
+                { id: 201, question: "Which of these is NOT a Python data type?", options: ["List", "Tuple", "Dict", "Array"], correctAnswer: 3 },
+                { id: 202, question: "How do you declare a variable in Python?", options: ["int x = 5", "variable x = 5", "x = 5", "declare x = 5"], correctAnswer: 2 },
+                { id: 203, question: "Which Python function outputs text?", options: ["display()", "show()", "print()", "write()"], correctAnswer: 2 },
+              ],
+            },
+            {
+              id: 51, // UNIQUE
+              weekNumber: 2,
+              title: "Control Flow",
+              tasks: [
+                { id: 204, question: "Which keyword is used for conditional execution?", options: ["if", "then", "when", "check"], correctAnswer: 0 },
+                { id: 205, question: "Which loop iterates a specified number of times?", options: ["while", "do-while", "for", "loop-n"], correctAnswer: 2 },
+                { id: 206, question: "What is the purpose of 'pass'?", options: ["Exit loop", "Skip iteration", "Placeholder for future code", "Declare a constant"], correctAnswer: 2 },
+              ],
+            },
+          ],
+        },
+
+        // Databases (SQL) ------------------------ ID 21
+        {
+          id: 21,
+          name: "Databases (SQL)",
+          weeks: [
+            {
+              id: 52, // UNIQUE
+              weekNumber: 1,
+              title: "Basic Queries",
+              tasks: [
+                { id: 207, question: "What does SQL stand for?", options: ["Structured Query Language", "Sequential Query Logic", "Standard Query Link", "Simple Question Language"], correctAnswer: 0 },
+                { id: 208, question: "Which command retrieves data from a database?", options: ["INSERT", "UPDATE", "DELETE", "SELECT"], correctAnswer: 3 },
+                { id: 209, question: "The clause used to filter records is?", options: ["GROUP BY", "ORDER BY", "WHERE", "HAVING"], correctAnswer: 2 },
+              ],
+            },
+            {
+              id: 53, // UNIQUE
+              weekNumber: 2,
+              title: "Table Modification",
+              tasks: [
+                { id: 210, question: "Which command adds new rows to a table?", options: ["ADD", "CREATE", "INSERT", "MAKE"], correctAnswer: 2 },
+                { id: 211, question: "Which statement changes existing data?", options: ["ALTER", "MODIFY", "CHANGE", "UPDATE"], correctAnswer: 3 },
+                { id: 212, question: "Which command removes a column?", options: ["DROP COLUMN", "REMOVE FIELD", "DELETE COLUMN", "ERASE"], correctAnswer: 0 },
+              ],
+            }
+          ]
+        },
+
+        // API Development --------------------- ID 22
+        {
+          id: 22,
+          name: "API Development",
+          weeks: [
+            {
+              id: 54, // UNIQUE
+              weekNumber: 1,
+              title: "HTTP Methods",
+              tasks: [
+                { id: 213, question: "Which HTTP method is used to create a resource?", options: ["GET", "PUT", "POST", "DELETE"], correctAnswer: 2 },
+                { id: 214, question: "Which HTTP method is idempotent?", options: ["POST", "PATCH", "PUT", "CONNECT"], correctAnswer: 2 },
+                { id: 215, question: "What status code means 'OK'?", options: ["404", "500", "200", "301"], correctAnswer: 2 },
+              ],
             }
           ]
         }
@@ -93,6 +220,7 @@ const coursesData = {
     }
   ]
 };
+
 
 export default function TaskManagementSystem() {
    const navigate = useNavigate(); 
@@ -153,7 +281,12 @@ export default function TaskManagementSystem() {
       }
 
       const course = coursesData.courses.find(c =>
+<<<<<<< HEAD
         c.name.toLowerCase() === courseName?.toLowerCase()
+=======
+      c.name.toLowerCase() === courseName?.toLowerCase() ||
+      c.id.toString() === courseName?.toString() // Match by ID if courseName is an ID number
+>>>>>>> 4c5acc5109a1cc09f7c4c5d05824fc308ff62d6b
       ) || null;  
 
       setStudentCourse(course);
@@ -188,8 +321,12 @@ export default function TaskManagementSystem() {
   const isWeekUnlocked = (module, week) => {
     if (!studentCourse) return false;
 
-    // First week of first module is always unlocked
-    if (module.id === studentCourse.modules[0].id && week.weekNumber === 1) {
+    // Find the current module's index
+    const moduleIndex = studentCourse.modules.findIndex(m => m.id === module.id);
+    if (moduleIndex === -1) return false;
+
+    // First week of the very first module is always unlocked
+    if (moduleIndex === 0 && week.weekNumber === 1) {
       return true;
     }
 
@@ -199,14 +336,11 @@ export default function TaskManagementSystem() {
       return true;
     }
 
-    // If first week of module, check if last week of previous module is completed
-    if (week.weekNumber === 1) {
-      const moduleIndex = studentCourse.modules.findIndex(m => m.id === module.id);
-      if (moduleIndex > 0) {
-        const previousModule = studentCourse.modules[moduleIndex - 1];
-        const lastWeekOfPrevModule = previousModule.weeks[previousModule.weeks.length - 1];
-        return completedWeeks.has(lastWeekOfPrevModule.id);
-      }
+    // If first week of module (weekNumber === 1), check if last week of previous module is completed
+    if (week.weekNumber === 1 && moduleIndex > 0) {
+      const previousModule = studentCourse.modules[moduleIndex - 1];
+      const lastWeekOfPrevModule = previousModule.weeks[previousModule.weeks.length - 1];
+      return completedWeeks.has(lastWeekOfPrevModule.id);
     }
 
     return false;
@@ -330,7 +464,7 @@ export default function TaskManagementSystem() {
           <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">No Course Found</h2>
           <p className="text-gray-600">
-            You don't seem to be registered for any course. Please contact the administrator.
+            You don't seem to be registered for any course or the course is not defined locally. Please contact the administrator.
           </p>
         </div>
       </div>
@@ -399,7 +533,7 @@ export default function TaskManagementSystem() {
           {selectedModule && !selectedWeek && (
             <div>
               <button
-                onClick={() => setSelectedModule(null)}
+                onClick={() => handleModuleSelect(null)}
                 className="mb-4 text-indigo-600 hover:text-indigo-800 font-medium"
               >
                 ← Back to Modules
@@ -570,11 +704,28 @@ export default function TaskManagementSystem() {
               <div className="flex gap-4">
             
                 <button
+<<<<<<< HEAD
               onClick={() => navigate('/student/t')}
               className="flex-1 bg-gray-600 text-white py-4 rounded-xl font-semibold hover:bg-gray-700 transition-all"
             >
               Back to Weeks
             </button>
+=======
+                  onClick={handleReset}
+                  className="flex-1 bg-indigo-600 text-white py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-all"
+                >
+                  Retake Test
+                </button>
+                {/* Note: Navigate is a function from react-router-dom, but you called it incorrectly as onClick={() => Navigate}.
+                    I'm leaving the original behavior, but correcting the function call to navigate back to the module selection.
+                */}
+                <button
+                  onClick={() => setSelectedWeek(null)} 
+                  className="flex-1 bg-gray-600 text-white py-4 rounded-xl font-semibold hover:bg-gray-700 transition-all"
+                >
+                  Back to Weeks
+                </button>
+>>>>>>> 4c5acc5109a1cc09f7c4c5d05824fc308ff62d6b
               </div>
             </div>
           )}
