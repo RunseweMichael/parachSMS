@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/admin/:path*",
-      "destination": "https://your-backend.example.com/admin/:path*"
+      "destination": "https://student-management-system-one-sandy.vercel.app/admin/:path*"
     },
     {
       "source": "/(.*)",
