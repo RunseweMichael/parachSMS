@@ -393,6 +393,8 @@ export default function TaskManagementSystem() {
   }, [studentCourse, setTotalWeeksCount]);
 
   // Main loader
+ // Main loader
+// Main loader
 useEffect(() => {
     const fetchProfile = async () => {
         try {
