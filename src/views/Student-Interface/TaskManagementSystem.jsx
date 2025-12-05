@@ -393,91 +393,45 @@ export default function TaskManagementSystem() {
   }, [studentCourse, setTotalWeeksCount]);
 
   // Main loader
- // Main loader
-// Main loader
-const fetchProfile = useCallback(async () => {
-    try {
-        setLoading(true);
-        setError(null);
+useEffect(() => {
+    const fetchProfile = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const res = await api.get("/students/users/me");
+            const studentData = Array.isArray(res.data) ? res.data[0] : res.data;
+            if (!studentData) throw new Error("No profile found");
 
-        const res = await api.get("/students/users/me");
-        
-        // FIX: Handle if response is an array OR a single object
-        const studentData = Array.isArray(res.data) ? res.data[0] : res.data;
+            // Payment lock logic
+            const nextDue = studentData.next_due_date ? new Date(studentData.next_due_date) : null;
+            const today = new Date();
+            const isOverdue = nextDue && nextDue < new Date(today.setHours(0,0,0,0));
+            const hasDebt = Number(studentData.amount_owed || 0) > 0;
+            const locked = isOverdue && hasDebt;
+            setStudent({ ...studentData, dashboard_locked: locked });
+            if (locked) { setLoading(false); return; }
 
-        if (!studentData) throw new Error("No profile found");
+            
+            let courseName = studentData.course?.course_name || studentData.course?.name || studentData.course;
+            if (!courseName) throw new Error("No course assigned");
 
-        // ... [Payment lock logic remains the same]
-        const nextDue = studentData.next_due_date ? new Date(studentData.next_due_date) : null;
-        const today = new Date();
-        const isOverdue = nextDue && nextDue < new Date(today.setHours(0,0,0,0));
-        const hasDebt = Number(studentData.amount_owed || 0) > 0;
-        const locked = isOverdue && hasDebt;
+            let courseData = mockCoursesData[courseName] || Object.values(mockCoursesData).find(
+                c => c.course_name.toLowerCase() === String(courseName).toLowerCase()
+            );
 
-        setStudent({ ...studentData, dashboard_locked: locked });
-        
-        if (locked) {
+            setStudentCourse(courseData);
+            await fetchCompletedWeeks();
             setLoading(false);
-            return;
+        } catch (err) {
+            console.error(err);
+            setError(err.message || "Failed to load dashboard.");
+            setLoading(false);
         }
+    };
 
-        // --- NEW: Extract course name ---
-        let courseName = studentData.course?.course_name || studentData.course?.name || studentData.course;
-
-        if (!courseName) throw new Error("No course assigned");
-
-        let courseData = null;
-
-        // 1. Try real backend first using course ID (if available)
-        const courseId = studentData.course?.id || studentData.course;
-        if (courseId && typeof courseId === 'number') {
-            try {
-                const backendRes = await api.get(`/courses/${courseId}/`);
-                courseData = backendRes.data;
-                console.log("Loaded course from backend");
-            } catch (err) {
-                console.warn("Backend course not available, falling back to mock");
-            }
-        } else {
-            console.warn("No valid course ID from backend, falling directly to mock");
-        }
-
-        // 2. Fallback to mock data using course NAME
-        if (!courseData) {
-            // Normalize the name to handle potential slight case differences (e.g., 'Backend Development' vs 'backend development')
-            const normalizedCourseName = String(courseName).trim();
-            
-            // This is the CRITICAL change: uses the NAME key for lookup
-            courseData = mockCoursesData[normalizedCourseName]; 
-            
-            if (!courseData) {
-                // If direct lookup fails, try matching keys by converting them to lowercase
-                const lowerCaseName = normalizedCourseName.toLowerCase();
-                const matchedKey = Object.keys(mockCoursesData).find(key => key.toLowerCase() === lowerCaseName);
-                
-                if (matchedKey) {
-                    courseData = mockCoursesData[matchedKey];
-                } else {
-                    throw new Error(`No course content found for course name: "${normalizedCourseName}"`);
-                }
-            }
-            console.log("Using mock course:", courseData.course_name);
-        }
-
-        setStudentCourse(courseData);
-        await fetchCompletedWeeks();
-        setLoading(false);
-
-    } catch (err) {
-        console.error("Load failed:", err);
-        setError(err.message || "Failed to load dashboard. Please refresh.");
-        setLoading(false);
-    }
-}, [fetchCompletedWeeks]);
-
-  useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+}, []);
+
 
   // Helper functions
   const getModuleProgress = useCallback((module) => {
