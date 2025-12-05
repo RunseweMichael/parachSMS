@@ -281,12 +281,8 @@ export default function TaskManagementSystem() {
       }
 
       const course = coursesData.courses.find(c =>
-<<<<<<< HEAD
-        c.name.toLowerCase() === courseName?.toLowerCase()
-=======
       c.name.toLowerCase() === courseName?.toLowerCase() ||
       c.id.toString() === courseName?.toString() // Match by ID if courseName is an ID number
->>>>>>> 4c5acc5109a1cc09f7c4c5d05824fc308ff62d6b
       ) || null;  
 
       setStudentCourse(course);
@@ -704,13 +700,6 @@ export default function TaskManagementSystem() {
               <div className="flex gap-4">
             
                 <button
-<<<<<<< HEAD
-              onClick={() => navigate('/student/t')}
-              className="flex-1 bg-gray-600 text-white py-4 rounded-xl font-semibold hover:bg-gray-700 transition-all"
-            >
-              Back to Weeks
-            </button>
-=======
                   onClick={handleReset}
                   className="flex-1 bg-indigo-600 text-white py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-all"
                 >
@@ -725,7 +714,6 @@ export default function TaskManagementSystem() {
                 >
                   Back to Weeks
                 </button>
->>>>>>> 4c5acc5109a1cc09f7c4c5d05824fc308ff62d6b
               </div>
             </div>
           )}

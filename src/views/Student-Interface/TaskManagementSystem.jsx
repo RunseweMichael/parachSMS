@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
-import useCourseContext from '../../hooks/CourseContext';
+import {useCourseProgress} from '../../hooks/CourseContext';
 
 const mockCoursesData = {
   // ====================================
@@ -298,7 +298,7 @@ export default function TaskManagementSystem() {
     setTotalWeeksCount,
     loadCompletedWeeks,
     completionPercentage
-  } = useCourseContext();
+  } = useCourseProgress();
   const [student, setStudent] = useState(null);
   const [studentCourse, setStudentCourse] = useState(null);
   const [loading, setLoading] = useState(true);
