@@ -10,8 +10,7 @@ import {
   Check
 } from 'lucide-react';
 import api from '../../api';
-import { Navigate } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
 const coursesData = {
   courses: [
     {
@@ -96,6 +95,7 @@ const coursesData = {
 };
 
 export default function TaskManagementSystem() {
+   const navigate = useNavigate(); 
   const [student, setStudent] = useState(null);
   const [studentCourse, setStudentCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -103,6 +103,7 @@ export default function TaskManagementSystem() {
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false); // Added missing state
   const [score, setScore] = useState(null);
   const [completedWeeks, setCompletedWeeks] = useState(new Set());
   const [weekScores, setWeekScores] = useState({});
@@ -119,14 +120,12 @@ export default function TaskManagementSystem() {
       });
 
       setStudent(res.data);
-
       
       // rule: lock if next_due_date exists and is in the past AND amount_owed > 0
       const nextDue = res.data.next_due_date ? new Date(res.data.next_due_date) : null;
       const today = new Date();
       let computedLock = false;
       if (nextDue && nextDue < new Date(today.toDateString())) {
-        // compare dates without time by converting to date-string
         const amountOwed = Number(res.data.amount_owed ?? 0);
         if (amountOwed > 0) computedLock = true;
       }
@@ -134,33 +133,30 @@ export default function TaskManagementSystem() {
       const backendLock = typeof res.data.dashboard_locked === 'boolean' ? res.data.dashboard_locked : null;
       const finalLocked = backendLock !== null ? backendLock : computedLock;
 
-      // attach final computed lock onto the student object so UI can read student.dashboard_locked
+      // attach final computed lock onto the student object
       setStudent(prev => ({ ...prev, dashboard_locked: finalLocked }));
 
-      // If locked, stop and show lock screen (don't fetch completed weeks)
+      // If locked, stop and show lock screen
       if (finalLocked) {
         setLoading(false);
         return;
       }
 
-      // determine course (backend may return course object or course id or null)
+      // determine course 
       let courseName = null;
       if (res.data.course && typeof res.data.course === 'object') {
         courseName = res.data.course.name || res.data.course.title || null;
       } else if (res.data.course_name) {
         courseName = res.data.course_name;
       } else if (res.data.course && typeof res.data.course === 'number') {
-        courseName = res.data.course; // id - we'll try match by id below
+        courseName = res.data.course; 
       }
 
-      // find matching course in our sample dataset (fallback)
       const course = coursesData.courses.find(c =>
-      c.name.toLowerCase() === courseName?.toLowerCase()
+        c.name.toLowerCase() === courseName?.toLowerCase()
       ) || null;  
 
-
       setStudentCourse(course);
-      // now fetch completed weeks and scores
       await fetchCompletedWeeks();
       setLoading(false);
     } catch (error) {
@@ -176,11 +172,9 @@ export default function TaskManagementSystem() {
         headers: { Authorization: `Token ${token}` }
       });
 
-      // res.data should be an array of completed week objects
       const completed = new Set(res.data.map(w => w.week_id));
       setCompletedWeeks(completed);
 
-      // Store scores by week_id
       const scores = {};
       res.data.forEach(w => {
         scores[w.week_id] = w.percentage;
@@ -240,27 +234,24 @@ export default function TaskManagementSystem() {
     }));
   };
 
+  // --- FIXED HANDLESUBMIT ---
   const handleSubmit = async () => {
-    if (!selectedWeek) return;
+    if (!selectedWeek || submitting || submitted) return;
 
+    // Calculate score
     let correctCount = 0;
     selectedWeek.tasks.forEach(task => {
-      if (answers[task.id] === task.correctAnswer) {
-        correctCount++;
-      }
+      if (answers[task.id] === task.correctAnswer) correctCount++;
     });
 
-    const percentage = (correctCount / selectedWeek.tasks.length) * 100;
-    const scoreData = {
-      correct: correctCount,
-      total: selectedWeek.tasks.length,
-      percentage: percentage
-    };
+    const percentage = Math.round((correctCount / selectedWeek.tasks.length) * 100);
+    const scoreData = { correct: correctCount, total: selectedWeek.tasks.length, percentage };
 
+    // Update UI immediately
     setScore(scoreData);
     setSubmitted(true);
+    setSubmitting(true);
 
-    // Save results to backend
     try {
       const token = localStorage.getItem("token");
       await api.post("/tasks/submit/", {
@@ -269,16 +260,21 @@ export default function TaskManagementSystem() {
         module_name: selectedModule.name,
         course_id: studentCourse ? studentCourse.id : null,
         answers: answers,
-        score: scoreData
+        score: scoreData,
+        // Removed time_taken logic as variable wasn't present in your provided state
       }, {
         headers: { Authorization: `Token ${token}` }
       });
 
-      // Update completed weeks locally
+      // Update completed weeks locally upon success
       setCompletedWeeks(prev => new Set([...prev, selectedWeek.id]));
       setWeekScores(prev => ({ ...prev, [selectedWeek.id]: percentage }));
-    } catch (error) {
-      console.error("Failed to save task results:", error);
+
+    } catch (err) {
+      console.error("Submit failed:", err);
+      // Optional: Add an error state display here if needed
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -305,7 +301,7 @@ export default function TaskManagementSystem() {
     );
   }
 
-  // --- LOCK SCREEN: show when student exists AND dashboard_locked is true ---
+  // --- LOCK SCREEN ---
   if (student && student.dashboard_locked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50">
@@ -326,7 +322,7 @@ export default function TaskManagementSystem() {
     );
   }
 
-  // --- NO COURSE FOUND (after loading and not locked) ---
+  // --- NO COURSE FOUND ---
   if (!studentCourse) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
@@ -506,10 +502,17 @@ export default function TaskManagementSystem() {
 
               <button
                 onClick={handleSubmit}
-                disabled={Object.keys(answers).length !== selectedWeek.tasks.length}
-                className="mt-8 w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg"
+                disabled={Object.keys(answers).length !== selectedWeek.tasks.length || submitting}
+                className="mt-8 w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg flex justify-center items-center"
               >
-                Submit Answers
+                {submitting ? (
+                  <>
+                    <Loader className="w-6 h-6 animate-spin mr-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Answers"
+                )}
               </button>
             </div>
           )}
@@ -565,18 +568,13 @@ export default function TaskManagementSystem() {
               </div>
 
               <div className="flex gap-4">
+            
                 <button
-                  onClick={handleReset}
-                  className="flex-1 bg-indigo-600 text-white py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-all"
-                >
-                  Retake Test
-                </button>
-                <button
-                  onClick={() => Navigate}
-                  className="flex-1 bg-gray-600 text-white py-4 rounded-xl font-semibold hover:bg-gray-700 transition-all"
-                >
-                  Back to Weeks
-                </button>
+              onClick={() => navigate('/student/t')}
+              className="flex-1 bg-gray-600 text-white py-4 rounded-xl font-semibold hover:bg-gray-700 transition-all"
+            >
+              Back to Weeks
+            </button>
               </div>
             </div>
           )}

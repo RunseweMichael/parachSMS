@@ -83,10 +83,9 @@ export default function InternshipRequestPage() {
 
   return (
     <>
-      {/* Beautiful Blue Gradient Background */}
       <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 relative overflow-hidden">
         
-        {/* Animated Floating Orbs */}
+       
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob"></div>
           <div className="absolute top-40 right-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
@@ -109,7 +108,6 @@ export default function InternshipRequestPage() {
               </p>
             </div>
 
-            {/* Glassmorphism Form Card */}
             <div className="backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 md:p-12">
               <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Name */}
@@ -203,9 +201,7 @@ export default function InternshipRequestPage() {
                 </button>
               </form>
 
-              <p className="text-center text-blue-200 text-sm mt-8 font-medium">
-                Most applicants hear back within 48 hours • Full-time & remote roles available
-              </p>
+              
             </div>
           </div>
         </div>

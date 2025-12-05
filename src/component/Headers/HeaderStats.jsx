@@ -89,20 +89,30 @@ export default function HeaderStats() {
           <div className="flex flex-wrap -mx-4">
             
             {/* PAYMENT STATUS */}
-            <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
-              <CardStats
-                statSubtitle="PAYMENT STATUS"
-                statTitle={`₦${paid.toLocaleString()} / ₦${owed.toLocaleString()}`}
-                statPercent={
-                  owed > paid
-                    ? `₦${(owed - paid).toLocaleString()} Due`
-                    : "Paid in Full"
-                }
-                statPercentColor="text-emerald-400"
-                statIconColor="bg-gradient-to-br from-red-500 to-pink-500"
-                hoverEffect
-              />
-            </div>
+          <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
+  <CardStats
+    statSubtitle="PAYMENT STATUS"
+    statTitle={
+      <div className="flex gap-7 mt-1">
+        <div className=" text-bold text-white">
+          <span className="text-emerald-500 font-bold">Paid:</span> ₦{paid.toLocaleString()}
+        </div>
+        <div className="text-bold text-white">
+          <span className="text-red-500 font-semibold">Owed:</span> ₦{owed.toLocaleString()}
+        </div>
+      </div>
+    }
+    statPercent={
+      owed > paid
+        ? `₦${(owed - paid).toLocaleString()} Due`
+        : "Paid in Full"
+    }
+    statPercentColor={owed > paid ? "text-red-400" : "text-emerald-400"}
+    statIconColor="bg-gradient-to-br from-red-500 to-pink-500"
+    hoverEffect
+  />
+</div>
+
 
             {/* COURSE NAME */}
             <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
@@ -141,6 +151,18 @@ export default function HeaderStats() {
                 }
                 statIconColor="bg-gradient-to-br from-pink-500 to-rose-500"
                 hoverEffect
+              />
+            </div>
+
+             {/* MODULE COUNT - CLICKABLE */}
+            <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
+              <CardStats
+                statSubtitle="COURSE MODULES"
+                statTitle={`Access To Course Modules`}      
+                statIconColor="bg-gradient-to-br from-cyan-500 to-blue-600"
+                hoverEffect
+                link={student?.course?.resource_link}
+                clickable={true}
               />
             </div>
 

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
+import useCourseContext from '../../hooks/CourseContext';
 
 const mockCoursesData = {
   1: {
@@ -97,6 +98,14 @@ const mockCoursesData = {
 };
 
 export default function TaskManagementSystem() {
+    const {
+    completedWeeks,
+    weekScores,
+    markWeekComplete,
+    setTotalWeeksCount,
+    loadCompletedWeeks,
+    completionPercentage
+  } = useCourseContext();
   const [student, setStudent] = useState(null);
   const [studentCourse, setStudentCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -106,8 +115,6 @@ export default function TaskManagementSystem() {
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(null);
-  const [completedWeeks, setCompletedWeeks] = useState(new Set());
-  const [weekScores, setWeekScores] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [quizTimer, setQuizTimer] = useState(null);
   const [showTimer, setShowTimer] = useState(false);
@@ -172,18 +179,25 @@ export default function TaskManagementSystem() {
   const fetchCompletedWeeks = useCallback(async () => {
     try {
       const res = await api.get("/tasks/completed/");
-      const completed = new Set(res.data.map(item => item.week_id));
-      setCompletedWeeks(completed);
-
+      const weekIds = res.data.map(item => item.week_id);
       const scores = {};
       res.data.forEach(item => {
         scores[item.week_id] = item.percentage;
       });
-      setWeekScores(scores);
+      
+      // Update context instead of local state
+      loadCompletedWeeks(weekIds, scores);
     } catch (err) {
       console.warn("No completed tasks yet");
     }
-  }, []);
+  }, [loadCompletedWeeks]);
+
+   useEffect(() => {
+    if (studentCourse?.modules) {
+      const total = studentCourse.modules.reduce((a, m) => a + m.weeks.length, 0);
+      setTotalWeeksCount(total);
+    }
+  }, [studentCourse, setTotalWeeksCount]);
 
   // Main loader
  // Main loader
@@ -285,13 +299,14 @@ const fetchProfile = useCallback(async () => {
   // ------------------------------------
 
   const handleWeekSelect = useCallback((week) => {
+    if (completedWeeks.has(week.id)) return; // Prevent re-attempts
     setSelectedWeek(week);
     setAnswers({});
     setSubmitted(false);
     setScore(null);
     setQuizTimer(1800);
     setShowTimer(true);
-  }, []);
+  }, [completedWeeks]);
 
   const handleAnswerChange = useCallback((taskId, index) => {
     setAnswers(prev => ({ ...prev, [taskId]: index }));
@@ -420,11 +435,12 @@ const fetchProfile = useCallback(async () => {
                   <button
                     key={week.id}
                     onClick={() => unlocked && handleWeekSelect(week)}
-                    disabled={!unlocked}
+                    disabled={!unlocked || done} 
                     className={`
                       relative overflow-hidden rounded-3xl shadow-lg transition-all duration-300 
                       focus:outline-none focus:ring-4 focus:ring-indigo-300
-                      ${unlocked ? 'hover:scale-105 hover:shadow-2xl cursor-pointer' : 'cursor-not-allowed opacity-70'}
+                      ${unlocked && !done ? 'hover:scale-105 hover:shadow-2xl cursor-pointer' : 'cursor-not-allowed opacity-70'}
+                      ${done ? 'ring-4 ring-emerald-400' : ''}
                     `}
                   >
                     {/* Card Background */}
@@ -477,6 +493,12 @@ const fetchProfile = useCallback(async () => {
                         </div>
                       )}
                     </div>
+
+                    {done && (
+                      <div className="absolute bottom-6 left-6 px-4 py-2 text-white text-sm font-bold bg-emerald-100/70 rounded-full shadow-lg">
+                        Completed - {weekScore || 0}% 
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -564,9 +586,7 @@ const fetchProfile = useCallback(async () => {
             </div>
 
             <div className="flex gap-8 mt-12 max-w-lg mx-auto">
-              <button onClick={handleReset} className="flex-1 py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-2xl font-bold rounded-2xl">
-                Retake Quiz
-              </button>
+              
               <button onClick={() =>navigate("/student/skills-progress")} className="flex-1 py-5 bg-gray-700 hover:bg-gray-800 text-white text-2xl font-bold rounded-2xl">
                 Back to Progress
               </button>

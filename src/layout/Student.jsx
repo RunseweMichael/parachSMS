@@ -3,6 +3,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "../component/Sidebar/Sidebar.jsx";
 import HeaderStats from "../component/Headers/HeaderStats.jsx";
+import {CourseProvider} from "../hooks/CourseContext.jsx";
 
 // Import all student pages
 import Dashboard from "../views/Student-Interface/Dashboard.jsx";
@@ -26,6 +27,10 @@ export default function Student() {
 
         {/* Page content */}
         <div className="px-4 md:px-10 mx-auto w-full  pb-8">
+
+          <CourseProvider>
+
+        
           <Routes>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
@@ -39,6 +44,7 @@ export default function Student() {
             {/* Catch any other paths and redirect to dashboard */}
             <Route path="*" element={<Navigate to="dashboard" replace />} />
           </Routes>
+            </CourseProvider>
         </div>
       </div>
     </div>
