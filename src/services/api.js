@@ -39,7 +39,7 @@ export const api = {
 
   // Initialize Payment
   initializePayment: async (data) => {
-    const response = await fetch(`${API_URL}/initialize/`, {
+    const response = await fetch(`${API_URL}/transactions/initialize/`, {
       method: 'POST',
       headers: api.getHeaders(),
       body: JSON.stringify(data)

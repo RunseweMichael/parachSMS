@@ -532,12 +532,12 @@ useEffect(() => {
       <div className="max-w-6xl mx-auto px-4">
 
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900">Course Tasks</h1>
-          <p className="text-2xl text-gray-600 mt-4">Welcome back, {student?.name}!</p>
+          <h1 className="text-3xl font-bold text-gray-900">Course Tasks</h1>
+          <p className="text-xl text-gray-600 mt-4">Welcome back, {student?.name}!</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-12 text-center border">
-          <h2 className="text-4xl font-bold text-indigo-700">{studentCourse.course_name}</h2>
+          <h2 className="text-2xl font-bold text-indigo-700">{studentCourse.course_name}</h2>
           <p className="text-xl text-gray-600 mt-4">
             {completedWeeks.size} / {studentCourse.modules.reduce((a, m) => a + m.weeks.length, 0)} weeks completed
           </p>
@@ -545,7 +545,7 @@ useEffect(() => {
 
         {!selectedModule && (
           <div>
-            <h2 className="text-3xl font-bold text-center mb-10">Select a Module</h2>
+            <h2 className="text-xl font-bold text-center mb-10">Select a Module</h2>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {studentCourse.modules.map(mod => {
                 const progress = getModuleProgress(mod);

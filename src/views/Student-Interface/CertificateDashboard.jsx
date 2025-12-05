@@ -2,8 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Star, Eye, EyeOff, Lock, Download, Award, TrendingUp } from "lucide-react";
 import api from "../../api";
 import { useCourseProgress } from "../../hooks/CourseContext";
+import { useNavigate } from "react-router-dom";
+
 
 const Certificates = () => {
+
+
+  const navigate = useNavigate();
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -155,7 +160,7 @@ const Certificates = () => {
                 </div>
 
                 <button
-                  onClick={() => window.location.href = '/student/tasks'}
+                  onClick={() => navigate("/student/task")}
                   className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
                 >
                   Continue Learning
