@@ -62,7 +62,7 @@ export default function PaymentDashboard() {
 
           await fetchUserData();
           await fetchTransactions();
-          navigate("/student/payment", { replace: true });
+          navigate("/dashboard", { replace: true });
         } else if (attempt < 3) {
           setTimeout(() => verifyPayment(attempt + 1), 2000);
         } else {
@@ -83,61 +83,34 @@ export default function PaymentDashboard() {
   }, [searchParams, fetchUserData, fetchTransactions, navigate]);
 
   const handlePayNow = async () => {
-  setErrorMsg(""); // clear previous errors
-  setLoading(true);
+    setErrorMsg("");
+    const parsedAmount = Number(amount);
 
-  try {
-    // Parse and validate amount
-    const parsedAmount = parseFloat(amount?.toString().trim());
     if (!parsedAmount || parsedAmount <= 0) {
-      setErrorMsg("Please enter a valid payment amount.");
-      setLoading(false);
-      return;
+      return setErrorMsg("Please enter a valid payment amount.");
     }
 
-    // Check first payment requirement
     if (balance?.amount_paid === 0 && parsedAmount < balance.min_payment_required) {
-      setErrorMsg(`Your first payment must be at least ₦${balance.min_payment_required.toLocaleString()}.`);
+      return setErrorMsg(`Your first payment must be at least ₦${balance.min_payment_required.toLocaleString()}.`);
+    }
+
+    setLoading(true);
+    try {
+      const response = await api.post("payments/initialize/", { amount: parsedAmount, coupon_code: couponCode || undefined });
+
+      if (response.data.discount_applied > 0) {
+        setDiscount(response.data.discount_applied);
+        alert(`✅ Coupon applied! You got ₦${response.data.discount_applied.toLocaleString()} off.`);
+      }
+
+      window.location.href = response.data.authorization_url;
+
+    } catch (e) {
+      setErrorMsg(e.response?.data?.message || "Payment failed. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Prepare payload
-    const payload = { amount: parsedAmount };
-    if (couponCode?.trim()) payload.coupon_code = couponCode.trim();
-
-    console.log("Sending payment payload:", payload);
-
-    // Call backend
-    const response = await api.post("payments/initialize/", payload);
-    console.log("Payment initialize response:", response.data);
-
-    // Check if discount was applied
-    if (response.data.discount_applied > 0) {
-      setDiscount(response.data.discount_applied);
-      alert(`✅ Coupon applied! You got ₦${response.data.discount_applied.toLocaleString()} off.`);
-    }
-
-    // Check authorization_url
-    if (!response.data.authorization_url) {
-      console.error("No authorization_url in response!");
-      setErrorMsg("Payment failed: No payment URL returned. Contact support.");
-      setLoading(false);
-      return;
-    }
-
-    // Redirect to payment gateway
-    window.location.href = response.data.authorization_url;
-
-  } catch (e) {
-    console.error("Payment error:", e);
-    const msg = e.response?.data?.message || e.message || "Payment failed. Please try again.";
-    setErrorMsg(msg);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const downloadReceipt = (tx) => {
     if (tx.status !== "success") return;

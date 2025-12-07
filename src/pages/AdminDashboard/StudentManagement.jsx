@@ -281,9 +281,9 @@ const StudentManagement = () => {
                   <th>Phone</th>
                   <th>Course</th>
                   <th>Center</th>
+                  <th>Discount Price</th>
                   <th>Amount Paid</th>
                   <th>Amount Owed</th>
-                  <th>Discount</th>
                   <th>Next Due Date</th>
                   <th>Status</th>
                   <th>Edit</th>
@@ -306,9 +306,9 @@ const StudentManagement = () => {
                     <td>{s.phone_number}</td>
                     <td>{s.course_name}</td>
                     <td>{s.center}</td>
+                    <td>₦{s.discount.toLocaleString()}</td>
                     <td>₦{s.amount_paid.toLocaleString()}</td>
                     <td>₦{s.amount_owed.toLocaleString()}</td>
-                    <td>₦{s.discount.toLocaleString()}</td>
                     <td>{formatDate(s.next_due_date)}</td>
                     <td>
                       <span
@@ -539,14 +539,14 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
             />
           </div>
           
-          <div style={styles.formGroup}>
+          {/* <div style={styles.formGroup}>
             <label style={styles.label}>Address</label>
             <input
               value={formData.address}
               onChange={(e) => handleChange("address", e.target.value)}
               style={styles.input}
             />
-          </div>
+          </div> */}
           
           <div style={styles.formGroup}>
             <label style={styles.label}>Center</label>

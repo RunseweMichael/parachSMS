@@ -29,7 +29,7 @@ export default function SignUpPage() {
     course: "",
     birth_date: "",
     phone_number: "",
-    address: "",
+    // address: "",
     consent: false,
     center: "", // ✅ added
   });
@@ -64,7 +64,7 @@ export default function SignUpPage() {
     if (!formData.course) e.course = "Please choose a course";
     if (!formData.center) e.center = "Center required"; // ✅ added
     if (!formData.phone_number) e.phone_number = "Phone required";
-    if (!formData.address) e.address = "Address required";
+    // if (!formData.address) e.address = "Address required";
     if (!formData.birth_date) e.birth_date = "Birth date required";
     if (!formData.consent) e.consent = "Consent required";
 
@@ -363,7 +363,7 @@ export default function SignUpPage() {
                   </AnimatePresence>
                 </motion.div>
                 {/* Address */}
-                <motion.div variants={fieldVariant(7)} className="relative md:col-span-2">
+                {/* <motion.div variants={fieldVariant(7)} className="relative md:col-span-2">
                   <MapPin className="absolute left-3 top-3.5 text-gray-400" size={20} />
                   <textarea
                     name="address"
@@ -383,7 +383,7 @@ export default function SignUpPage() {
                       </motion.p>
                     )}
                   </AnimatePresence>
-                </motion.div>
+                </motion.div> */}
 
                 {/* Consent */}
                 <motion.label variants={fieldVariant(8)} className="flex items-start gap-3 cursor-pointer md:col-span-2 -mb-2">
