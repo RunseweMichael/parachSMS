@@ -139,7 +139,8 @@ export default function Sidebar() {
       >
         {item.icon}
         {(open || isMobile) && <span className="text-sm">{item.name}</span>}
-        {item.name === "Internship" && isCertApproved && showBadge && (
+        {/* Show Internship badge only if payment is done and certificate approved */}
+        {item.name === "Internship" && isCertApproved && !isLocked && showBadge && (
           <Bell className="w-4 h-4 text-amber-300 ml-2 animate-pulse" />
         )}
       </Link>
@@ -195,9 +196,6 @@ export default function Sidebar() {
             })}
           </ul>
         </nav>
-
-        {/* Dark Mode */}
-      
 
         {/* LOGOUT */}
         <div className="px-3 pb-4">
@@ -274,8 +272,6 @@ export default function Sidebar() {
                 })}
               </ul>
             </nav>
-
-            
 
             {/* Logout */}
             <button
