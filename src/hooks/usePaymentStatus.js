@@ -19,15 +19,6 @@ export default function usePaymentStatus() {
         const owed = parseFloat(student?.amount_owed || 0);
         const hasOutstandingBalance = owed > paid;
 
-        // 🔹 LOCK if amount_paid === 0 (newly registered student)
-        if (paid === 0) {
-          setIsLocked(true);
-          setDaysOverdue(0);
-          setAmountDue(owed);
-          return; // skip overdue check
-        }
-
-        // 🔹 LOCK if payment is overdue
         if (student?.next_due_date && hasOutstandingBalance) {
           const dueDate = new Date(student.next_due_date);
           const today = new Date();
@@ -43,7 +34,6 @@ export default function usePaymentStatus() {
             setAmountDue(owed - paid);
           }
         }
-
       } catch (err) {
         console.error("Failed to check payment status:", err);
       } finally {
