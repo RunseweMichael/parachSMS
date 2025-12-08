@@ -9,8 +9,6 @@ import {
   LogOut,
   Menu,
   X,
-  Moon,
-  Sun,
   Bell,
   TrendingUp,
   Lock,
@@ -28,18 +26,6 @@ export default function Sidebar() {
   const logout = useLogout();
   const { isLocked, loading } = usePaymentStatus();
 
-  useEffect(() => {
-    const saved = localStorage.getItem("darkMode");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setDarkMode(saved === "true" || (!saved && prefersDark));
-  }, []);
-
-  useEffect(() => {
-    if (darkMode) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-    localStorage.setItem("darkMode", darkMode.toString());
-  }, [darkMode]);
-
   const [isCertApproved, setIsCertApproved] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
   const BADGE_DURATION_MS = 10000;
@@ -54,6 +40,20 @@ export default function Sidebar() {
     { name: "Skills Progress", icon: <TrendingUp className="w-5 h-5" />, path: "/student/skills-progress" },
   ];
 
+  // Dark mode handling
+  useEffect(() => {
+    const saved = localStorage.getItem("darkMode");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setDarkMode(saved === "true" || (!saved && prefersDark));
+  }, []);
+
+  useEffect(() => {
+    if (darkMode) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+    localStorage.setItem("darkMode", darkMode.toString());
+  }, [darkMode]);
+
+  // Fetch certificates to determine Internship access and badge
   useEffect(() => {
     let mounted = true;
 
@@ -61,7 +61,9 @@ export default function Sidebar() {
       try {
         const res = await api.get("certificates/certificates/");
         const certs = res.data || [];
-        const approved = certs.some((c) => c.is_approved === true || c.is_approved === "true" || c.is_approved === 1);
+        const approved = certs.some(
+          (c) => c.is_approved === true || c.is_approved === "true" || c.is_approved === 1
+        );
         if (!mounted) return;
         setIsCertApproved(approved);
 
@@ -77,16 +79,14 @@ export default function Sidebar() {
     };
 
     checkCertificates();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
+  // Render menu items with lock logic
   const renderMenuItem = (item, active, isMobile = false) => {
-    // Payment page is always accessible
     const isAccessible = item.alwaysAccessible || !isLocked;
-    
-    // Handle Internship special case
+
+    // Internship specific rules
     if (item.name === "Internship") {
       if (!isCertApproved) {
         return (
@@ -99,7 +99,7 @@ export default function Sidebar() {
           </div>
         );
       }
-      
+
       if (!isAccessible) {
         return (
           <div
@@ -114,7 +114,7 @@ export default function Sidebar() {
       }
     }
 
-    // Locked items (non-payment pages)
+    // Lock any page except Payment
     if (!isAccessible) {
       return (
         <div
@@ -139,7 +139,6 @@ export default function Sidebar() {
       >
         {item.icon}
         {(open || isMobile) && <span className="text-sm">{item.name}</span>}
-        {/* Show Internship badge only if payment is done and certificate approved */}
         {item.name === "Internship" && isCertApproved && !isLocked && showBadge && (
           <Bell className="w-4 h-4 text-amber-300 ml-2 animate-pulse" />
         )}
@@ -147,9 +146,7 @@ export default function Sidebar() {
     );
   };
 
-  if (loading) {
-    return null; // Or a loading spinner
-  }
+  if (loading) return null;
 
   return (
     <>
@@ -162,11 +159,7 @@ export default function Sidebar() {
         <div className="flex items-center justify-between px-4 py-5 border-b border-white/20">
           <Link to="/student/dashboard" className="flex items-center gap-2 select-none">
             <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/30 shadow-lg bg-white">
-                <img 
-                src={logoImg} 
-                alt="Logo" 
-                className="w-full h-full object-contain" 
-              />
+              <img src={logoImg} alt="Logo" className="w-full h-full object-contain" />
             </div>
             {open && <span className="text-lg font-semibold tracking-wide">Parach ICT Academy</span>}
           </Link>
@@ -179,7 +172,7 @@ export default function Sidebar() {
               <Lock className="w-4 h-4" />
               <span className="text-xs font-semibold">Account Locked</span>
             </div>
-            <p className="text-xs text-red-100/80">Payment overdue</p>
+            <p className="text-xs text-red-100/80">Payment overdue. Please pay to access all features.</p>
           </div>
         )}
 
@@ -188,11 +181,7 @@ export default function Sidebar() {
           <ul className="flex flex-col gap-2 px-3">
             {menuItems.map((item) => {
               const active = location.pathname === item.path;
-              return (
-                <li key={item.name}>
-                  {renderMenuItem(item, active, false)}
-                </li>
-              );
+              return <li key={item.name}>{renderMenuItem(item, active, false)}</li>;
             })}
           </ul>
         </nav>
@@ -223,24 +212,14 @@ export default function Sidebar() {
       {/* MOBILE SIDEBAR DRAWER */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
-          {/* Overlay */}
-          <div 
-            className="flex-1 bg-black/50 backdrop-blur-sm" 
-            onClick={() => setMobileOpen(false)} 
-          />
-
-          {/* Sidebar */}
+          <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <div className="w-64 bg-gradient-to-b from-blue-600 to-indigo-700 text-white p-5 flex flex-col shadow-xl">
             {/* Header */}
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/20">
               <Link to="/student/dashboard" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-               <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/30 shadow-lg bg-white">
-                <img 
-                src={logoImg} 
-                alt="Logo" 
-                className="w-full h-full object-contain" 
-              />
-            </div>
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/30 shadow-lg bg-white">
+                  <img src={logoImg} alt="Logo" className="w-full h-full object-contain" />
+                </div>
                 <span className="font-semibold">Parach ICT Academy</span>
               </Link>
               <button onClick={() => setMobileOpen(false)} className="p-2 hover:bg-white/10 rounded-lg">
@@ -255,7 +234,7 @@ export default function Sidebar() {
                   <Lock className="w-4 h-4" />
                   <span className="text-xs font-semibold">Account Locked</span>
                 </div>
-                <p className="text-xs text-red-100/80">Payment overdue</p>
+                <p className="text-xs text-red-100/80">Payment overdue. Please pay to access all features.</p>
               </div>
             )}
 
@@ -264,11 +243,7 @@ export default function Sidebar() {
               <ul className="flex flex-col gap-3">
                 {menuItems.map((item) => {
                   const active = location.pathname === item.path;
-                  return (
-                    <li key={item.name}>
-                      {renderMenuItem(item, active, true)}
-                    </li>
-                  );
+                  return <li key={item.name}>{renderMenuItem(item, active, true)}</li>;
                 })}
               </ul>
             </nav>
