@@ -656,7 +656,6 @@ useEffect(() => {
                       {/* Locked Overlay */}
                       {!unlocked && (
                         <div className="absolute inset-0 bg-black/10 rounded-3xl flex items-center justify-center">
-                          <p className="text-2xl font-bold text-gray-600">Locked</p>
                         </div>
                       )}
                     </div>
