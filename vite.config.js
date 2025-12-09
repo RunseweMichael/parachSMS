@@ -10,7 +10,7 @@ export default defineConfig({
     
     // tailwind-animate is a Tailwind plugin → put it in tailwind.config.js
   ],
-  base: process.env.VITE_BASE_PATH || '/parachSMS',
+  base: process.env.VITE_BASE_PATH || '/',
 
   
 });
