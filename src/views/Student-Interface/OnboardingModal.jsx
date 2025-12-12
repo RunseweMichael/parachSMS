@@ -15,7 +15,7 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip }) =
     setIsVisible(isOpen);
   }, [isOpen]);
 
-  // Post-signup onboarding (unchanged)
+  // Post-signup onboarding 
   const postSignupSteps = [
     {
       title: "🎉 Registration Successful!",
