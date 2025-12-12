@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { PlayCircle } from "lucide-react";
-import CardSchedule from "../../component/Cards/CardSchedule.jsx";
+// 1. Added AlertCircle to imports
+import { PlayCircle, AlertCircle } from "lucide-react"; 
+// 2. Check your paths: 'component' vs 'components'
+import CardSchedule from "../../component/Cards/CardSchedule.jsx"; 
 import CardProgressChart from "../../component/Cards/CardProgressBar.jsx";
 import CardSocialFollow from "../../component/Cards/CardSocialFollow.jsx";
-import CourseDetails from "../../components/Students/CourseDetails.jsx"
+import CourseDetails from "../../components/Students/CourseDetails.jsx";
 import api from "../../api";
+import OnboardingModal from "../Student-Interface/OnboardingModal.jsx";
 
 export default function Dashboard() {
   const [courses, setCourses] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const [error, setError] = useState(null);
+  const [showDashboardTour, setShowDashboardTour] = useState(false);
 
   useEffect(() => {
     const fetchUserCourse = async () => {
       try {
         const token = localStorage.getItem("token");
 
-        // Get logged-in user + their assigned course(s)
         const res = await api.get("students/me/", {
           headers: { Authorization: `Token ${token}` },
         });
@@ -30,6 +33,8 @@ export default function Dashboard() {
         setCourses(courseData);
       } catch (err) {
         console.error("Failed to load user courses", err);
+        // 3. Update error state so the UI reacts
+        setError("Failed to load courses. Please try again."); 
       } finally {
         setLoading(false);
       }
@@ -38,9 +43,21 @@ export default function Dashboard() {
     fetchUserCourse();
   }, []);
 
-  // If a course is clicked → show its full details
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem('dashboard_tour_completed');
+    if (!hasSeenTour) {
+      setTimeout(() => setShowDashboardTour(true), 500);
+    }
+  }, []);
+
+  // 4. Pass a callback to CourseDetails to allow going back (Optional but recommended)
   if (selectedCourseId) {
-    return <CourseDetails id={selectedCourseId} />;
+    return (
+      <CourseDetails 
+        id={selectedCourseId} 
+        onBack={() => setSelectedCourseId(null)} // Assuming CourseDetails accepts this prop
+      />
+    );
   }
 
   return (
@@ -52,8 +69,8 @@ export default function Dashboard() {
         {/* Row 1: Course List + Schedule */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           
-          {/* Courses Section */}
-          <div className="xl:col-span-8 gap-7 ">
+          {/* Courses Section (Left Side) */}
+          <div className="xl:col-span-8 gap-7">
             <div className="bg-white p-6 rounded-xl shadow h-auto mb-5">
               <h2 className="text-xl font-bold text-blue-700 mb-4">My Courses</h2>
 
@@ -94,10 +111,10 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-              <div className=" mt-16">
-          <CardProgressChart />
-          </div>
-              
+            
+            <div className="mt-16">
+              <CardProgressChart />
+            </div>
           </div>
 
           {/* Right Sidebar - Schedule & Social */}
@@ -106,15 +123,24 @@ export default function Dashboard() {
             <CardSocialFollow />
           </div>
 
-          {/* Progress Chart - Full Width */}
-        
-        </div>
-
-        {/* Row 2: Progress & Social */}
-        <div className="flex flex-wrap -mx-4">
-      
         </div>
       </div>
+
+      {/* 5. MOVED MODAL INSIDE RETURN */}
+      {showDashboardTour && (
+        <OnboardingModal 
+          type="post-verification"
+          isOpen={showDashboardTour}
+          onComplete={() => {
+            localStorage.setItem('dashboard_tour_completed', 'true');
+            setShowDashboardTour(false);
+          }}
+          onSkip={() => {
+            localStorage.setItem('dashboard_tour_completed', 'true');
+            setShowDashboardTour(false);
+          }}
+        />
+      )}
     </div>
   );
 }
