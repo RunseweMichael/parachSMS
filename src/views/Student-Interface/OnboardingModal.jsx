@@ -1,12 +1,12 @@
-// src/components/OnboardingModal.jsx
+// src/components/Student-Interface/OnboardingModal.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. Import Router Hook
+import { useNavigate } from 'react-router-dom'; 
 import { 
   X, CheckCircle, Calendar, BarChart3, Mail, 
   BookOpen, Target, CreditCard, ListTodo, ShieldAlert 
 } from 'lucide-react';
 
-const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isLocked }) => { // <--- ADD isLocked prop
+const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isLocked }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(isOpen);
   const navigate = useNavigate();
@@ -15,7 +15,32 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
     setIsVisible(isOpen);
   }, [isOpen]);
 
-  // 1. Define the steps for UNPAID (Locked) Users
+  // ==========================================
+  // 1. POST-SIGNUP STEPS (Before Verification)
+  // ==========================================
+  const postSignupSteps = [
+    {
+      title: "🎉 Registration Successful!",
+      description: "Welcome to Parach ICT Academy! We've sent a 6-digit verification code to your email.",
+      icon: <Mail className="w-16 h-16 text-blue-500" />,
+      highlight: "Check your email inbox (and spam folder) for the OTP code",
+      tip: "The code expires in 10 minutes"
+    },
+    {
+      title: "What's Next?",
+      description: "After verifying your email, you'll get access to your personalized dashboard.",
+      icon: <BookOpen className="w-16 h-16 text-purple-500" />,
+      features: ["Access your course materials", "Track your progress", "Complete weekly tasks"],
+      ctaLabel: "Got it!",
+      final: true
+    }
+  ];
+
+  // ==========================================
+  // 2. DASHBOARD STEPS (Split into Locked/Unlocked)
+  // ==========================================
+  
+  // Scenario A: User owes money (Part 1)
   const lockedSteps = [
     {
       title: "Welcome to Parach ICT! 🚀",
@@ -29,13 +54,13 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
       title: "One Last Step",
       description: "Click the button below to settle your tuition. Once paid, your Tasks, Internship, and Course materials will unlock automatically.",
       icon: <CreditCard className="w-16 h-16 text-blue-600" />,
-      final: true, // This closes the modal when they click the button
+      final: true, 
       ctaLabel: "Proceed to Payment",
       nextRoute: "/student/payment"
     }
   ];
 
-  // 2. Define the steps for PAID (Unlocked) Users
+  // Scenario B: User has paid (Part 2)
   const unlockedSteps = [
     {
       title: "Payment Successful! 🎉",
@@ -45,10 +70,10 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
     },
     {
       title: "Your Workspace: The Task Hub",
-      description: "We focus on practical application. Instead of passive videos, you will complete weekly tasks here.",
+      description: "We focus on practical application. you will complete weekly tasks here.",
       icon: <ListTodo className="w-16 h-16 text-indigo-600" />,
-      highlight: "This is your main classroom.",
-      tip: "You will spend 90% of your time on this page."
+      highlight: "This is your main area for learning and assignments.",
+      tip: "You can track your progress and see upcoming deadlines here."
     },
     {
       title: "How to Progress 📈",
@@ -60,25 +85,47 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
     }
   ];
 
-  // 3. Logic to choose which array to use
+  // ==========================================
+  // 3. COURSE DETAILS STEPS
+  // ==========================================
+  const courseDetailsSteps = [
+    {
+      title: "Your Course Dashboard",
+      description: "Welcome to your course! Here you'll find all lessons, materials, and assignments organized by modules.",
+      icon: <BookOpen className="w-16 h-16 text-blue-500" />,
+    },
+    {
+      title: "Weekly Tasks",
+      description: "Each week, you'll have tasks to complete. These help reinforce what you've learned and track your progress.",
+      icon: <Target className="w-16 h-16 text-orange-500" />,
+      features: ["Complete tasks before deadlines", "Earn points for on-time completion", "Track your progress"],
+      tip: "Tasks reset every Monday - plan ahead!"
+    },
+    {
+      title: "Stay Consistent",
+      description: "Regular study and timely task completion are key to success. Set aside dedicated time each week for learning.",
+      icon: <Calendar className="w-16 h-16 text-green-500" />,
+      highlight: "Consistency beats intensity - study a little every day",
+      final: true
+    }
+  ];
+
+  // Logic to choose which array to use
   const getCurrentSteps = () => {
     if (type === 'post-verification') {
       // If user is locked, show Part 1. If unlocked, show Part 2.
       return isLocked ? lockedSteps : unlockedSteps;
     }
-    // ... keep existing logic for other types (signup/course-details)
     if (type === 'post-signup') return postSignupSteps;
     if (type === 'course-details') return courseDetailsSteps;
-    return postSignupSteps; // Fallback
+    
+    return postSignupSteps; // Default fallback
   };
 
   const steps = getCurrentSteps();
   const currentStepData = steps[currentStep] || steps[0]; // Safety fallback
   const isLastStep = currentStep === steps.length - 1;
 
-  // =========================================================
-  //  MODIFIED: Navigation Logic in HandleNext
-  // =========================================================
   const handleNext = () => {
     // Check if the CURRENT step has a route instruction for the NEXT step
     if (currentStepData.nextRoute) {
@@ -101,151 +148,131 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      // Optional: If you want 'Previous' to also navigate back, 
-      // you would need to store previous routes or map steps to routes explicitly.
-      // For now, we keep it simple (modal content changes, user stays on current page).
     }
   };
 
   if (!isVisible) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fadeIn">
-        {/* Modal */}
-        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto z-[101] animate-slideUp">
-          {/* Header */}
-          <div className="p-6 border-b border-gray-200 flex justify-between items-start">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                {steps.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`h-2 flex-1 rounded-full transition-all ${
-                      index <= currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-gray-500">
-                Step {currentStep + 1} of {steps.length}
-              </p>
-            </div>
-            <button
-              onClick={handleSkip}
-              className="text-gray-400 hover:text-gray-600 transition ml-4"
-              aria-label="Close"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-8">
-            {/* Icon */}
-            {currentStepData.icon && (
-              <div className="flex justify-center mb-6">
-                <div className="p-4 bg-gray-50 rounded-full">
-                  {currentStepData.icon}
-                </div>
-              </div>
-            )}
-
-            {/* Title */}
-            <h2 className="text-3xl font-bold text-gray-900 mb-4 text-center">
-              {currentStepData.title}
-            </h2>
-
-            {/* Description */}
-            <p className="text-lg text-gray-600 text-center mb-6 whitespace-pre-line">
-              {currentStepData.description}
-            </p>
-
-            {/* Highlight Box */}
-            {currentStepData.highlight && (
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
-                <p className="text-blue-800 font-semibold text-center">
-                  {currentStepData.highlight}
-                </p>
-              </div>
-            )}
-
-            {/* Features List */}
-            {currentStepData.features && (
-              <div className="space-y-3 mb-6 bg-gray-50 p-5 rounded-xl">
-                {currentStepData.features.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700 font-medium">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Tip */}
-            {currentStepData.tip && (
-              <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r-lg">
-                <p className="text-sm text-amber-900">
-                  <span className="font-bold">💡 Pro Tip: </span>
-                  {currentStepData.tip}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="p-6 border-t border-gray-200 flex justify-between items-center bg-gray-50 rounded-b-2xl">
-            <button
-              onClick={handleSkip}
-              className="text-gray-500 hover:text-gray-700 font-medium transition px-4 py-2"
-            >
-              Skip Tour
-            </button>
-
-            <div className="flex gap-3">
-              {currentStep > 0 && (
-                <button
-                  onClick={handlePrevious}
-                  className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-white transition"
-                >
-                  Previous
-                </button>
-              )}
-              <button
-                onClick={handleNext}
-                className={`px-8 py-2.5 rounded-xl font-bold transition shadow-lg transform active:scale-95 ${
-                  currentStepData.cta || currentStepData.final || currentStepData.nextRoute
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white hover:from-blue-700 hover:to-indigo-800'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+   <>
+  {/* Backdrop */}
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    {/* Modal */}
+    <div className="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-300">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-100 flex justify-between items-start flex-shrink-0">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-3">
+            {steps.map((_, index) => (
+              <div
+                key={index}
+                className={`h-2 flex-1 rounded-full transition-all duration-500 ${
+                  index <= currentStep
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
+                    : 'bg-gray-200'
                 }`}
-              >
-                {isLastStep 
-                  ? (currentStepData.ctaLabel || 'Get Started')
-                  : (currentStepData.ctaLabel || 'Next')}
-              </button>
-            </div>
+              />
+            ))}
           </div>
+          <p className="text-sm text-gray-500">
+            Step {currentStep + 1} of {steps.length}
+          </p>
         </div>
+        <button
+          onClick={handleSkip}
+          className="ml-4 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          aria-label="Close tour"
+        >
+          <X className="w-5 h-5 text-gray-500" />
+        </button>
       </div>
 
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-        .animate-slideUp {
-          animation: slideUp 0.4s ease-out;
-        }
-      `}</style>
-    </>
+      {/* Scrollable Content */}
+      <div className="p-8 overflow-y-auto flex-1">
+        {/* Icon */}
+        {currentStepData.icon && (
+          <div className="flex justify-center mb-8">
+            <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm">
+              {currentStepData.icon}
+            </div>
+          </div>
+        )}
+
+        {/* Title */}
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5 text-center leading-tight">
+          {currentStepData.title}
+        </h2>
+
+        {/* Description */}
+        <p className="text-lg text-gray-600 text-center mb-8 max-w-2xl mx-auto leading-relaxed whitespace-pre-line">
+          {currentStepData.description}
+        </p>
+
+        {/* Highlight Box */}
+        {currentStepData.highlight && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 mb-8">
+            <p className="text-blue-900 font-semibold text-center text-lg">
+              {currentStepData.highlight}
+            </p>
+          </div>
+        )}
+
+        {/* Features List */}
+        {currentStepData.features && (
+          <div className="space-y-4 mb-8 bg-gray-50/80 backdrop-blur rounded-2xl p-6">
+            {currentStepData.features.map((feature, index) => (
+              <div key={index} className="flex items-start gap-4">
+                <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                <span className="text-gray-700 font-medium text-base leading-relaxed">
+                  {feature}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pro Tip */}
+        {currentStepData.tip && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 p-5 rounded-r-2xl mb-8">
+            <p className="text-amber-900 font-medium">
+              <span className="font-bold text-lg">💡 Pro Tip:</span>{' '}
+              {currentStepData.tip}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="p-6 border-t border-gray-100 bg-gray-50/80 backdrop-blur flex justify-between items-center flex-shrink-0">
+        <button
+          onClick={handleSkip}
+          className="text-gray-600 hover:text-gray-800 font-medium px-4 py-2 transition"
+        >
+          Skip Tour
+        </button>
+
+        <div className="flex gap-4">
+          {currentStep > 0 && (
+            <button
+              onClick={handlePrevious}
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-white transition-shadow"
+            >
+              Previous
+            </button>
+          )}
+          <button
+            onClick={handleNext}
+            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-800 transition-all transform active:scale-98"
+          >
+            {isLastStep
+              ? currentStepData.ctaLabel || 'Get Started'
+              : currentStepData.ctaLabel || 'Next'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</>
   );
 };
 
