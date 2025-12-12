@@ -197,7 +197,7 @@ const Certificates = () => {
                 .map((cert) => {
                   const imageUrl = cert.certificate_file?.startsWith("http")
                     ? cert.certificate_file
-                    : `https://mike96.pythonanywhere.com/api/media/${cert.certificate_file}`;
+                    : `https://mike96.pythonanywhere.com/media/${cert.certificate_file}`;
 
                   return (
                     <div
