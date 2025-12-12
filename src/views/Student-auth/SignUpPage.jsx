@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../api";
 import { toast, Toaster } from "react-hot-toast";
+import OnboardingModal from "../Student-Interface/OnboardingModal";
 import {
   User,
   Mail,
@@ -38,6 +39,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [courseLoading, setCourseLoading] = useState(true);
   const [errors, setErrors] = useState({});
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const inputOrderRef = useRef(0);
 
@@ -97,7 +99,9 @@ export default function SignUpPage() {
       if (user) localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Registration successful!");
-      setTimeout(() => navigate("/verify-otp"), 1200);
+     setTimeout(() => {
+  setShowOnboarding(true); // Show onboarding first
+}, 800);
     } catch (err) {
       const data = err.response?.data;
       if (!err.response) toast.error("Network error — is backend running?");
@@ -437,7 +441,25 @@ export default function SignUpPage() {
             © 2025 Parach Computers, Orogun, Ibadan
           </p>
         </div>
+
+
+          {showOnboarding && (
+  <OnboardingModal 
+    type="post-signup"
+    isOpen={showOnboarding}
+    onComplete={() => {
+      setShowOnboarding(false);
+      navigate("/verify-otp");
+    }}
+    onSkip={() => {
+      setShowOnboarding(false);
+      navigate("/verify-otp");
+    }}
+  />
+)}
       </div>
     </>
   );
+
+
 }
