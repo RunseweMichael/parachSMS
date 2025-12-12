@@ -23,19 +23,25 @@ export default function Dashboard() {
   const [tourCompleted, setTourCompleted] = useState(true); // Default to true to prevent flicker
 
   // 2. Check if Tour is done (RUNS ONCE ON MOUNT)
-  useEffect(() => {
-    const userId = localStorage.getItem("user_id");
-    const tourKey = `dashboard_tour_completed_${userId}`;
-    const hasSeenTour = localStorage.getItem(tourKey);
+ useEffect(() => {
+    // Wait for payment check to finish
+    if (paymentLoading) return;
 
-    if (!hasSeenTour) {
-      setTourCompleted(false); // Tour is NOT done
-      // Small delay to ensure UI renders before modal pops
-      setTimeout(() => setShowDashboardTour(true), 1000); 
-    } else {
-      setTourCompleted(true); // Tour IS done
+    const userId = localStorage.getItem("user_id");
+    const part1Seen = localStorage.getItem(`tour_part1_seen_${userId}`);
+    const fullTourComplete = localStorage.getItem(`dashboard_tour_completed_${userId}`);
+
+    // SCENARIO 1: User is Locked & hasn't seen Part 1
+    if (isLocked && !part1Seen) {
+      setTimeout(() => setShowDashboardTour(true), 1000);
     }
-  }, []);
+    
+    else if (!isLocked && !fullTourComplete) {
+       setTimeout(() => setShowDashboardTour(true), 1000);
+    }
+
+  }, [isLocked, paymentLoading]);
+
 
   // 3. Handle Redirect Logic (THE FIX)
   useEffect(() => {
@@ -114,27 +120,33 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 5. The Modal - Now it has time to render! */}
+      
       {showDashboardTour && (
-        <div className="pointer-events-auto"> 
-        {/* pointer-events-auto ensures the modal is clickable even if background is locked */}
-          <OnboardingModal 
-            type="post-verification"
-            isOpen={showDashboardTour}
-            onComplete={() => {
-              const userId = localStorage.getItem("user_id");
+        <OnboardingModal 
+          type="post-verification"
+          isOpen={showDashboardTour}
+          isLocked={isLocked} // <--- PASS THIS PROP!
+          
+          onComplete={() => {
+            const userId = localStorage.getItem("user_id");
+            
+            if (isLocked) {
+              // If they finish the "Locked" tour (Part 1)
+              localStorage.setItem(`tour_part1_seen_${userId}`, 'true');
+              // Note: We do NOT set 'dashboard_tour_completed' yet!
+            } else {
+              // If they finish the "Unlocked" tour (Part 2)
               localStorage.setItem(`dashboard_tour_completed_${userId}`, 'true');
-              setTourCompleted(true); // This triggers the Redirect useEffect!
-              setShowDashboardTour(false);
-            }}
-            onSkip={() => {
-              const userId = localStorage.getItem("user_id");
-              localStorage.setItem(`dashboard_tour_completed_${userId}`, 'true');
-              setTourCompleted(true); // This triggers the Redirect useEffect!
-              setShowDashboardTour(false);
-            }}
-          />
-        </div>
+            }
+            setShowDashboardTour(false);
+          }}
+
+          onSkip={() => {
+            const userId = localStorage.getItem("user_id");
+            // If they skip, we assume they are bored and mark ALL as done
+            localStorage.setItem(`dashboard_tour_completed_${userId}`, 'true');
+            setShowDashboardTour(false);
+          }}/>
       )}
     </div>
   );
