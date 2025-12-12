@@ -66,13 +66,44 @@ const EnquiryList = () => {
   };
 
   const sendEmail = async (enquiry) => {
-    if (!window.confirm(`Send predefined email to ${enquiry.name}?`)) return;
+    if (!window.confirm(`Send follow-up email and SMS to ${enquiry.name}?`)) return;
+    
     try {
-      await api.post(`enquiries/enquiries/${enquiry.id}/send_email/`);
-      alert(`Email sent to ${enquiry.email}`);
+      const response = await api.post(`enquiries/enquiries/${enquiry.id}/send_email/`);
+      
+      // Parse the response to show detailed status
+      const { email, sms, status: responseStatus } = response.data;
+      
+      let message = [];
+      
+      if (email?.success) {
+        message.push(`✅ Email sent to ${enquiry.email}`);
+      } else if (email?.error) {
+        message.push(`❌ Email failed: ${email.error}`);
+      }
+      
+      if (sms?.success) {
+        message.push(`✅ SMS sent to ${enquiry.phone}`);
+      } else if (sms?.error) {
+        message.push(`⚠️ SMS failed: ${sms.error}`);
+      }
+      
+      alert(message.join('\n\n') || responseStatus);
     } catch (err) {
       console.error(err);
-      alert("Failed to send email.");
+      
+      // Handle different error responses
+      if (err.response?.data) {
+        const { email, sms } = err.response.data;
+        let errorMsg = "Failed to send notifications:\n\n";
+        
+        if (email?.error) errorMsg += `Email: ${email.error}\n`;
+        if (sms?.error) errorMsg += `SMS: ${sms.error}`;
+        
+        alert(errorMsg);
+      } else {
+        alert("Failed to send email and SMS.");
+      }
     }
   };
 
@@ -226,6 +257,7 @@ const EnquiryList = () => {
                       : "bg-red-100 text-red-800"
                   }`}
                   onClick={() => toggleStatus(enquiry)}
+                  title="Click to toggle status"
                 >
                   {enquiry.status === "FOLLOWED_UP" ? "FOLLOWED UP" : "NEW"}
                 </td>
@@ -234,18 +266,21 @@ const EnquiryList = () => {
                   <Link
                     to={`/admin/enquiries/edit/${enquiry.id}`}
                     className="bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-full"
+                    title="Edit enquiry"
                   >
                     <FiEdit />
                   </Link>
                   <button
                     onClick={() => deleteEnquiry(enquiry.id)}
                     className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+                    title="Delete enquiry"
                   >
                     <FiTrash2 />
                   </button>
                   <button
                     onClick={() => sendEmail(enquiry)}
                     className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full"
+                    title="Send email & SMS"
                   >
                     <FiMail />
                   </button>

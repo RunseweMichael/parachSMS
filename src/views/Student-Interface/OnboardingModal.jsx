@@ -6,110 +6,74 @@ import {
   BookOpen, Target, CreditCard, ListTodo, ShieldAlert 
 } from 'lucide-react';
 
-const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip }) => {
+const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isLocked }) => { // <--- ADD isLocked prop
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(isOpen);
-  const navigate = useNavigate(); // 2. Initialize Hook
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsVisible(isOpen);
   }, [isOpen]);
 
-  // Post-signup onboarding (unchanged)
-  const postSignupSteps = [
+  // 1. Define the steps for UNPAID (Locked) Users
+  const lockedSteps = [
     {
-      title: "🎉 Registration Successful!",
-      description: "Welcome to Parach ICT Academy! We've sent a 6-digit verification code to your email.",
-      icon: <Mail className="w-16 h-16 text-blue-500" />,
-      highlight: "Check your email inbox (and spam folder) for the OTP code",
-      tip: "The code expires in 10 minutes"
-    },
-    {
-      title: "What's Next?",
-      description: "After verifying your email, you'll get access to your personalized dashboard.",
-      icon: <BookOpen className="w-16 h-16 text-purple-500" />,
-      features: ["Access your course materials", "Track your progress", "Complete weekly tasks"],
-      cta: true
-    }
-  ];
-
-  // =========================================================
-  //  MODIFIED: Post-verification (Payment -> Tasks Flow)
-  // =========================================================
-  const postVerificationSteps = [
-    {
-      title: "Welcome to Your Dashboard! 🚀",
-      description: "Before you begin learning, we need to finalize your account status. Features are currently locked.",
+      title: "Welcome to Parach ICT! 🚀",
+      description: "You have successfully verified your email. Now, let's activate your student account.",
       icon: <ShieldAlert className="w-16 h-16 text-red-500" />,
-      highlight: "Let's check your payment status first.",
+      highlight: "Your dashboard is currently locked pending payment.",
       ctaLabel: "Go to Payment",
-      // When clicking next, go to payment
       nextRoute: "/student/payment" 
     },
     {
-      title: "Payment & Account Status",
-      description: "This is where you manage your tuition. Your Dashboard and Internship details remain locked until overdue balances are cleared.",
+      title: "One Last Step",
+      description: "Click the button below to settle your tuition. Once paid, your Tasks, Internship, and Course materials will unlock automatically.",
       icon: <CreditCard className="w-16 h-16 text-blue-600" />,
-      highlight: "Clear your balance to unlock all features instantly.",
-      ctaLabel: "Next: View Tasks",
-      // When clicking next, go to tasks
-      nextRoute: "/student/task" 
+      final: true, // This closes the modal when they click the button
+      ctaLabel: "Proceed to Payment",
+      nextRoute: "/student/payment"
+    }
+  ];
+
+  // 2. Define the steps for PAID (Unlocked) Users
+  const unlockedSteps = [
+    {
+      title: "Payment Successful! 🎉",
+      description: "Your account is now fully active. All restrictions have been removed.",
+      icon: <CheckCircle className="w-16 h-16 text-green-500" />,
+      highlight: "You are ready to start learning.",
     },
     {
       title: "Your Workspace: The Task Hub",
-      description: "We focus on practical application. Instead of passive video watching, you will complete weekly tasks here.",
+      description: "We focus on practical application. Instead of passive videos, you will complete weekly tasks here.",
       icon: <ListTodo className="w-16 h-16 text-indigo-600" />,
       highlight: "This is your main classroom.",
       tip: "You will spend 90% of your time on this page."
     },
     {
       title: "How to Progress 📈",
-      description: "1. Select a Module.\n2. Choose the current Week.\n3. Complete the Quiz/Assignment to unlock the next week.",
-      icon: <Target className="w-16 h-16 text-green-500" />,
-      features: ["Modules are on the left (or top)", "Scores are tracked automatically", "You must pass to proceed"],
-      final: true,
-      ctaLabel: "Start Learning"
-    }
-  ];
-
-  // Course details onboarding (unchanged)
-  const courseDetailsSteps = [
-    {
-      title: "Your Course Dashboard",
-      description: "Welcome to your course! Here you'll find all lessons, materials, and assignments organized by modules.",
-      icon: <BookOpen className="w-16 h-16 text-blue-500" />,
-    },
-    {
-      title: "Weekly Tasks",
-      description: "Each week, you'll have tasks to complete. These help reinforce what you've learned and track your progress.",
+      description: "1. Select a Module.\n2. Choose the current Week.\n3. Complete the Quiz to unlock the next week.",
       icon: <Target className="w-16 h-16 text-orange-500" />,
-      features: ["Complete tasks before deadlines", "Earn points for on-time completion", "Track your progress"],
-      tip: "Tasks reset every Monday - plan ahead!"
-    },
-    {
-      title: "Stay Consistent",
-      description: "Regular study and timely task completion are key to success. Set aside dedicated time each week for learning.",
-      icon: <Calendar className="w-16 h-16 text-green-500" />,
-      highlight: "Consistency beats intensity - study a little every day",
+      ctaLabel: "Go to Tasks",
+      nextRoute: "/student/task",
       final: true
     }
   ];
 
+  // 3. Logic to choose which array to use
   const getCurrentSteps = () => {
-    switch (type) {
-      case 'post-signup':
-        return postSignupSteps;
-      case 'post-verification':
-        return postVerificationSteps;
-      case 'course-details':
-        return courseDetailsSteps;
-      default:
-        return postSignupSteps;
+    if (type === 'post-verification') {
+      // If user is locked, show Part 1. If unlocked, show Part 2.
+      return isLocked ? lockedSteps : unlockedSteps;
     }
+    // ... keep existing logic for other types (signup/course-details)
+    if (type === 'post-signup') return postSignupSteps;
+    if (type === 'course-details') return courseDetailsSteps;
+    return postSignupSteps; // Fallback
   };
 
   const steps = getCurrentSteps();
-  const currentStepData = steps[currentStep];
+  const currentStepData = steps[currentStep] || steps[0]; // Safety fallback
   const isLastStep = currentStep === steps.length - 1;
 
   // =========================================================
