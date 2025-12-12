@@ -6,6 +6,7 @@ import {
   FaDownload,
   FaEye,
   FaFileAlt,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 
 const CertificateManagement = () => {
@@ -38,7 +39,14 @@ const CertificateManagement = () => {
     }
   };
 
-  const handleApprove = async (certificateId) => {
+  const handleApprove = async (certificateId, amountOwed) => {
+    if (amountOwed > 0) {
+      alert(
+        `Cannot approve certificate. Student still owes ₦${amountOwed.toLocaleString()}. Full payment is required before certificate approval.`
+      );
+      return;
+    }
+
     if (!window.confirm("Approve this certificate?")) return;
 
     try {
@@ -159,57 +167,85 @@ const CertificateManagement = () => {
                 <th style={styles.th}>Student</th>
                 <th style={styles.th}>Course</th>
                 <th style={styles.th}>Issue Date</th>
+                <th style={styles.th}>Amount Owed</th>
                 <th style={styles.th}>Status</th>
                 <th style={styles.th}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredCertificates.map((cert, index) => (
-                <tr key={cert.id} style={styles.tr}>
-                  <td style={styles.td}>{index + 1}</td>
-                  <td style={styles.td}>
-                    <strong>{cert.certificate_number}</strong>
-                  </td>
-                  <td style={styles.td}>{cert.student_name || "N/A"}</td>
-                  <td style={styles.td}>{cert.course_name || "N/A"}</td>
-                  <td style={styles.td}>
-                    {new Date(cert.issue_date).toLocaleDateString()}
-                  </td>
-                  <td style={styles.td}>
-                    {cert.is_approved ? (
-                      <span style={styles.approvedBadge}>
-                        <FaCheckCircle /> Approved
-                      </span>
-                    ) : (
-                      <span style={styles.pendingBadge}>
-                        <FaClock /> Pending
-                      </span>
-                    )}
-                  </td>
-                  <td style={styles.td}>
-                    <div style={styles.actionBtns}>
-                      {!cert.is_approved && (
-                        <button
-                          style={styles.approveBtn}
-                          onClick={() => handleApprove(cert.id)}
-                        >
-                          Approve
-                        </button>
+              {filteredCertificates.map((cert, index) => {
+                const hasOutstanding = cert.amount_owed > 0;
+                return (
+                  <tr key={cert.id} style={styles.tr}>
+                    <td style={styles.td}>{index + 1}</td>
+                    <td style={styles.td}>
+                      <strong>{cert.certificate_number}</strong>
+                    </td>
+                    <td style={styles.td}>{cert.student_name || "N/A"}</td>
+                    <td style={styles.td}>{cert.course_name || "N/A"}</td>
+                    <td style={styles.td}>
+                      {new Date(cert.issue_date).toLocaleDateString()}
+                    </td>
+                    <td style={styles.td}>
+                      {hasOutstanding ? (
+                        <span style={styles.owedBadge}>
+                          <FaExclamationTriangle />
+                          ₦{cert.amount_owed.toLocaleString()}
+                        </span>
+                      ) : (
+                        <span style={styles.paidBadge}>
+                          <FaCheckCircle />
+                          Paid
+                        </span>
                       )}
-                      {cert.certificate_file && (
-                        <a
-                          href={cert.certificate_file}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={styles.viewBtn}
-                        >
-                          <FaEye /> View
-                        </a>
+                    </td>
+                    <td style={styles.td}>
+                      {cert.is_approved ? (
+                        <span style={styles.approvedBadge}>
+                          <FaCheckCircle /> Approved
+                        </span>
+                      ) : (
+                        <span style={styles.pendingBadge}>
+                          <FaClock /> Pending
+                        </span>
                       )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td style={styles.td}>
+                      <div style={styles.actionBtns}>
+                        {!cert.is_approved && (
+                          <button
+                            style={{
+                              ...styles.approveBtn,
+                              ...(hasOutstanding ? styles.disabledBtn : {}),
+                            }}
+                            onClick={() =>
+                              handleApprove(cert.id, cert.amount_owed)
+                            }
+                            disabled={hasOutstanding}
+                            title={
+                              hasOutstanding
+                                ? `Student owes ₦${cert.amount_owed.toLocaleString()}`
+                                : "Approve certificate"
+                            }
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {cert.certificate_file && (
+                          <a
+                            href={cert.certificate_file}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={styles.viewBtn}
+                          >
+                            <FaEye /> View
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -329,31 +365,27 @@ const styles = {
     fontWeight: "600",
   },
   statIconWrapper: {
-  width: 60,
-  height: 60,
-  borderRadius: "50%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  margin: "0 auto 12px auto",
-  backgroundColor: "#eef5ff",
-},
-
-statIconBlue: {
-  color: "#2196F3",
-  fontSize: 30,
-},
-
-statIconGreen: {
-  color: "#4CAF50",
-  fontSize: 30,
-},
-
-statIconOrange: {
-  color: "#FF9800",
-  fontSize: 30,
-},
-
+    width: 60,
+    height: 60,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 12px auto",
+    backgroundColor: "#eef5ff",
+  },
+  statIconBlue: {
+    color: "#2196F3",
+    fontSize: 30,
+  },
+  statIconGreen: {
+    color: "#4CAF50",
+    fontSize: 30,
+  },
+  statIconOrange: {
+    color: "#FF9800",
+    fontSize: 30,
+  },
   pendingBadge: {
     display: "inline-flex",
     alignItems: "center",
@@ -361,6 +393,28 @@ statIconOrange: {
     padding: "5px 12px",
     backgroundColor: "#fff3cd",
     color: "#856404",
+    borderRadius: "12px",
+    fontSize: "12px",
+    fontWeight: "600",
+  },
+  owedBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "5px",
+    padding: "5px 12px",
+    backgroundColor: "#f8d7da",
+    color: "#721c24",
+    borderRadius: "12px",
+    fontSize: "12px",
+    fontWeight: "600",
+  },
+  paidBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "5px",
+    padding: "5px 12px",
+    backgroundColor: "#d4edda",
+    color: "#155724",
     borderRadius: "12px",
     fontSize: "12px",
     fontWeight: "600",
@@ -378,6 +432,12 @@ statIconOrange: {
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: "600",
+    transition: "opacity 0.2s",
+  },
+  disabledBtn: {
+    backgroundColor: "#ccc",
+    cursor: "not-allowed",
+    opacity: 0.6,
   },
   viewBtn: {
     padding: "6px 12px",

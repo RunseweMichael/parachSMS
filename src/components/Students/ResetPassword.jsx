@@ -70,8 +70,8 @@ const ResetPassword = () => {
       
       // Redirect to login after success
       setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+        navigate("/signin");
+      }, 3000);
     } catch (err) {
       setError(err.response?.data?.error || "Invalid or expired OTP");
     } finally {

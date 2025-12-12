@@ -52,6 +52,8 @@ import LessonForm from './components/Course/LessonForm';
 import EnquiryList from './components/Enquiries/EnquiryList';
 import EnquiryForm from './views/Student-Interface/Enquiry.jsx';
 
+import VerifyCertificate from './pages/verifyCertificate.jsx';
+
 
 // Protected route wrapper with role checking
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -103,6 +105,7 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/choose" element={<LandingChoicePage />} />
+        <Route path="/verify-certificate" element={<VerifyCertificate />} />
 
         {/* PUBLIC STUDENT ROUTES */}
         <Route path="/course/:id" element={<CourseDetails />} />

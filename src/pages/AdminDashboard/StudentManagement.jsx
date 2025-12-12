@@ -51,6 +51,7 @@ const StudentManagement = () => {
         amount_paid: Number(s.amount_paid || 0),
         amount_owed: Number(s.amount_owed || 0),
         discount: Number(s.discounted_price || 0),
+        registration_date: s.registration_date || "—",
         next_due_date: s.next_due_date || null,
         is_active: s.is_active,
         is_staff: s.is_staff,
@@ -281,6 +282,7 @@ const StudentManagement = () => {
                   <th>Phone</th>
                   <th>Course</th>
                   <th>Center</th>
+                  <th>Reg. Date</th>
                   <th>Discount Price</th>
                   <th>Amount Paid</th>
                   <th>Amount Owed</th>
@@ -306,6 +308,7 @@ const StudentManagement = () => {
                     <td>{s.phone_number}</td>
                     <td>{s.course_name}</td>
                     <td>{s.center}</td>
+                    <td>{formatDate(s.registration_date)}</td>
                     <td>₦{s.discount.toLocaleString()}</td>
                     <td>₦{s.amount_paid.toLocaleString()}</td>
                     <td>₦{s.amount_owed.toLocaleString()}</td>
