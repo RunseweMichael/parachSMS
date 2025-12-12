@@ -1,11 +1,17 @@
 import React from "react";
+import {
+  FacebookIcon,
+  InstagramIcon,
+  LinkedinIcon,
+  YoutubeIcon,
+} from "lucide-react";
 
 export default function CardSocialFollow() {
   const platforms = [
-    { name: "Discord", icon: "fab fa-discord", color: "from-indigo-500 to-purple-600", link: "#" },
-    { name: "GitHub", icon: "fab fa-github", color: "from-gray-700 to-black", link: "#" },
-    { name: "LinkedIn", icon: "fab fa-linkedin", color: "from-blue-600 to-blue-800", link: "#" },
-    { name: "Twitter", icon: "fab fa-twitter", color: "from-sky-500 to-blue-500", link: "#" },
+    { name: "Facebook", icon: FacebookIcon, color: "from-blue-600 to-blue-800", link: "https://facebook.com/parachcomputers" },
+    { name: "Instagram", icon: InstagramIcon, color: "from-pink-500 via-purple-500 to-orange-400", link: "https://instagram.com/parach_computers" },
+    { name: "LinkedIn", icon: LinkedinIcon, color: "from-blue-700 to-blue-900", link: "https://linkedin.com/company/parach-ict-academy" },
+    { name: "YouTube", icon: YoutubeIcon, color: "from-red-600 to-red-800", link: "https://www.youtube.com/channel/UCbHBjB06C4jm_gFvAMxaRhw" },
   ];
 
   return (
@@ -29,7 +35,8 @@ export default function CardSocialFollow() {
             className={`flex items-center justify-between p-3 rounded-xl bg-gradient-to-r ${p.color} text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200`}
           >
             <div className="flex items-center space-x-3">
-              <i className={`${p.icon} text-lg`}></i>
+              {/* This is the fix! */}
+              <p.icon className="w-5 h-5" />
               <span className="font-medium">{p.name}</span>
             </div>
             <i className="fas fa-arrow-right text-sm"></i>
