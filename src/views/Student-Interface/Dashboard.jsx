@@ -1,63 +1,73 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { PlayCircle, AlertCircle } from "lucide-react";
-import CardSchedule from "../../component/Cards/CardSchedule.jsx";
 import CardProgressChart from "../../component/Cards/CardProgressBar.jsx";
-import CardSocialFollow from "../../component/Cards/CardSocialFollow.jsx";
 import CourseDetails from "../../components/Students/CourseDetails.jsx";
 import api from "../../api";
 import OnboardingModal from "../Student-Interface/OnboardingModal.jsx";
-import usePaymentStatus from "../../hooks/usePaymentStatus"; // Your payment hook
+import usePaymentStatus from "../../hooks/usePaymentStatus";
+import CardSchedule from "../../component/Cards/CardSchedule.jsx";
+import CardSocialFollow from "../../component/Cards/CardSocialFollow.jsx";
+
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { isLocked, loading: paymentLoading } = usePaymentStatus();
-  
+
   const [courses, setCourses] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // 1. Setup Tour State
-  const [showDashboardTour, setShowDashboardTour] = useState(false);
-  const [tourCompleted, setTourCompleted] = useState(true); // Default to true to prevent flicker
 
-  // 2. Check if Tour is done (RUNS ONCE ON MOUNT)
- useEffect(() => {
-    // Wait for payment check to finish
+  // Tour State
+  const [showDashboardTour, setShowDashboardTour] = useState(false);
+  // We use this to prevent redirecting while we are determining if tour should show
+  const [checkingTourStatus, setCheckingTourStatus] = useState(true);
+
+  // 1. Check Tour Logic
+  useEffect(() => {
     if (paymentLoading) return;
 
     const userId = localStorage.getItem("user_id");
     const part1Seen = localStorage.getItem(`tour_part1_seen_${userId}`);
     const fullTourComplete = localStorage.getItem(`dashboard_tour_completed_${userId}`);
 
-    // SCENARIO 1: User is Locked & hasn't seen Part 1
+    let shouldShowTour = false;
+
+    // SCENARIO 1: Locked & hasn't seen Part 1
     if (isLocked && !part1Seen) {
-      setTimeout(() => setShowDashboardTour(true), 1000);
+      shouldShowTour = true;
     }
-    
+    // SCENARIO 2: Unlocked & hasn't seen full tour
     else if (!isLocked && !fullTourComplete) {
-       setTimeout(() => setShowDashboardTour(true), 1000);
+      shouldShowTour = true;
     }
 
+    if (shouldShowTour) {
+      // Delay slightly for UI smoothness
+      const timer = setTimeout(() => {
+        setShowDashboardTour(true);
+        setCheckingTourStatus(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    } else {
+      setCheckingTourStatus(false);
+    }
   }, [isLocked, paymentLoading]);
 
-
-  // 3. Handle Redirect Logic (THE FIX)
+  // 2. Redirect Logic
   useEffect(() => {
-    // Wait for payment loading to finish
-    if (paymentLoading) return;
+    // Don't redirect if loading, checking tour, or if tour is currently open
+    if (paymentLoading || checkingTourStatus || showDashboardTour) return;
 
-    // IF account is locked
-    // AND the tour is ALREADY completed (or skipped)
-    // THEN redirect.
-    // (This stops the redirect if the tour is currently running)
-    if (isLocked && tourCompleted) {
+    // Only redirect if Locked AND we are strictly not showing the tour
+    if (isLocked) {
       navigate("/student/payment", { replace: true });
     }
-  }, [isLocked, paymentLoading, tourCompleted, navigate]);
+  }, [isLocked, paymentLoading, checkingTourStatus, showDashboardTour, navigate]);
 
-  // Fetch Courses Logic...
+  // 3. Fetch Courses
   useEffect(() => {
     const fetchUserCourse = async () => {
       try {
@@ -77,77 +87,113 @@ export default function Dashboard() {
     fetchUserCourse();
   }, []);
 
-  // Render logic...
+  // 4. Handle Course Details View
   if (selectedCourseId) {
+    // FIX: Removed duplicate return and ensured onBack is present
     return <CourseDetails id={selectedCourseId} onBack={() => setSelectedCourseId(null)} />;
   }
 
-  // 4. IMPORTANT: Don't return null if locked but tour is showing!
-  // Only return null if locked AND tour is done (because the useEffect above will redirect)
-  if (!paymentLoading && isLocked && tourCompleted) {
-     return null; 
+  // 5. Prevent "Flash of content" before redirect
+  if (!paymentLoading && !checkingTourStatus && !showDashboardTour && isLocked) {
+    return null; 
   }
 
   return (
-    <div className={`relative min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 ${isLocked ? 'blur-sm pointer-events-none' : ''}`}>
-      {/* 
-         Note: I added 'blur-sm pointer-events-none' above. 
-         This visually "locks" the background while the tour modal is active 
-      */}
+    <>
+      {/* Main Content Wrapper - Gets Blurred if Locked */}
+      <div className={`relative min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 transition-filter duration-300 ${isLocked ? 'blur-sm pointer-events-none select-none' : ''}`}>
+        
+        <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
+        <div className="relative z-10 px-4 md:px-10 mx-auto w-full max-w-7xl py-8">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            
+            {/* Left Column */}
+            <div className="xl:col-span-8 gap-7">
+              <div className="bg-white p-6 rounded-xl shadow h-auto mb-5">
+                <h2 className="text-xl font-bold text-blue-700 mb-4">My Courses</h2>
 
-      <div className="relative z-10 px-4 md:px-10 mx-auto w-full max-w-7xl py-8">
-        {/* ... Your Existing Dashboard Grid Code ... */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-           {/* Copy your Card/Grid code here */}
-           <div className="xl:col-span-8 gap-7">
-              {/* ... Courses List ... */}
-               <div className="bg-white p-6 rounded-xl shadow h-auto mb-5">
-                  <h2 className="text-xl font-bold text-blue-700 mb-4">My Courses</h2>
-                  {/* ... loading/error/list logic ... */}
-                  {loading && <p>Loading...</p>}
-                  {!loading && !error && courses.map(c => (
-                     <div key={c.id} className="p-4 border mb-2">{c.course_name}</div>
-                  ))}
-               </div>
-           </div>
-           
-           <div className="xl:col-span-4 space-y-8">
-             <CardSchedule />
-             <CardSocialFollow />
-           </div>
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-3 text-slate-600">Loading courses...</span>
+                  </div>
+                ) : error ? (
+                  <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                    <p>{error}</p>
+                  </div>
+                ) : courses.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-slate-600 text-lg">No course assigned yet.</p>
+                    <p className="text-slate-500 text-sm mt-2">Check back later or contact your administrator.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {courses.map((course) => (
+                      <div
+                        key={course.id}
+                        onClick={() => setSelectedCourseId(course.id)}
+                        className="p-4 bg-blue-50 border border-blue-200 rounded-xl cursor-pointer hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 flex items-center gap-3 group"
+                      >
+                        <PlayCircle className="text-blue-600 group-hover:text-blue-700 w-6 h-6 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-blue-800 group-hover:text-blue-900">
+                            {course.course_name}
+                          </h3>
+                          <p className="text-slate-600 text-sm">
+                            Click to view full course details
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-16">
+                <CardProgressChart />
+              </div>
+            </div>
+
+            {/* Right Column (Placeholder for missing components if needed) */}
+            <div className="xl:col-span-4 space-y-8">
+            <CardSchedule />
+            <CardSocialFollow />
+          </div>
+
+          </div>
         </div>
       </div>
 
-      
+
       {showDashboardTour && (
-        <OnboardingModal 
+        <OnboardingModal
           type="post-verification"
           isOpen={showDashboardTour}
-          isLocked={isLocked} // <--- PASS THIS PROP!
+          isLocked={isLocked}
           
           onComplete={() => {
             const userId = localStorage.getItem("user_id");
-            
             if (isLocked) {
-              // If they finish the "Locked" tour (Part 1)
               localStorage.setItem(`tour_part1_seen_${userId}`, 'true');
-              // Note: We do NOT set 'dashboard_tour_completed' yet!
+         
+              setShowDashboardTour(false); 
             } else {
-              // If they finish the "Unlocked" tour (Part 2)
               localStorage.setItem(`dashboard_tour_completed_${userId}`, 'true');
+              setShowDashboardTour(false);
             }
-            setShowDashboardTour(false);
           }}
 
           onSkip={() => {
             const userId = localStorage.getItem("user_id");
-            // If they skip, we assume they are bored and mark ALL as done
             localStorage.setItem(`dashboard_tour_completed_${userId}`, 'true');
+            
+            localStorage.setItem(`tour_part1_seen_${userId}`, 'true');
             setShowDashboardTour(false);
-          }}/>
+          }}
+        />
       )}
-    </div>
+    </>
   );
 }
