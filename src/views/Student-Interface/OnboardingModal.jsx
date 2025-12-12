@@ -1,12 +1,12 @@
-// src/components/OnboardingModal.jsx
+// src/components/Student-Interface/OnboardingModal.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. Import Router Hook
+import { useNavigate } from 'react-router-dom'; 
 import { 
   X, CheckCircle, Calendar, BarChart3, Mail, 
   BookOpen, Target, CreditCard, ListTodo, ShieldAlert 
 } from 'lucide-react';
 
-const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isLocked }) => { // <--- ADD isLocked prop
+const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isLocked }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(isOpen);
   const navigate = useNavigate();
@@ -15,7 +15,32 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
     setIsVisible(isOpen);
   }, [isOpen]);
 
-  // 1. Define the steps for UNPAID (Locked) Users
+  // ==========================================
+  // 1. POST-SIGNUP STEPS (Before Verification)
+  // ==========================================
+  const postSignupSteps = [
+    {
+      title: "🎉 Registration Successful!",
+      description: "Welcome to Parach ICT Academy! We've sent a 6-digit verification code to your email.",
+      icon: <Mail className="w-16 h-16 text-blue-500" />,
+      highlight: "Check your email inbox (and spam folder) for the OTP code",
+      tip: "The code expires in 10 minutes"
+    },
+    {
+      title: "What's Next?",
+      description: "After verifying your email, you'll get access to your personalized dashboard.",
+      icon: <BookOpen className="w-16 h-16 text-purple-500" />,
+      features: ["Access your course materials", "Track your progress", "Complete weekly tasks"],
+      ctaLabel: "Got it!",
+      final: true
+    }
+  ];
+
+  // ==========================================
+  // 2. DASHBOARD STEPS (Split into Locked/Unlocked)
+  // ==========================================
+  
+  // Scenario A: User owes money (Part 1)
   const lockedSteps = [
     {
       title: "Welcome to Parach ICT! 🚀",
@@ -29,13 +54,13 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
       title: "One Last Step",
       description: "Click the button below to settle your tuition. Once paid, your Tasks, Internship, and Course materials will unlock automatically.",
       icon: <CreditCard className="w-16 h-16 text-blue-600" />,
-      final: true, // This closes the modal when they click the button
+      final: true, 
       ctaLabel: "Proceed to Payment",
       nextRoute: "/student/payment"
     }
   ];
 
-  // 2. Define the steps for PAID (Unlocked) Users
+  // Scenario B: User has paid (Part 2)
   const unlockedSteps = [
     {
       title: "Payment Successful! 🎉",
@@ -45,10 +70,10 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
     },
     {
       title: "Your Workspace: The Task Hub",
-      description: "We focus on practical application. Instead of passive videos, you will complete weekly tasks here.",
+      description: "We focus on practical application. you will complete weekly tasks here.",
       icon: <ListTodo className="w-16 h-16 text-indigo-600" />,
-      highlight: "This is your main classroom.",
-      tip: "You will spend 90% of your time on this page."
+      highlight: "This is your main area for learning and assignments.",
+      tip: "You can track your progress and see upcoming deadlines here."
     },
     {
       title: "How to Progress 📈",
@@ -60,25 +85,47 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
     }
   ];
 
-  // 3. Logic to choose which array to use
+  // ==========================================
+  // 3. COURSE DETAILS STEPS
+  // ==========================================
+  const courseDetailsSteps = [
+    {
+      title: "Your Course Dashboard",
+      description: "Welcome to your course! Here you'll find all lessons, materials, and assignments organized by modules.",
+      icon: <BookOpen className="w-16 h-16 text-blue-500" />,
+    },
+    {
+      title: "Weekly Tasks",
+      description: "Each week, you'll have tasks to complete. These help reinforce what you've learned and track your progress.",
+      icon: <Target className="w-16 h-16 text-orange-500" />,
+      features: ["Complete tasks before deadlines", "Earn points for on-time completion", "Track your progress"],
+      tip: "Tasks reset every Monday - plan ahead!"
+    },
+    {
+      title: "Stay Consistent",
+      description: "Regular study and timely task completion are key to success. Set aside dedicated time each week for learning.",
+      icon: <Calendar className="w-16 h-16 text-green-500" />,
+      highlight: "Consistency beats intensity - study a little every day",
+      final: true
+    }
+  ];
+
+  // Logic to choose which array to use
   const getCurrentSteps = () => {
     if (type === 'post-verification') {
       // If user is locked, show Part 1. If unlocked, show Part 2.
       return isLocked ? lockedSteps : unlockedSteps;
     }
-    // ... keep existing logic for other types (signup/course-details)
     if (type === 'post-signup') return postSignupSteps;
     if (type === 'course-details') return courseDetailsSteps;
-    return postSignupSteps; // Fallback
+    
+    return postSignupSteps; // Default fallback
   };
 
   const steps = getCurrentSteps();
   const currentStepData = steps[currentStep] || steps[0]; // Safety fallback
   const isLastStep = currentStep === steps.length - 1;
 
-  // =========================================================
-  //  MODIFIED: Navigation Logic in HandleNext
-  // =========================================================
   const handleNext = () => {
     // Check if the CURRENT step has a route instruction for the NEXT step
     if (currentStepData.nextRoute) {
@@ -101,9 +148,6 @@ const OnboardingModal = ({ type = 'post-signup', isOpen, onComplete, onSkip, isL
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      // Optional: If you want 'Previous' to also navigate back, 
-      // you would need to store previous routes or map steps to routes explicitly.
-      // For now, we keep it simple (modal content changes, user stays on current page).
     }
   };
 
