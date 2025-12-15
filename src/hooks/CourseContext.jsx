@@ -1,58 +1,87 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 
 const CourseContext = createContext();
+
+const STORAGE_KEY = "courseProgress";
+const STORAGE_VERSION = 1;
 
 export const CourseProvider = ({ children }) => {
   const [completedWeeks, setCompletedWeeks] = useState(new Set());
   const [totalWeeks, setTotalWeeks] = useState(0);
   const [weekScores, setWeekScores] = useState({});
 
-  // Load from localStorage on mount
+  /* ---------------- LOAD FROM STORAGE ---------------- */
   useEffect(() => {
-    const saved = localStorage.getItem('courseProgress');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        setCompletedWeeks(new Set(data.completedWeeks || []));
-        setTotalWeeks(data.totalWeeks || 0);
-        setWeekScores(data.weekScores || {});
-      } catch (err) {
-        console.error('Failed to load progress:', err);
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+
+    try {
+      const data = JSON.parse(saved);
+
+      if (data.version !== STORAGE_VERSION) {
+        localStorage.removeItem(STORAGE_KEY);
+        return;
       }
+
+      setCompletedWeeks(new Set(data.completedWeeks || []));
+      setTotalWeeks(Number(data.totalWeeks) || 0);
+      setWeekScores(data.weekScores || {});
+    } catch (err) {
+      console.error("Failed to load progress:", err);
+      localStorage.removeItem(STORAGE_KEY);
     }
   }, []);
 
-  // Save to localStorage whenever state changes
+  /* ---------------- SAVE TO STORAGE ---------------- */
   useEffect(() => {
     const data = {
+      version: STORAGE_VERSION,
       completedWeeks: Array.from(completedWeeks),
       totalWeeks,
-      weekScores
+      weekScores,
     };
-    localStorage.setItem('courseProgress', JSON.stringify(data));
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [completedWeeks, totalWeeks, weekScores]);
 
-  // Computed values
-  const courseCompleted = totalWeeks > 0 && completedWeeks.size >= totalWeeks;
-  const completionPercentage = totalWeeks > 0 
-    ? Math.round((completedWeeks.size / totalWeeks) * 100) 
-    : 0;
+  /* ---------------- SAFE COMPUTED VALUES ---------------- */
+  const completedCount = completedWeeks.size;
 
-  // 1. USE CALLBACK TO PREVENT INFINITE LOOPS
+  const courseCompleted =
+    Number.isInteger(totalWeeks) &&
+    totalWeeks > 0 &&
+    completedCount > 0 &&
+    completedCount === totalWeeks;
+
+  const completionPercentage =
+    totalWeeks > 0
+      ? Math.round((completedCount / totalWeeks) * 100)
+      : 0;
+
+  /* ---------------- ACTIONS ---------------- */
   const markWeekComplete = useCallback((weekId, score) => {
-    setCompletedWeeks(prev => {
-      const newSet = new Set(prev);
-      newSet.add(weekId);
-      return newSet;
+    setCompletedWeeks((prev) => {
+      const next = new Set(prev);
+      next.add(weekId);
+      return next;
     });
+
     if (score !== undefined) {
-      setWeekScores(prev => ({ ...prev, [weekId]: score }));
+      setWeekScores((prev) => ({ ...prev, [weekId]: score }));
     }
   }, []);
 
   const setTotalWeeksCount = useCallback((count) => {
-    // Only update if the number is actually different
-    setTotalWeeks(prev => (prev !== count ? count : prev));
+    if (Number.isInteger(count) && count > 0) {
+      setTotalWeeks((prev) => (prev !== count ? count : prev));
+    }
   }, []);
 
   const loadCompletedWeeks = useCallback((weeks, scores = {}) => {
@@ -64,21 +93,34 @@ export const CourseProvider = ({ children }) => {
     setCompletedWeeks(new Set());
     setTotalWeeks(0);
     setWeekScores({});
-    localStorage.removeItem('courseProgress');
+    localStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  // 2. MEMOIZE THE VALUE OBJECT
-  const value = useMemo(() => ({
-    completedWeeks,
-    totalWeeks,
-    weekScores,
-    courseCompleted,
-    completionPercentage,
-    markWeekComplete,
-    setTotalWeeksCount,
-    loadCompletedWeeks,
-    resetProgress
-  }), [completedWeeks, totalWeeks, weekScores, courseCompleted, completionPercentage, markWeekComplete, setTotalWeeksCount, loadCompletedWeeks, resetProgress]);
+  /* ---------------- CONTEXT VALUE ---------------- */
+  const value = useMemo(
+    () => ({
+      completedWeeks,
+      totalWeeks,
+      weekScores,
+      courseCompleted,
+      completionPercentage,
+      markWeekComplete,
+      setTotalWeeksCount,
+      loadCompletedWeeks,
+      resetProgress,
+    }),
+    [
+      completedWeeks,
+      totalWeeks,
+      weekScores,
+      courseCompleted,
+      completionPercentage,
+      markWeekComplete,
+      setTotalWeeksCount,
+      loadCompletedWeeks,
+      resetProgress,
+    ]
+  );
 
   return (
     <CourseContext.Provider value={value}>
@@ -90,7 +132,7 @@ export const CourseProvider = ({ children }) => {
 export const useCourseProgress = () => {
   const context = useContext(CourseContext);
   if (!context) {
-    throw new Error('useCourseProgress must be used within CourseProvider');
+    throw new Error("useCourseProgress must be used within CourseProvider");
   }
   return context;
 };
