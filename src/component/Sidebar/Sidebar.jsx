@@ -52,6 +52,7 @@ export default function Sidebar() {
     { name: "Internship", icon: <CreditCard className="w-5 h-5" />, path: "/student/internship" },
     { name: "Tasks", icon: <FileText className="w-5 h-5" />, path: "/student/task" },
     { name: "Skills Progress", icon: <TrendingUp className="w-5 h-5" />, path: "/student/skills-progress" },
+    // { name: "Code Editor", icon: <Moon className="w-5 h-5" />, path: "/student/playground" },
   ];
 
   useEffect(() => {
