@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CardStats from "../Cards/CardStats.jsx";
-import api from "../../api"; 
+import api from "../../api";
 
 export default function HeaderStats() {
   const [student, setStudent] = useState(null);
@@ -25,30 +25,38 @@ export default function HeaderStats() {
   const paid = parseFloat(student?.amount_paid || 0);
   const owed = parseFloat(student?.amount_owed || 0);
 
+  // ✅ NEW: Cleared flag
+  const isCleared = owed <= 0;
+
   // -----------------------------
   // Format due date logic
   // -----------------------------
   const formatDueDate = (dateString) => {
     if (!dateString) return null;
-    
+
     const date = new Date(dateString);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); 
+
+    today.setHours(0, 0, 0, 0);
     date.setHours(0, 0, 0, 0);
-    
+
     const timeDiff = date.getTime() - today.getTime();
     const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    
-    const formattedDate = date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+
+    const formattedDate = date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
-    
+
     return { formattedDate, daysRemaining };
   };
 
-  const dueDate = student?.next_due_date ? formatDueDate(student.next_due_date) : null;
+  // ✅ UPDATED: Ignore due date when balance is cleared
+  const dueDate =
+    !isCleared && student?.next_due_date
+      ? formatDueDate(student.next_due_date)
+      : null;
 
   return (
     <>
@@ -64,7 +72,7 @@ export default function HeaderStats() {
           </div>
 
           <div className="flex flex-wrap -mx-4">
-            
+
             {/* 1. COURSE NAME */}
             <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
               <CardStats
@@ -89,26 +97,32 @@ export default function HeaderStats() {
               />
             </div>
 
-            {/* 3. AMOUNT DUE (OWED) */}
+            {/* 3. BALANCE DUE */}
             <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
               <CardStats
                 statSubtitle="BALANCE DUE"
                 statTitle={`₦${owed.toLocaleString()}`}
-                statPercent={owed > 0 ? "Outstanding" : "Cleared"}
-                statPercentColor={owed > 0 ? "text-red-500" : "text-emerald-500"}
+                statPercent={isCleared ? "Cleared" : "Outstanding"}
+                statPercentColor={
+                  isCleared ? "text-emerald-500" : "text-red-500"
+                }
                 statIconColor="bg-gradient-to-br from-red-500 to-orange-500"
                 hoverEffect
               />
             </div>
 
-            {/* 4. NEXT DUE DATE */}
+            {/* 4. NEXT PAYMENT */}
             <div className="w-full lg:w-6/12 xl:w-3/12 px-4 mb-8">
               <CardStats
                 statSubtitle="NEXT PAYMENT"
-                statTitle={dueDate?.formattedDate || "N/A"}
+                statTitle={
+                  isCleared ? "Paid in Full" : dueDate?.formattedDate || "N/A"
+                }
                 statPercent={
-                  dueDate?.daysRemaining !== undefined && dueDate?.daysRemaining !== null
-                    ? dueDate.daysRemaining > 0 
+                  isCleared
+                    ? "No outstanding balance"
+                    : dueDate?.daysRemaining !== undefined
+                    ? dueDate.daysRemaining > 0
                       ? `${dueDate.daysRemaining} days left`
                       : dueDate.daysRemaining === 0
                       ? "Due today"
@@ -116,13 +130,13 @@ export default function HeaderStats() {
                     : "No date set"
                 }
                 statPercentColor={
-                  dueDate?.daysRemaining !== undefined && dueDate?.daysRemaining !== null
-                    ? dueDate.daysRemaining > 7
-                      ? "text-emerald-400" // Green if safe
-                      : dueDate.daysRemaining > 0
-                      ? "text-yellow-400" // Yellow if approaching
-                      : "text-red-400"    // Red if today or overdue
-                    : "text-gray-400"
+                  isCleared
+                    ? "text-emerald-500"
+                    : dueDate?.daysRemaining > 7
+                    ? "text-emerald-400"
+                    : dueDate?.daysRemaining > 0
+                    ? "text-yellow-400"
+                    : "text-red-400"
                 }
                 statIconColor="bg-gradient-to-br from-pink-500 to-rose-500"
                 hoverEffect

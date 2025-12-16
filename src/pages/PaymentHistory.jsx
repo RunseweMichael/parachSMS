@@ -11,7 +11,7 @@ const PaymentHistory = () => {
     direction: "desc",
   });
 
-  /* ⭐ NEW: Pagination State */
+  /* ⭐ Pagination State */
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -20,18 +20,32 @@ const PaymentHistory = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       const token = localStorage.getItem("token");
-      if (!token) return;
+
+      /* 🚨 HARD FAIL if token is missing */
+      if (!token) {
+        console.warn("No auth token found — redirecting to login");
+        window.location.href = "/login";
+        return;
+      }
 
       try {
         const res = await axios.get(
           `${API_BASE}/payments/transactions/?status=success`,
           {
-            headers: { Authorization: `Token ${token}` },
+            headers: {
+              Authorization: `Token ${token}`,
+            },
           }
         );
         setTransactions(res.data);
       } catch (err) {
         console.error("Error fetching transactions:", err);
+
+        /* 🔐 Token expired or invalid */
+        if (err.response?.status === 401) {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }
       } finally {
         setLoading(false);
       }
@@ -66,6 +80,7 @@ const PaymentHistory = () => {
   // Sort
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     const key = sortConfig.key;
+
     let aVal =
       key === "amount"
         ? parseFloat(a[key])
@@ -80,7 +95,7 @@ const PaymentHistory = () => {
     return 0;
   });
 
-  // ⭐ Pagination Slicing
+  /* ⭐ Pagination */
   const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedTransactions = sortedTransactions.slice(
@@ -90,8 +105,9 @@ const PaymentHistory = () => {
 
   const requestSort = (key) => {
     let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc")
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
+    }
     setSortConfig({ key, direction });
   };
 
@@ -100,9 +116,17 @@ const PaymentHistory = () => {
     0
   );
 
-  // CSV Export
+  /* 📄 CSV Export */
   const downloadCSV = () => {
-    const header = ["Student Name", "Course", "Reference", "Amount (₦)", "Date", "Status"];
+    const header = [
+      "Student Name",
+      "Course",
+      "Reference",
+      "Amount (₦)",
+      "Date",
+      "Status",
+    ];
+
     const rows = filteredTransactions.map((t) => [
       t.user_name || "N/A",
       t.user_course || "N/A",
@@ -128,17 +152,12 @@ const PaymentHistory = () => {
     document.body.removeChild(link);
   };
 
+  /* 🧾 Receipt Download */
   const downloadReceipt = (tx) => {
     if (tx.status !== "success") return;
 
     const url = `${API_BASE}/payments/download/${tx.reference}/`;
-    const link = document.createElement("a");
-    link.href = url;
-    link.target = "_blank";
-    link.download = `receipt_${tx.reference}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(url, "_blank");
   };
 
   return (
@@ -151,14 +170,18 @@ const PaymentHistory = () => {
           type="text"
           placeholder="Filter by student..."
           value={filter.student}
-          onChange={(e) => setFilter({ ...filter, student: e.target.value })}
+          onChange={(e) =>
+            setFilter({ ...filter, student: e.target.value })
+          }
           style={styles.inputFilter}
         />
         <input
           type="text"
           placeholder="Filter by course..."
           value={filter.course}
-          onChange={(e) => setFilter({ ...filter, course: e.target.value })}
+          onChange={(e) =>
+            setFilter({ ...filter, course: e.target.value })
+          }
           style={{ ...styles.inputFilter, marginLeft: 10 }}
         />
         <button onClick={downloadCSV} style={styles.downloadBtn}>
@@ -264,7 +287,7 @@ const PaymentHistory = () => {
         </table>
       </div>
 
-      {/* ⭐ Pagination */}
+      {/* Pagination */}
       <div style={styles.pagination}>
         <button
           style={styles.pageBtn}
@@ -302,7 +325,7 @@ const PaymentHistory = () => {
   );
 };
 
-// Styles
+/* 🎨 Styles */
 const styles = {
   container: { padding: "20px", maxWidth: "1000px", margin: "0 auto" },
   heading: {
@@ -374,8 +397,6 @@ const styles = {
     marginBottom: "10px",
     animation: "spin 1s linear infinite",
   },
-
-  /* ⭐ Pagination Styles */
   pagination: {
     marginTop: 20,
     display: "flex",
