@@ -41,7 +41,6 @@ export default function Student() {
             <Route path="internship" element={<Internship />} />
             <Route path="task" element={<TaskManagement />} />
             <Route path="skills-progress" element={<SkillsProgress />} />
-            <Route path="playground" element={<PlayGround />} />
 
             
             {/* Catch any other paths and redirect to dashboard */}
