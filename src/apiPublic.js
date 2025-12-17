@@ -2,7 +2,8 @@ import axios from "axios";
 
 const apiPublic = axios.create({
   // baseURL: "http://127.0.0.1:8000/api/",
-    baseURL: 'https://mike96.pythonanywhere.com/api/',
+    // baseURL: 'https://mike96.pythonanywhere.com/api/',
+    baseURL: 'https://studentmgt.whalesharkengineering.com.ng/api/',
 });
 
 // 🔥 Attach token automatically to every request
