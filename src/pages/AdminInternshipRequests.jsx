@@ -11,7 +11,7 @@ import {
   FileText,
 } from "lucide-react";
 
-const AdminInternshipRequests = ({ apiBaseUrl = "https://studentmgt.whalesharkengineering.com.ng/api/", authToken }) => {
+const AdminInternshipRequests = ({ apiBaseUrl = "https://studentmgt.whalesharkengineering.com.ng/api", authToken }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] = useState(null);
