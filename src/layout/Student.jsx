@@ -13,7 +13,7 @@ import Certificate from "../views/Student-Interface/CertificateDashboard.jsx";
 import TaskManagement from "../views/Student-Interface/TaskManagementSystem.jsx";
 import Internship from "../views/Student-Interface/Internship.jsx";
 import SkillsProgress from "../pages/SkillsProgress.jsx";
-import PlayGround from "../pages/playGround.jsx";
+
 
 export default function Student() {
   return (
