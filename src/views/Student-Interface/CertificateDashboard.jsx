@@ -21,23 +21,16 @@ const Certificates = () => {
   const [visibleCerts, setVisibleCerts] = useState({});
   const [hasLeftReview, setHasLeftReview] = useState(false);
 
-  /* ---------------- COURSE PROGRESS ---------------- */
-  const {
-    courseCompleted,
-    completionPercentage,
-    completedWeeks,
-    totalWeeks,
-  } = useCourseProgress();
+  const { courseCompleted, completionPercentage, completedWeeks, totalWeeks } =
+    useCourseProgress();
 
   const completedCount = completedWeeks?.size ?? 0;
-
   const canViewCertificates =
     courseCompleted &&
     Number.isInteger(totalWeeks) &&
     totalWeeks > 0 &&
     completedCount === totalWeeks;
 
-  /* ---------------- FETCH CERTIFICATES ---------------- */
   useEffect(() => {
     const fetchCertificates = async () => {
       setLoading(true);
@@ -59,13 +52,11 @@ const Certificates = () => {
     fetchCertificates();
   }, []);
 
-  /* ---------------- REVIEW STATUS ---------------- */
   useEffect(() => {
     const reviewStatus = localStorage.getItem("hasLeftReview");
     setHasLeftReview(reviewStatus === "true");
   }, []);
 
-  /* ---------------- HANDLERS ---------------- */
   const toggleCertificateView = (id) => {
     setVisibleCerts((prev) => ({ ...prev, [id]: !prev[id] }));
   };
@@ -76,40 +67,21 @@ const Certificates = () => {
     setHasLeftReview(true);
   };
 
-  const handleDownloadCertificate = async (url, baseName) => {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Download failed");
-
-      const blob = await response.blob();
-      const contentType = response.headers.get("content-type") || blob.type;
-
-      let extension = "pdf";
-      if (contentType.includes("jpeg") || contentType.includes("jpg"))
-        extension = "jpg";
-      else if (contentType.includes("png")) extension = "png";
-      else if (contentType.includes("webp")) extension = "webp";
-
-      const cleanName = baseName.replace(/\.(pdf|jpg|jpeg|png|webp)$/i, "");
-      const fileName = `${cleanName}.${extension}`;
-
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = fileName;
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-    } catch (err) {
-      console.error("Certificate download failed:", err);
-      alert("Failed to download certificate. Please try again.");
-    }
+  /* ---------------- FIXED: use <a> link for download ---------------- */
+  const renderDownloadButton = (url, baseName) => {
+    return (
+      <a
+        href={url}
+        download={baseName}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700"
+      >
+        <Download size={16} /> Download
+      </a>
+    );
   };
 
-  /* ---------------- RENDER ---------------- */
   return (
     <div className="relative flex flex-col bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/30">
       <div className="px-6 py-6">
@@ -125,7 +97,6 @@ const Certificates = () => {
           <p className="text-center text-red-500 py-8">{error}</p>
         ) : (
           <>
-            {/* LOCK 1: COURSE NOT COMPLETED */}
             {!canViewCertificates ? (
               <div className="text-center py-12 px-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200">
                 <Lock className="mx-auto mb-4 text-indigo-500" size={56} />
@@ -178,7 +149,6 @@ const Certificates = () => {
                 </button>
               </div>
             ) : !hasLeftReview ? (
-              /* LOCK 2: REVIEW REQUIRED */
               <div className="mb-6 p-6 bg-gradient-to-r from-amber-50 to-yellow-100 border-2 border-amber-300 rounded-xl text-center">
                 <Award className="mx-auto mb-3 text-amber-600" size={48} />
                 <h3 className="text-xl font-bold text-amber-900 mb-2">
@@ -196,7 +166,6 @@ const Certificates = () => {
                 </button>
               </div>
             ) : certificates.length > 0 ? (
-              /* UNLOCKED CERTIFICATES */
               certificates
                 .filter(
                   (cert) =>
@@ -216,8 +185,7 @@ const Certificates = () => {
                       <div className="flex items-center gap-2 mb-3">
                         <Award className="text-emerald-600" size={24} />
                         <h4 className="font-bold text-lg text-gray-800">
-                          {cert.certificate_name ||
-                            "Certificate of Completion"}
+                          {cert.certificate_name || "Certificate of Completion"}
                         </h4>
                       </div>
 
@@ -237,17 +205,11 @@ const Certificates = () => {
                           )}
                         </button>
 
-                        <button
-                          onClick={() =>
-                            handleDownloadCertificate(
-                              imageUrl,
-                              cert.certificate_name || "certificate"
-                            )
-                          }
-                          className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700"
-                        >
-                          <Download size={16} /> Download
-                        </button>
+                        {/* 🔹 Use direct <a> link for download */}
+                        {renderDownloadButton(
+                          imageUrl,
+                          cert.certificate_name || "certificate"
+                        )}
                       </div>
 
                       {visibleCerts[cert.id] && (
