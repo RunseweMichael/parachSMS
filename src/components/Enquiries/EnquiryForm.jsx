@@ -89,7 +89,7 @@ const EnquiryForm = () => {
             <option value="">Select a course</option>
             {courses.map((course) => (
               <option key={course.id} value={course.id}>
-                {course_details.course_name}
+                {course.course_name}
               </option>
             ))}
           </select>

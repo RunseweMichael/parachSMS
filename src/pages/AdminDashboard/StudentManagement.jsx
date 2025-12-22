@@ -300,7 +300,7 @@ const StudentManagement = () => {
                     <td>{s.name}</td>
                     <td>{s.email}</td>
                     <td>{s.phone_number}</td>
-                    <td>{s.course_details.course_name}</td>
+                    <td>{s.course_detailscourse_name}</td>
                     <td>{s.center}</td>
                     <td>{formatDate(s.registration_date)}</td>
                     <td>₦{s.discount.toLocaleString()}</td>

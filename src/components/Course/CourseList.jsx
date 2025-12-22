@@ -101,7 +101,7 @@ const CourseList = () => {
                   <td>{index + 1}</td>
                   <td>
                     <Link to={`${course.id}`} style={styles.courseLink}>
-                      {course_details.course_name}
+                      {course.course_name}
                     </Link>
                   </td>
                   <td>{Number(course.price).toLocaleString()}</td>
