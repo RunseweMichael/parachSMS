@@ -44,7 +44,7 @@ const StudentManagement = () => {
         email: s.email,
         phone_number: s.phone_number || "—",
         course_id: s.course?.id || null,
-        course_name: s.course_details.course_name || (s.course?.course_name || "—"),
+        course_name: s.course_name || (s.course?.course_name || "—"),
         amount_paid: Number(s.amount_paid || 0),
         amount_owed: Number(s.amount_owed || 0),
         discount: Number(s.discounted_price || 0),
@@ -300,7 +300,7 @@ const StudentManagement = () => {
                     <td>{s.name}</td>
                     <td>{s.email}</td>
                     <td>{s.phone_number}</td>
-                    <td>{s.course_detailscourse_name}</td>
+                    <td>{s.course_name}</td>
                     <td>{s.center}</td>
                     <td>{formatDate(s.registration_date)}</td>
                     <td>₦{s.discount.toLocaleString()}</td>
