@@ -11,8 +11,6 @@ const StudentManagement = () => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -34,7 +32,6 @@ const StudentManagement = () => {
     try {
       setLoading(true);
       let data = [];
-
       const endpoint =
         filter === "defaulters"
           ? "/admin-panel/students/defaulters/"
@@ -60,13 +57,12 @@ const StudentManagement = () => {
       }));
 
       data = data.filter((s) => !s.is_staff);
-
       if (filter === "active") data = data.filter((s) => s.is_active);
       if (filter === "inactive") data = data.filter((s) => !s.is_active);
 
       setStudents(data);
       setSelectedStudents([]);
-      setCurrentPage(1); // Reset pagination
+      setCurrentPage(1);
     } catch (err) {
       console.error("Failed to fetch students:", err);
       alert("Failed to load students");
@@ -75,7 +71,6 @@ const StudentManagement = () => {
     }
   };
 
-  // FILTERED STUDENTS
   const filteredStudents = useMemo(() => {
     return students.filter((s) =>
       [s.name, s.email, s.course_name, s.center]
@@ -85,7 +80,6 @@ const StudentManagement = () => {
     );
   }, [students, search]);
 
-  // PAGINATION LOGIC
   const totalPages = Math.ceil(filteredStudents.length / pageSize);
   const paginatedStudents = filteredStudents.slice(
     (currentPage - 1) * pageSize,
@@ -350,7 +344,6 @@ const StudentManagement = () => {
             </table>
           </div>
 
-          {/* PAGINATION CONTROLS */}
           <div
             style={{
               display: "flex",
@@ -439,21 +432,44 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
   });
   const [saving, setSaving] = useState(false);
   const [courseChanging, setCourseChanging] = useState(false);
-
-  // const handleChange = (key, value) => {
-  //   if (key === "course" && value !== student.course_id) {
-  //     setCourseChanging(true);
-  //   }
-  //   setFormData((prev) => ({ ...prev, [key]: value }));
-  // };
+  const [paymentAdjustment, setPaymentAdjustment] = useState("");
+  const [adjustmentNote, setAdjustmentNote] = useState("");
 
   const handleChange = (key, value) => {
     if (key === "course" && value !== student.course_id) {
       setCourseChanging(true);
-      // Reset amount_paid to 0 when course changes
       setFormData((prev) => ({ ...prev, course: value, amount_paid: 0 }));
     } else {
       setFormData((prev) => ({ ...prev, [key]: value }));
+    }
+  };
+
+  const handlePaymentAdjustment = async () => {
+    const amount = parseFloat(paymentAdjustment);
+    if (isNaN(amount) || amount === 0) {
+      alert("Please enter a valid payment amount");
+      return;
+    }
+
+    if (!window.confirm(
+      `Record a payment of ₦${amount.toLocaleString()} for ${student.name}?\n\n` +
+      `This will create a transaction record and update the student's balance.`
+    )) return;
+
+    try {
+      const res = await api.post("/payments/admin-payment-adjustment/", {
+        user_id: student.id,
+        amount: amount,
+        note: adjustmentNote || "Admin manual payment adjustment"
+      });
+
+      alert(res.data.message);
+      setPaymentAdjustment("");
+      setAdjustmentNote("");
+      onSuccess(); // Refresh the student list
+    } catch (err) {
+      console.error("Payment adjustment failed:", err);
+      alert(err?.response?.data?.error || "Failed to record payment");
     }
   };
 
@@ -482,10 +498,10 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
         name: formData.name,
         phone_number: formData.phone_number,
         address: formData.address,
-        amount_paid: formData.amount_paid,
         next_due_date: formData.next_due_date || null,
         center: formData.center,
         course: formData.course,
+        // ⚠️ REMOVED: amount_paid - no longer directly updated
       });
       
       if (res.data.warning) {
@@ -515,6 +531,43 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
         )}
         
         <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+          {/* Payment Adjustment Section */}
+          <div style={{
+            ...styles.warningBox,
+            backgroundColor: '#e3f2fd',
+            borderColor: '#2196F3'
+          }}>
+            <strong>💰 Record Payment</strong>
+            <p style={{margin: '8px 0', fontSize: '13px', color: '#555'}}>
+              Use this to record payments made outside the system (cash, bank transfer, etc.)
+            </p>
+            <input
+              type="number"
+              step="0.01"
+              placeholder="Enter payment amount..."
+              value={paymentAdjustment}
+              onChange={(e) => setPaymentAdjustment(e.target.value)}
+              style={{...styles.input, marginBottom: '8px'}}
+            />
+            <input
+              type="text"
+              placeholder="Note (optional)..."
+              value={adjustmentNote}
+              onChange={(e) => setAdjustmentNote(e.target.value)}
+              style={{...styles.input, marginBottom: '8px'}}
+            />
+            <button
+              onClick={handlePaymentAdjustment}
+              style={{
+                ...styles.saveBtn,
+                width: '100%',
+                backgroundColor: '#4CAF50'
+              }}
+            >
+              Record Payment
+            </button>
+          </div>
+
           <div style={styles.formGroup}>
             <label style={styles.label}>Email</label>
             <input
@@ -541,15 +594,6 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
               style={styles.input}
             />
           </div>
-          
-          {/* <div style={styles.formGroup}>
-            <label style={styles.label}>Address</label>
-            <input
-              value={formData.address}
-              onChange={(e) => handleChange("address", e.target.value)}
-              style={styles.input}
-            />
-          </div> */}
           
           <div style={styles.formGroup}>
             <label style={styles.label}>Center</label>
@@ -586,18 +630,12 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
           </div>
           
           <div style={styles.formGroup}>
-            <label style={styles.label}>Amount Paid</label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.amount_paid}
-              onChange={(e) => handleChange("amount_paid", e.target.value)}
-              style={styles.input}
-              disabled={courseChanging}
-            />
-            {courseChanging && (
-              <small style={{color: '#666'}}>Will be reset to ₦0 after course change</small>
-            )}
+            <label style={styles.label}>
+              Current Amount Paid: ₦{student.amount_paid.toLocaleString()}
+            </label>
+            <small style={{color: '#666', display: 'block', marginTop: '4px'}}>
+              Use "Record Payment" section above to add new payments
+            </small>
           </div>
           
           <div style={styles.formGroup}>
