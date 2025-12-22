@@ -85,7 +85,7 @@ const CertificateManagement = () => {
 
   const filteredCertificates = certificates
   // Step 1: Exclude admin/staff
-  .filter(cert => !cert.is_staff && !cert.is_admin)
+  .filter(cert => !cert.is_staff && !cert.is_staff_admin)
   // Step 2: Apply search filter
   .filter(cert =>
     `${cert.student_name || ""} ${cert.certificate_number || ""} ${cert.course_name || ""}`

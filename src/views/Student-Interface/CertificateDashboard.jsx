@@ -24,13 +24,6 @@ const Certificates = () => {
   const { courseCompleted, completionPercentage, completedWeeks, totalWeeks } =
     useCourseProgress();
 
-  const completedCount = completedWeeks?.size ?? 0;
-  const canViewCertificates =
-    courseCompleted &&
-    Number.isInteger(totalWeeks) &&
-    totalWeeks > 0 &&
-    completedCount === totalWeeks;
-
   useEffect(() => {
     const fetchCertificates = async () => {
       setLoading(true);
@@ -67,7 +60,6 @@ const Certificates = () => {
     setHasLeftReview(true);
   };
 
-  /* ---------------- FIXED: use <a> link for download ---------------- */
   const renderDownloadButton = (url, baseName) => {
     return (
       <a
@@ -81,6 +73,14 @@ const Certificates = () => {
       </a>
     );
   };
+
+  // ✅ Move canViewCertificates inside render so it recalculates automatically
+  const completedCount = completedWeeks?.size ?? 0;
+  const canViewCertificates =
+    courseCompleted &&
+    Number.isInteger(totalWeeks) &&
+    totalWeeks > 0 &&
+    completedCount === totalWeeks;
 
   return (
     <div className="relative flex flex-col bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/30">
@@ -205,7 +205,6 @@ const Certificates = () => {
                           )}
                         </button>
 
-                        {/* 🔹 Use direct <a> link for download */}
                         {renderDownloadButton(
                           imageUrl,
                           cert.certificate_name || "certificate"
