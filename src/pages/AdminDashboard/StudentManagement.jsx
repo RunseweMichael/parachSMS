@@ -445,33 +445,64 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
   };
 
   const handlePaymentAdjustment = async () => {
-    const amount = parseFloat(paymentAdjustment);
-    if (isNaN(amount) || amount === 0) {
-      alert("Please enter a valid payment amount");
-      return;
-    }
+  const amount = parseFloat(paymentAdjustment?.trim());
+  if (isNaN(amount) || amount === 0) {
+    alert("Please enter a valid payment amount");
+    return;
+  }
 
-    if (!window.confirm(
-      `Record a payment of ₦${amount.toLocaleString()} for ${student.name}?\n\n` +
-      `This will create a transaction record and update the student's balance.`
-    )) return;
+  if (!window.confirm(
+    `Record a payment of ₦${amount.toLocaleString()} for ${student.name}?\n\n` +
+    `This will create a transaction record and update the student's balance.`
+  )) return;
 
-    try {
-      const res = await api.post("/payments/admin-payment-adjustment/", {
-        user_id: student.id,
-        amount: amount,
-        note: adjustmentNote || "Admin manual payment adjustment"
-      });
-
-      alert(res.data.message);
-      setPaymentAdjustment("");
-      setAdjustmentNote("");
-      onSuccess(); // Refresh the student list
-    } catch (err) {
-      console.error("Payment adjustment failed:", err);
-      alert(err?.response?.data?.error || "Failed to record payment");
-    }
+  // Prepare payload
+  const payload = {
+    user_id: student.id,
+    amount: amount,
+    note: adjustmentNote || "Admin manual payment adjustment"
   };
+
+  console.log("💡 Payment adjustment payload:", payload);
+  console.log("💡 API headers:", api.defaults.headers);
+
+  try {
+    const res = await api.post("/payments/admin-payment-adjustment/", payload);
+
+    console.log("✅ Payment adjustment response:", res);
+    alert(res.data.message);
+    setPaymentAdjustment("");
+    setAdjustmentNote("");
+    onSuccess(); // Refresh the student list
+  } catch (err) {
+    console.error("❌ Payment adjustment failed:", err);
+
+    let errorMessage = "Failed to record payment";
+
+    if (err.response) {
+      // Server responded with a status code out of 2xx
+      console.error("Status:", err.response.status);
+      console.error("Response data:", err.response.data);
+      console.error("Response headers:", err.response.headers);
+      errorMessage = `
+        ❌ Payment adjustment failed!
+        Status: ${err.response.status}
+        Error: ${err.response.data?.error || err.response.data?.details || JSON.stringify(err.response.data)}
+      `;
+    } else if (err.request) {
+      // Request was made but no response
+      console.error("No response received:", err.request);
+      errorMessage = "No response from server. Please check network or server logs.";
+    } else {
+      // Something else happened
+      console.error("Error:", err.message);
+      errorMessage = `Error: ${err.message}`;
+    }
+
+    alert(errorMessage);
+  }
+};
+
 
   const handleSubmit = async () => {
     if (!formData.email) {
