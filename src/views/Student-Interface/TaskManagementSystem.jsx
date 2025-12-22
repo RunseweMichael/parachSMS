@@ -537,7 +537,7 @@ useEffect(() => {
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-12 text-center border">
-          <h2 className="text-2xl font-bold text-indigo-700">{studentCourse.course_name}</h2>
+          <h2 className="text-2xl font-bold text-indigo-700">{studentCourse.course_details.course_name}</h2>
           <p className="text-xl text-gray-600 mt-4">
             {completedWeeks.size} / {studentCourse.modules.reduce((a, m) => a + m.weeks.length, 0)} weeks completed
           </p>

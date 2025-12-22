@@ -173,7 +173,7 @@ const Profile = () => {
         <div style={styles.grid}>
           <EditableField icon={<User size={18} />} label="Full Name" name="name" value={formData.name || ""} editing={editing} onChange={handleChange} />
           <EditableField icon={<Mail size={18} />} label="Email" name="email" value={formData.email || ""} editing={editing} onChange={handleChange} />
-          <ProfileField icon={<Book size={18} />} label="Course" value={user.course ? <Link to={`/course/${user.course.id}`} style={{ color: "#2563eb", fontWeight: "600", textDecoration: "none" }}>{user.course.course_name}</Link> : "N/A"} />
+          <ProfileField icon={<Book size={18} />} label="Course" value={user.course ? <Link to={`/course/${user.course.id}`} style={{ color: "#2563eb", fontWeight: "600", textDecoration: "none" }}>{user.course_details.course_name}</Link> : "N/A"} />
           <ProfileField icon={<DollarSign size={18} />} label="Course Price" value={user.course ? `₦ ${user.course.price}` : "N/A"} />
           <EditableField icon={<Calendar size={18} />} label="Birth Date" name="birth_date" type="date" value={formData.birth_date || ""} editing={editing} onChange={handleChange} />
           <EditableField icon={<Phone size={18} />} label="Phone" name="phone_number" value={formData.phone_number || ""} editing={editing} onChange={handleChange} />

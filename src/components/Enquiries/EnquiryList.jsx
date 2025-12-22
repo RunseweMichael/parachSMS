@@ -110,7 +110,7 @@ const EnquiryList = () => {
 
   const getCourseName = (id) => {
     const course = courses.find(c => c.id === id);
-    return course ? course.course_name : "—";
+    return course ? course_details.course_name : "—";
   };
 
   // ------------------ FILTER FUNCTION ------------------
@@ -292,7 +292,7 @@ const EnquiryList = () => {
               >
                 <option value="All">All Courses</option>
                 {courses.map(course => (
-                  <option key={course.id} value={course.id}>{course.course_name}</option>
+                  <option key={course.id} value={course.id}>{course_details.course_name}</option>
                 ))}
               </select>
             </div>
