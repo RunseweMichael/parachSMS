@@ -83,15 +83,18 @@ const CertificateManagement = () => {
     }
   };
 
+  const ADMIN_IDS = [15, 17];
+
   const filteredCertificates = certificates
-  // Step 1: Exclude admin/staff
-  .filter(cert => !cert.is_staff && !cert.is_staff_admin)
-  // Step 2: Apply search filter
-  .filter(cert =>
-    `${cert.student_name || ""} ${cert.certificate_number || ""} ${cert.course_name || ""}`
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
+    .flatMap(student => student.certificates || [])
+    .filter(cert => !ADMIN_IDS.includes(cert.student)) // 👈 IMPORTANT
+    .filter(cert =>
+      `${cert.student_name || ""} ${cert.certificate_number || ""} ${cert.course_name || ""}`
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    );
+
+
 
 
   return (
