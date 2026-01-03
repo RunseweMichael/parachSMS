@@ -63,8 +63,8 @@ export default function PaymentDashboard() {
           await fetchUserData();
           await fetchTransactions();
           navigate("/student/payment", { replace: true });
-        } else if (attempt < 10) {
-          setTimeout(() => verifyPayment(attempt + 1), 5000);
+        } else if (attempt < 5) {
+          setTimeout(() => verifyPayment(attempt + 1), 2000);
         } else {
           // Silently stop and refresh data - payment may have succeeded
           setVerifying(false);
@@ -74,8 +74,8 @@ export default function PaymentDashboard() {
         }
       } catch (err) {
         console.error("Verification error:", err);
-        if (attempt < 10) {
-          setTimeout(() => verifyPayment(attempt + 1), 5000);
+        if (attempt < 5) {
+          setTimeout(() => verifyPayment(attempt + 1), 2000);
         } else {
           // Silently stop and refresh data - payment may have succeeded
           setVerifying(false);
