@@ -217,7 +217,7 @@ const StaffManagement = () => {
                 style={styles.modalInput}
               />
               <input
-                placeholder="Password (optional)"
+                placeholder="Password"
                 value={newUser.password}
                 onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 style={styles.modalInput}
