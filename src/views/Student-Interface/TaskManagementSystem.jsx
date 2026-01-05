@@ -15,9 +15,8 @@ import { useNavigate } from "react-router-dom";
 import {useCourseProgress} from '../../hooks/CourseContext';
 
 const mockCoursesData = {
-  // ====================================
   // 1. WEB DEVELOPMENT (Key: "Web Development")
-  // ====================================
+
   "Web Development": {
     id: 1, // Keep the ID inside the object for submission
     course_name: "Web Development",
@@ -73,9 +72,9 @@ const mockCoursesData = {
     ]
   },
 
-  // ====================================
-  // 2. BACKEND DEVELOPMENT (Key: "Backend Development")
-  // ====================================
+ 
+  // 2. BACKEND DEVELOPMENT
+
   "Backend Development": {
     id: 2,
     course_name: "Backend Development",
@@ -131,9 +130,9 @@ const mockCoursesData = {
     ]
   },
 
-  // ====================================
+
   // 3. DATA SCIENCE (Key: "Data Science")
-  // ====================================
+
   "Data Science": {
     id: 3,
     course_name: "Data Science",
@@ -205,9 +204,9 @@ const mockCoursesData = {
     ]
   },
 
-  // ====================================
+
   // 4. DATA ANALYTICS (Key: "Data Analytics")
-  // ====================================
+
   "Data Analytics": {
     id: 4,
     course_name: "Data Analytics",
@@ -247,9 +246,9 @@ const mockCoursesData = {
     ]
   },
 
-  // ====================================
+
   // 5. GRAPHIC DESIGN (Key: "Graphic Design")
-  // ====================================
+
   "Graphic Design": {
     id: 5,
     course_name: "Graphic Design",
@@ -466,7 +465,7 @@ useEffect(() => {
   // ------------------------------------
 
   const handleWeekSelect = useCallback((week) => {
-    if (completedWeeks.has(week.id)) return; // Prevent re-attempts
+    if (completedWeeks.has(week.id)) return; 
     setSelectedWeek(week);
     setAnswers({});
     setSubmitted(false);
@@ -578,7 +577,6 @@ useEffect(() => {
 
         {selectedModule && !selectedWeek && (
           <div className="animate-fade-in">
-            {/* Back Button */}
             <button
               onClick={() => setSelectedModule(null)}
               className="mb-10 flex items-center gap-3 text-indigo-600 hover:text-indigo-800 font-semibold text-lg transition-colors focus:outline-none"
@@ -586,12 +584,11 @@ useEffect(() => {
               Back to Modules
             </button>
 
-            {/* Module Title */}
             <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 text-gray-900">
               {selectedModule.name}
             </h2>
 
-            {/* Weeks Grid */}
+          
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {selectedModule.weeks.map((week) => {
                 const unlocked = isWeekUnlocked(selectedModule, week);
@@ -610,7 +607,7 @@ useEffect(() => {
                       ${done ? 'ring-4 ring-emerald-400' : ''}
                     `}
                   >
-                    {/* Card Background */}
+                 
                     <div
                       className={`
                         h-full p-8 border-4 rounded-3xl transition-all
@@ -622,7 +619,7 @@ useEffect(() => {
                         }
                       `}
                     >
-                      {/* Status Icons */}
+                   
                       <div className="absolute top-6 right-6">
                         {done ? (
                           <CheckCircle className="w-12 h-12 text-emerald-600 drop-shadow-md" />
@@ -631,7 +628,7 @@ useEffect(() => {
                         ) : null}
                       </div>
 
-                      {/* Content */}
+                    
                       <div className="text-left pr-16">
                         <h3 className="text-3xl font-bold text-gray-800 mb-3">
                           Week {week.weekNumber}
@@ -653,7 +650,7 @@ useEffect(() => {
                         </div>
                       </div>
 
-                      {/* Locked Overlay */}
+                     
                       {!unlocked && (
                         <div className="absolute inset-0 bg-black/10 rounded-3xl flex items-center justify-center">
                         </div>
@@ -672,7 +669,7 @@ useEffect(() => {
           </div>
         )}
 
-        {/* SAFE QUIZ RENDERING */}
+       
         {selectedWeek && !submitted && selectedWeek.tasks && selectedWeek.tasks.length > 0 ? (
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-8">
@@ -730,7 +727,7 @@ useEffect(() => {
           </div>
         ) : null}
 
-        {/* Results */}
+        
         {submitted && score && (
           <div className="max-w-4xl mx-auto text-center py-20">
             <Award className="w-32 h-32 text-yellow-500 mx-auto mb-8" />

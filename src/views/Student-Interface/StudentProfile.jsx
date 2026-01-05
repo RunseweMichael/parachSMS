@@ -20,9 +20,9 @@ export default function StudentProfile() {
   ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundType=gradientLinear`
   : `https://api.dicebear.com/7.x/initials/svg?seed=Student`;
 
-  // =======================
+
   // Fetch Logged-in Student
-  // =======================
+
   const fetchUserProfile = async () => {
     setLoading(true);
     try {
@@ -40,9 +40,9 @@ export default function StudentProfile() {
     }
   };
 
-  // =======================
+
   // Handle Form Change
-  // =======================
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updated = { ...formData, [name]: value };
@@ -50,9 +50,9 @@ export default function StudentProfile() {
     setFormData(updated); // immediate update across UI
   };
 
-  // =======================
+
   // Save Profile
-  // =======================
+
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -71,9 +71,9 @@ export default function StudentProfile() {
     }
   };
 
-  // =======================
+
   // Loading Spinner
-  // =======================
+
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -170,9 +170,7 @@ export default function StudentProfile() {
           </div>
         </div>
 
-        {/* =======================
-            RIGHT SECTION – SUMMARY
-        ======================= */}
+        {/* RIGHT SECTION – SUMMARY */}
         <div className="w-full lg:w-4/12 px-4">
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/30 mb-8">
             <div className="px-6 py-8 text-center">
@@ -250,7 +248,7 @@ export default function StudentProfile() {
                   <span className="font-medium text-gray-800">{user?.next_due_date || "N/A"}</span>
                 </div>
 
-                {/* Course Resource Button */}
+              
                 {user?.course?.resource_link && user.amount_paid > 0 && (
                   <a
                     href={user.course.resource_link}

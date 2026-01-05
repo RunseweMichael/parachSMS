@@ -5,7 +5,7 @@ const apiPublic = axios.create({
     baseURL: 'https://parachsms.pythonanywhere.com/api/',
 });
 
-// 🔥 Attach token automatically to every request
+
 apiPublic.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
