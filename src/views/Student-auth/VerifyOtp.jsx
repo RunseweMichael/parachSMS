@@ -1,22 +1,48 @@
-import React, { useState } from "react";
-import apiPublic from "../../apiPublic";
+import React, { useState, useEffect } from "react";
+import apiPrivate from "../../apiPrivate";
 import { UserLock } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 export default function VerifyOtp() {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const { email, password } = location.state || {};
+  const [credentials, setCredentials] = useState(null);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const savedLogin = sessionStorage.getItem("login_payload");
+
+    if (!savedLogin) {
+      navigate("/signin", { replace: true });
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(savedLogin);
+      if (!parsed.email || !parsed.password) {
+        navigate("/signin", { replace: true });
+        return;
+      }
+      setCredentials(parsed);
+    } catch (err) {
+      navigate("/signin", { replace: true });
+      return;
+    }
+
+    setIsChecking(false);
+  }, [navigate]);
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (!email || !password) {
-    navigate("/signin");
-    return null;
+  if (isChecking || !credentials) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   const handleLogin = async () => {
@@ -30,16 +56,21 @@ export default function VerifyOtp() {
     try {
       setLoading(true);
 
-      const res = await apiPublic.post("/students/login/", {
-        email,
-        password,
+      // ✅ Login without attaching token
+      const res = await apiPrivate.post("/students/login/", {
+        email: credentials.email,
+        password: credentials.password,
         code: otp,
       });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user_id", res.data.user_id);
-      localStorage.setItem("username", res.data.username);
-      localStorage.setItem("role", res.data.role || "student");
+      // Remove temp credentials
+      sessionStorage.removeItem("login_payload");
+
+      // Save auth tokens for future requests
+      sessionStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("user_id", res.data.user_id);
+      sessionStorage.setItem("username", res.data.username);
+      sessionStorage.setItem("role", res.data.role || "student");
 
       navigate(
         res.data.role === "admin" || res.data.role === "super-admin"
@@ -48,6 +79,7 @@ export default function VerifyOtp() {
       );
 
     } catch (err) {
+      console.error("Login Error:", err.response);
       setError(
         err.response?.data?.error ||
         err.response?.data?.detail ||
