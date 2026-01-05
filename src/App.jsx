@@ -10,7 +10,9 @@ import NotFound from './component/404page.jsx';
 // Auth & Layouts
 import Login from './pages/Login';
 import SignUpPage from './views/Student-auth/SignUpPage.jsx';
-import SignInPage from './views/Student-auth/SignInPage.jsx';
+import SignInStepOne from './views/Student-auth/SignInPage.jsx';
+import VerifyOtp from './views/Student-auth/VerifyOtp.jsx';
+// import SignInPage from './views/Student-auth/SignInPage.jsx';
 import Student from './layout/Student.jsx';
 import AdminLayout from './pages/AdminDashboard/AdminLayout';
 
@@ -98,7 +100,9 @@ function App() {
 
       <Routes>
         {/* PUBLIC AUTH ROUTES */}
-        <Route path="/signin" element={<SignInPage />} />
+        {/* <Route path="/signin" element={<SignInPage />} /> */}
+        <Route path="/signin" element={<SignInStepOne />} />
+        <Route path="/verify-otp-page" element={<VerifyOtp />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegistrationForm />} />
