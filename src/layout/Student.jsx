@@ -14,6 +14,7 @@ import TaskManagement from "../views/Student-Interface/TaskManagementSystem.jsx"
 import Internship from "../views/Student-Interface/Internship.jsx";
 import SkillsProgress from "../pages/SkillsProgress.jsx";
 
+
 export default function Student() {
   return (
     <div className="min-h-screen bg-blueGray-100">
@@ -40,6 +41,7 @@ export default function Student() {
             <Route path="internship" element={<Internship />} />
             <Route path="task" element={<TaskManagement />} />
             <Route path="skills-progress" element={<SkillsProgress />} />
+
             
             {/* Catch any other paths and redirect to dashboard */}
             <Route path="*" element={<Navigate to="dashboard" replace />} />

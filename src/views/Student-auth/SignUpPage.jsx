@@ -401,7 +401,7 @@ export default function SignUpPage() {
                   />
                   <span className="text-sm text-gray-700 leading-tight">
                     <CheckSquare className="inline mr-1 text-green-500" size={16} />
-                    I agree to receive updates & messages via WhatsApp/SMS
+                    I agree to receive updates & messages via Email and WhatsApp/SMS
                   </span>
                 </motion.label>
 

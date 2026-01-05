@@ -62,19 +62,26 @@ export default function PaymentDashboard() {
 
           await fetchUserData();
           await fetchTransactions();
-          navigate("/dashboard", { replace: true });
-        } else if (attempt < 3) {
+          navigate("/student/payment", { replace: true });
+        } else if (attempt < 5) {
           setTimeout(() => verifyPayment(attempt + 1), 2000);
         } else {
-          setErrorMsg("❌ Payment verification failed. Please refresh.");
+          // Silently stop and refresh data - payment may have succeeded
           setVerifying(false);
+          await fetchUserData();
+          await fetchTransactions();
+          navigate("/student/payment", { replace: true });
         }
       } catch (err) {
         console.error("Verification error:", err);
-        if (attempt < 3) setTimeout(() => verifyPayment(attempt + 1), 2000);
-        else {
-          setErrorMsg("❌ Verification failed. Please try again.");
+        if (attempt < 5) {
+          setTimeout(() => verifyPayment(attempt + 1), 2000);
+        } else {
+          // Silently stop and refresh data - payment may have succeeded
           setVerifying(false);
+          await fetchUserData();
+          await fetchTransactions();
+          navigate("/student/payment", { replace: true });
         }
       }
     };
@@ -209,7 +216,6 @@ export default function PaymentDashboard() {
 
                 {balance && (
                   <>
-                    {/* Alerts for first or remaining payment */}
                     {balance.amount_paid === 0 ? (
                       <div className="mb-4 p-4 bg-yellow-50 border border-yellow-400 rounded-xl flex items-start gap-2 text-yellow-700">
                         <AlertTriangle size={18} /> Your first payment must be at least ₦{balance.min_payment_required.toLocaleString()}.
@@ -223,16 +229,24 @@ export default function PaymentDashboard() {
                 )}
 
                 <div className="space-y-5">
+                  {/* Coupon Input */}
                   <div>
                     <label className="text-sm text-slate-600">Coupon Code (Optional)</label>
                     <input
                       type="text"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
-                      className="w-full mt-1 px-4 py-3 border border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                      disabled={user?.has_used_coupon}
+                      className="w-full mt-1 px-4 py-3 border border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                     />
+                    {user?.has_used_coupon && (
+                      <p className="text-green-600 text-sm mt-1">
+                        ✔ You have already used a coupon for this account.
+                      </p>
+                    )}
                   </div>
 
+                  {/* Amount Input */}
                   <div>
                     <label className="text-sm text-slate-600">Amount to Pay (₦)</label>
                     <input
@@ -248,6 +262,7 @@ export default function PaymentDashboard() {
                     )}
                   </div>
 
+                  {/* Pay Button */}
                   <button
                     onClick={handlePayNow}
                     disabled={loading || !amount}

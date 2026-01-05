@@ -98,7 +98,7 @@ const StudentPaymentHistory = () => {
                 <tr key={tx.id} style={styles.row}>
                   <td style={styles.td}>{student?.name || "N/A"}</td>
                   <td style={styles.td}>
-                    {student?.course ? student.course.course_name : "N/A"}
+                    {student?.course ? student.course_name : "N/A"}
                   </td>
                   <td style={styles.td}>{tx.reference}</td>
                   <td style={styles.td}>₦{tx.amount?.toLocaleString()}</td>

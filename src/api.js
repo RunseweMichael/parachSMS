@@ -2,10 +2,12 @@ import axios from 'axios';
 
 const api = axios.create({
   // baseURL: 'http://127.0.0.1:8000/api/',
-   baseURL: 'https://parachsms.pythonanywhere.com/api/',
+  // baseURL: 'https://mike96.pythonanywhere.com/api/',
+  baseURL: 'https://studentmgt.whalesharkengineering.com.ng/api/',
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true
 });
 
 api.interceptors.request.use(
