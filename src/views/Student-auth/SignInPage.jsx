@@ -15,20 +15,85 @@ export default function SignInPage() {
 
   const handleNext = async () => {
     setError("");
-    if (!email || !password) {
-      setError("Enter both email and password.");
+    setSuccess("");
+
+    if (!email) {
+      setError("Enter your email first.");
+      return;
+    }
+
+    try {
+      setSendingOtp(true);
+
+      const res = await apiPublic.post("/students/resend-otp/", {
+        email: email,
+      });
+
+      setSuccess("OTP sent to your email.");
+      console.log("SEND OTP RESPONSE:", res.data);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to send OTP.");
+    }
+
+    setSendingOtp(false);
+  };
+
+  // LOGIN WITH OTP
+  const handleLogin = async () => {
+    setError("");
+    setSuccess("");
+
+    if (!email || !password || !otp) {
+      setError("Fill all fields including OTP.");
       return;
     }
 
     try {
       setLoading(true);
-      await apiPublic.post("/students/resend-otp/", { email });
-      navigate("/signin/otp", { state: { email, password } });
+
+      const res = await apiPublic.post("/students/login/", {
+        email: email,
+        password: password,
+        code: otp,
+      });
+
+      console.log("LOGIN RESPONSE:", res.data);
+
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user_id", res.data.user_id);
+      localStorage.setItem("username", res.data.username);
+
+      const userRole = res.data.role || res.data.user_role || "student";
+      localStorage.setItem("role", userRole);
+
+      if (res.data.user) {
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+      }
+
+      setSuccess("Login Successful!");
+
+      setTimeout(() => {
+        if (userRole === "admin" || userRole === "super-admin") {
+          navigate("/super-admin/dashboard");
+        } else {
+          navigate("/student/dashboard");
+        }
+      }, 1200);
+
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to send OTP.");
-    } finally {
-      setLoading(false);
+      console.log("LOGIN ERROR:", err.response?.data);
+
+      const errorMsg =
+        err.response?.data?.error ||
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        JSON.stringify(err.response?.data) ||
+        "Login failed";
+
+      setError(errorMsg);
     }
+
+    setLoading(false);
   };
 
   return (

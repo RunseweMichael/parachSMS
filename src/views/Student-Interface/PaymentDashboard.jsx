@@ -46,7 +46,7 @@ export default function PaymentDashboard() {
     fetchTransactions();
   }, [fetchUserData, fetchTransactions]);
 
-  // Payment verification with retries
+  
   useEffect(() => {
     const reference = searchParams.get("reference");
     if (!reference || sessionStorage.getItem(`verified_${reference}`)) return;

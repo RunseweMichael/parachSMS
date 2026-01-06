@@ -463,13 +463,10 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
     note: adjustmentNote || "Admin manual payment adjustment"
   };
 
-  console.log("💡 Payment adjustment payload:", payload);
-  console.log("💡 API headers:", api.defaults.headers);
-
-  try {
+   try {
     const res = await api.post("/payments/admin-payment-adjustment/", payload);
 
-    console.log("✅ Payment adjustment response:", res);
+   
     alert(res.data.message);
     setPaymentAdjustment("");
     setAdjustmentNote("");

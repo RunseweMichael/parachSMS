@@ -18,7 +18,7 @@ import {
 import FloatingBackground from "../../component/FloatingBackground";
 import logoImg from "../../assets/1000561121.jpg";
 
-// Fully-fluid animated SignUpPage
+
 export default function SignUpPage() {
   const navigate = useNavigate();
 
@@ -100,7 +100,7 @@ export default function SignUpPage() {
 
       toast.success("Registration successful!");
      setTimeout(() => {
-  setShowOnboarding(true); // Show onboarding first
+  setShowOnboarding(true); 
 }, 800);
     } catch (err) {
       const data = err.response?.data;

@@ -1,4 +1,3 @@
-// Fixed App.jsx with proper role-based routing
 import React from 'react';
 import './App.css';
 import { Toaster } from 'react-hot-toast';
@@ -56,7 +55,7 @@ import EnquiryForm from './views/Student-Interface/Enquiry.jsx';
 import VerifyCertificate from './pages/verifyCertificate.jsx';
 
 
-// Protected route wrapper with role checking
+// Protected route component
 const ProtectedRoute = ({ children, requiredRole }) => {
   const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('role');
@@ -65,11 +64,11 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 
   
   if (!token) {
-    console.log('[ProtectedRoute] No token → redirecting to /signin');
+  
     return <Navigate to="/signin" replace />;
   }
 
-  // If role is required, check it
+
   if (requiredRole) {
     try {
       const checkRole = localStorage.getItem('role') || 
@@ -78,8 +77,8 @@ const ProtectedRoute = ({ children, requiredRole }) => {
       
       
       if (checkRole !== requiredRole) {
-        // Redirect based on actual role
-        console.log('[ProtectedRoute] Role mismatch → redirecting');
+      
+ 
         return <Navigate to={checkRole === 'student' ? '/student/dashboard' : '/signin'} replace />;
       }
     } catch (error) {
@@ -119,8 +118,7 @@ function App() {
         <Route path="/enquiries">
           <Route path="add" element={<EnquiryForm />} />
         </Route>
-
-        {/* STUDENT DASHBOARD - FIXED: Removed nested Routes inside Student layout */}
+        {/* STUDENT DASHBOARD */}
         <Route
           path="/student/*"
           element={
