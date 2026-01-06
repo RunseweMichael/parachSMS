@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../../api";
 import {
@@ -15,7 +15,6 @@ import {
 } from "react-icons/fa";
 import logoImg from "../../assets/1000561121.jpg";
 
-
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -23,6 +22,7 @@ const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Fetch unread notifications and user info
   useEffect(() => {
     fetchUnreadCount();
     fetchUserInfo();
@@ -48,6 +48,15 @@ const AdminLayout = () => {
     }
   };
 
+  // Redirect assistants immediately to /admin/enquiries
+  useEffect(() => {
+    if (user) {
+      if (user.is_assistant && !user.is_superadmin && !user.is_staff_admin) {
+        navigate("/admin/enquiries", { replace: true });
+      }
+    }
+  }, [user, navigate]);
+
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to logout?")) {
       localStorage.removeItem("token");
@@ -64,8 +73,8 @@ const AdminLayout = () => {
     { path: "/admin/certificates", icon: <FaCertificate />, label: "Certificates" },
     { path: "/admin/payments/history", icon: <FaUsers />, label: "Payments" },
     { path: "/admin/coupons", icon: <FaTicketAlt />, label: "Coupons" },
-    {path: "/admin/enquiries", icon: <FaUsers />, label: "Enquiries"},
-    {path:"/admin/internship-requests", icon: <FaUsers />, label: "Internship Requests"},
+    { path: "/admin/enquiries", icon: <FaUsers />, label: "Enquiries" },
+    { path: "/admin/internship-requests", icon: <FaUsers />, label: "Internship Requests" },
     {
       path: "/admin/notifications",
       icon: <FaBell />,
@@ -86,9 +95,14 @@ const AdminLayout = () => {
         "/admin/coupons",
         "/admin/activity",
         "/admin/certificates",
-        // "/admin/payments/history",
       ];
       return !hiddenForStaff.includes(item.path);
+    }
+
+    // Assistant: only allow enquiries
+    if (user.is_assistant && !user.is_superadmin && !user.is_staff_admin) {
+      const allowedForAssistant = ["/admin/enquiries"];
+      return allowedForAssistant.includes(item.path);
     }
 
     // Superadmin: show everything
@@ -114,15 +128,14 @@ const AdminLayout = () => {
             style={{
               width: "60px",
               height: "60px",
-              borderRadius: "50%",   // ⬅️ makes it circular
+              borderRadius: "50%",
               objectFit: "cover",
               marginRight: "12px",
-              border: "2px solid white" // optional: adds a clean border
+              border: "2px solid white",
             }}
           />
           <div>
-          <h6 style={styles.logo}>Parach ICT Academy</h6>
-          {/* <h3 style={styles.logo}>Admin Panel</h3> */}
+            <h6 style={styles.logo}>Parach ICT Academy</h6>
           </div>
           <button
             style={styles.toggleBtn}
@@ -170,6 +183,8 @@ const AdminLayout = () => {
                     ? "Super Admin"
                     : user.is_staff_admin
                     ? "Staff"
+                    : user.is_assistant
+                    ? "Assistant"
                     : "User"}
                 </p>
               </div>
@@ -205,12 +220,23 @@ const AdminLayout = () => {
 
         {/* Page Content */}
         <div style={styles.content}>
-          <Outlet />
+          {!user ? (
+            <div style={{ padding: "20px", textAlign: "center" }}>
+              Loading dashboard...
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </div>
       </main>
 
       {/* Overlay for mobile */}
-      {sidebarOpen && <div style={styles.overlay} onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && (
+        <div
+          style={styles.overlay}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
-import { CheckCircle, XCircle, User, Search } from "lucide-react";
+import { CheckCircle, XCircle, User, Search, Plus, X } from "lucide-react";
 
 const StaffManagement = () => {
   const [users, setUsers] = useState([]);
@@ -9,8 +9,18 @@ const StaffManagement = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // ✅ Default filter to staff only
-  const [filter, setFilter] = useState("true");
+  // ✅ Filter defaults to staff only, options: staff / assistant
+  const [filter, setFilter] = useState("staff");
+
+  // Add User modal state
+  const [showModal, setShowModal] = useState(false);
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    password: "",
+    is_staff_admin: false,
+    is_assistant: false,
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -19,14 +29,17 @@ const StaffManagement = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/admin-panel/paginated-users/", {
-        params: {
-          search,
-          page,
-          per_page: 20,
-          is_staff_admin: filter || undefined,
-        },
-      });
+      const params = {
+        search,
+        page,
+        per_page: 20,
+      };
+
+      // Only request staff or assistants
+      if (filter === "staff") params.is_staff_admin = true;
+      if (filter === "assistant") params.is_assistant = true;
+
+      const res = await api.get("/admin-panel/paginated-users/", { params });
       setUsers(res.data.results);
       setTotalPages(Math.ceil(res.data.count / 20));
     } catch (err) {
@@ -42,20 +55,26 @@ const StaffManagement = () => {
     fetchUsers();
   };
 
-  const toggleStaff = async (id, currentStatus) => {
+  const createUser = async () => {
+    if (!newUser.name || !newUser.email) {
+      alert("Name and email are required");
+      return;
+    }
     try {
-      const res = await api.post("/admin-panel/toggle-staff-role/", {
-        user_id: id,
-        is_staff_admin: !currentStatus,
-      });
+      const res = await api.post("/admin-panel/create-user/", newUser);
       alert(res.data.message);
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === id ? { ...u, is_staff_admin: !currentStatus } : u
-        )
-      );
+      setUsers((prev) => [res.data.user, ...prev]);
+      setNewUser({
+        name: "",
+        email: "",
+        password: "",
+        is_staff_admin: false,
+        is_assistant: false,
+      });
+      setShowModal(false);
     } catch (err) {
-      console.error("Toggle staff failed:", err);
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to create user");
     }
   };
 
@@ -73,21 +92,30 @@ const StaffManagement = () => {
           <User size={26} style={{ marginRight: 8 }} /> Staff Management
         </h1>
 
-        <form style={styles.searchForm} onSubmit={handleSearch}>
-          <div style={styles.searchContainer}>
-            <Search size={18} color="#6b7280" />
-            <input
-              type="text"
-              placeholder="Search by name or email"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={styles.searchInput}
-            />
-          </div>
-          <button type="submit" style={styles.searchBtn}>
-            Search
+        <div style={{ display: "flex", gap: 10 }}>
+          <form style={styles.searchForm} onSubmit={handleSearch}>
+            <div style={styles.searchContainer}>
+              <Search size={18} color="#6b7280" />
+              <input
+                type="text"
+                placeholder="Search by name or email"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={styles.searchInput}
+              />
+            </div>
+            <button type="submit" style={styles.searchBtn}>
+              Search
+            </button>
+          </form>
+
+          <button
+            onClick={() => setShowModal(true)}
+            style={{ ...styles.searchBtn, display: "flex", alignItems: "center", gap: "6px" }}
+          >
+            <Plus size={16} /> Add User
           </button>
-        </form>
+        </div>
       </div>
 
       <div style={styles.filterBar}>
@@ -97,9 +125,8 @@ const StaffManagement = () => {
           onChange={(e) => setFilter(e.target.value)}
           style={styles.filterSelect}
         >
-          <option value="">All</option>
-          <option value="true">Staff Only</option>
-          <option value="false">Non-Staff</option>
+          <option value="staff">Staff Only</option>
+          <option value="assistant">Assistant Only</option>
         </select>
       </div>
 
@@ -110,7 +137,7 @@ const StaffManagement = () => {
               <th style={styles.th}>Name</th>
               <th style={styles.th}>Email</th>
               <th style={styles.th}>Staff Role</th>
-              <th style={styles.th}>Action</th>
+              <th style={styles.th}>Assistant</th>
             </tr>
           </thead>
           <tbody>
@@ -130,22 +157,17 @@ const StaffManagement = () => {
                   )}
                 </td>
                 <td style={{ ...styles.td, textAlign: "center" }}>
-                  <button
-                    style={{
-                      ...styles.actionBtn,
-                      backgroundColor: u.is_staff_admin ? "#ef4444" : "#3b82f6",
-                    }}
-                    onClick={() => toggleStaff(u.id, u.is_staff_admin)}
-                  >
-                    {u.is_staff_admin ? "Demote" : "Promote"}
-                  </button>
+                  {u.is_assistant ? (
+                    <span style={styles.activeRole}>Yes</span>
+                  ) : (
+                    <span style={styles.inactiveRole}>No</span>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        {/* Pagination */}
         <div style={styles.pagination}>
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -172,10 +194,64 @@ const StaffManagement = () => {
           </button>
         </div>
       </div>
+
+      {/* Add User Modal */}
+      {showModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modal}>
+            <div style={styles.modalHeader}>
+              <h3>Add New User</h3>
+              <button onClick={() => setShowModal(false)}><X /></button>
+            </div>
+            <div style={styles.modalBody}>
+              <input
+                placeholder="Name"
+                value={newUser.name}
+                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                style={styles.modalInput}
+              />
+              <input
+                placeholder="Email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                style={styles.modalInput}
+              />
+              <input
+                placeholder="Password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                style={styles.modalInput}
+              />
+              <label>
+                <input
+                  type="checkbox"
+                  checked={newUser.is_staff_admin}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, is_staff_admin: e.target.checked })
+                  }
+                /> Staff Admin
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={newUser.is_assistant}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, is_assistant: e.target.checked })
+                  }
+                /> Assistant
+              </label>
+            </div>
+            <div style={styles.modalFooter}>
+              <button onClick={createUser} style={styles.searchBtn}>Create User</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
+// ✅ Add some modal styles
 const styles = {
   wrapper: {
     background: "#f9fafb",
@@ -326,6 +402,47 @@ const styles = {
   loadingText: {
     fontSize: "16px",
     color: "#6b7280",
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2000,
+  },
+  modal: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    width: "400px",
+    padding: 20,
+    boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+  },
+  modalHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  modalBody: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    marginBottom: 12,
+  },
+  modalInput: {
+    padding: 10,
+    borderRadius: 6,
+    border: "1px solid #d1d5db",
+    fontSize: 14,
+  },
+  modalFooter: {
+    display: "flex",
+    justifyContent: "flex-end",
   },
 };
 
