@@ -72,7 +72,7 @@ export default function VerifyOTP() {
       email,
       code: otpCode,
     });
-    console.log("OTP RESPONSE:", verifyRes.data);
+   
     toast.success("Email verified!");
 
     // Step 2: Log in with email, password, and OTP code to get token
@@ -81,12 +81,11 @@ export default function VerifyOTP() {
       password,
       code: otpCode,
     });
-    console.log("LOGIN RESPONSE:", loginRes.data);
-
+  
     // 🚀 SAVE TOKEN from login response
     if (loginRes.data.token) {
       localStorage.setItem("token", loginRes.data.token);
-      console.log("✅ Token saved from login response");
+   
     } else {
       console.error("❌ No token in login response:", loginRes.data);
       toast.error("Login failed: No token received");
@@ -108,11 +107,6 @@ export default function VerifyOTP() {
     if (loginRes.data.username) {
       localStorage.setItem("username", loginRes.data.username);
     }
-
-    // Debug: log saved token and role
-    console.log('Saved token (localStorage.token):', localStorage.getItem('token'));
-    console.log('Saved role (localStorage.role):', localStorage.getItem('role'));
-
     toast.success("Logged in! Redirecting to dashboard...");
 
     // Redirect to dashboard

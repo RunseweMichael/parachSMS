@@ -63,7 +63,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 
   
   if (!token) {
-    console.log('[ProtectedRoute] No token → redirecting to /signin');
+  
     return <Navigate to="/signin" replace />;
   }
 
@@ -77,7 +77,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
       
       if (checkRole !== requiredRole) {
       
-        console.log('[ProtectedRoute] Role mismatch → redirecting');
+ 
         return <Navigate to={checkRole === 'student' ? '/student/dashboard' : '/signin'} replace />;
       }
     } catch (error) {

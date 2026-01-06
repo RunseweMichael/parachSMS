@@ -12,282 +12,9 @@ import {
 } from 'lucide-react';
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
+import CourseQuestions from '../../data/mockCoursesData'
 
-const mockCoursesData = {
-  // ====================================
-  // 1. WEB DEVELOPMENT (Key: "Web Development")
-  // ====================================
-  "Web Development": {
-    id: 1, // Keep the ID inside the object for submission
-    course_name: "Web Development",
-    modules: [
-      // HTML Module (ID: 10)
-      {
-        id: 10,
-        name: "HTML",
-        weeks: [
-          {
-            id: 100, // Week ID
-            weekNumber: 1,
-            title: "HTML Structure & Tags",
-            tasks: [
-              { id: 1001, question: "HTML stands for?", options: ["Hyper Text Makeup Language", "Hyper Text Markup Language", "Home Tool Markup Language"], correctAnswer: 1 },
-              { id: 1002, question: "Which tag is used for the largest heading?", options: ["<h1>", "<h6>", "<head>", "<title>"], correctAnswer: 0 },
-            ]
-          },
-        ]
-      },
-      // CSS Module (ID: 11)
-      {
-        id: 11,
-        name: "CSS",
-        weeks: [
-          {
-            id: 101, // Week ID
-            weekNumber: 1,
-            title: "CSS Selectors & Styling",
-            tasks: [
-              { id: 1011, question: "CSS stands for?", options: ["Computer Style Sheets", "Cascading Style Sheets", "Creative Style Sheets"], correctAnswer: 1 },
-              { id: 1012, question: "Which changes text color?", options: ["font-color", "color", "text-color"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      },
-      // JavaScript Module (ID: 12)
-      {
-        id: 12,
-        name: "JavaScript",
-        weeks: [
-          {
-            id: 102, // Week ID
-            weekNumber: 1,
-            title: "JS Variables & Data Types",
-            tasks: [
-              { id: 1021, question: "Which keyword is NOT used to declare a variable in modern JS?", options: ["var", "let", "const", "def"], correctAnswer: 3 },
-              { id: 1022, question: "How do you output data to the web console?", options: ["console.print()", "print()", "console.log()"], correctAnswer: 2 },
-            ]
-          },
-        ]
-      }
-    ]
-  },
 
-  // ====================================
-  // 2. BACKEND DEVELOPMENT (Key: "Backend Development")
-  // ====================================
-  "Backend Development": {
-    id: 2,
-    course_name: "Backend Development",
-    modules: [
-      // Python Module (ID: 20)
-      {
-        id: 20,
-        name: "Python",
-        weeks: [
-          {
-            id: 200, // Week ID
-            weekNumber: 1,
-            title: "Python Data Structures",
-            tasks: [
-              { id: 2001, question: "Which Python data type is immutable?", options: ["List", "Dictionary", "Tuple"], correctAnswer: 2 },
-              { id: 2002, question: "The main purpose of the 'pass' statement is:", options: ["Skip iteration", "Exit a loop", "Act as a placeholder"], correctAnswer: 2 },
-            ]
-          },
-        ]
-      },
-      // Django Module (ID: 21)
-      {
-        id: 21,
-        name: "Django",
-        weeks: [
-          {
-            id: 201, // Week ID
-            weekNumber: 1,
-            title: "Django Project Structure",
-            tasks: [
-              { id: 2011, question: "What file handles URL routing in Django?", options: ["views.py", "settings.py", "urls.py"], correctAnswer: 2 },
-              { id: 2012, question: "ORM stands for?", options: ["Object Related Module", "Object-Relational Mapping", "Output Rendering Model"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      },
-      // Git & GitHub Module (ID: 22)
-      {
-        id: 22,
-        name: "Git & GitHub",
-        weeks: [
-          {
-            id: 202, // Week ID
-            weekNumber: 1,
-            title: "Version Control Basics",
-            tasks: [
-              { id: 2021, question: "Command to create a new branch in Git?", options: ["git branch new-name", "git create branch", "git checkout -b new-name"], correctAnswer: 2 },
-              { id: 2022, question: "What is a 'pull request' on GitHub?", options: ["Downloading code", "Asking to merge a branch", "Committing changes"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      }
-    ]
-  },
-
-  // ====================================
-  // 3. DATA SCIENCE (Key: "Data Science")
-  // ====================================
-  "Data Science": {
-    id: 3,
-    course_name: "Data Science",
-    modules: [
-      // Excel Module (ID: 30)
-      {
-        id: 30,
-        name: "Excel",
-        weeks: [
-          {
-            id: 300, // Week ID
-            weekNumber: 1,
-            title: "Excel Formulas & Functions",
-            tasks: [
-              { id: 3001, question: "Function used for conditional sum?", options: ["SUM()", "IFSUM()", "SUMIF()"], correctAnswer: 2 },
-              { id: 3002, question: "What is an absolute reference in Excel?", options: ["A$1", "$A$1", "A1$"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      },
-      // Python Module (ID: 31)
-      {
-        id: 31,
-        name: "Python",
-        weeks: [
-          {
-            id: 301, // Week ID
-            weekNumber: 1,
-            title: "Python Setup for DS",
-            tasks: [
-              { id: 3011, question: "What is the primary environment for Python in DS?", options: ["VS Code", "Jupyter Notebook", "Sublime Text"], correctAnswer: 1 },
-              { id: 3012, question: "Which is a good practice for virtual environments?", options: ["pip freeze", "pip install env", "python -m venv"], correctAnswer: 2 },
-            ]
-          },
-        ]
-      },
-      // Numpy Module (ID: 32)
-      {
-        id: 32,
-        name: "Numpy",
-        weeks: [
-          {
-            id: 302, // Week ID
-            weekNumber: 1,
-            title: "Numpy Arrays",
-            tasks: [
-              { id: 3021, question: "Main data structure in NumPy?", options: ["DataFrame", "np.array", "List"], correctAnswer: 1 },
-              { id: 3022, question: "What does `shape` property return?", options: ["Size in bytes", "Dimensions of the array", "Data type"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      },
-      // Pandas Module (ID: 33)
-      {
-        id: 33,
-        name: "Pandas",
-        weeks: [
-          {
-            id: 303, // Week ID
-            weekNumber: 1,
-            title: "DataFrames and Series",
-            tasks: [
-              { id: 3031, question: "The 2-dimensional data structure in Pandas is the:", options: ["Series", "DataFrame", "Panel"], correctAnswer: 1 },
-              { id: 3032, question: "How do you handle missing values in Pandas?", options: ["df.remove_nan()", "df.fillna()", "df.skip_nulls()"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      }
-    ]
-  },
-
-  // ====================================
-  // 4. DATA ANALYTICS (Key: "Data Analytics")
-  // ====================================
-  "Data Analytics": {
-    id: 4,
-    course_name: "Data Analytics",
-    modules: [
-      // Advanced Excel Module (ID: 40)
-      {
-        id: 40,
-        name: "Advanced Excel",
-        weeks: [
-          {
-            id: 400, // Week ID
-            weekNumber: 1,
-            title: "VLOOKUP & HLOOKUP",
-            tasks: [
-              { id: 4001, question: "Which function is better for complex lookups (VLOOKUP, HLOOKUP, XLOOKUP)?", options: ["VLOOKUP", "HLOOKUP", "XLOOKUP"], correctAnswer: 2 },
-              { id: 4002, question: "What does the `range_lookup` argument in VLOOKUP specify?", options: ["The lookup range", "Exact or approximate match", "The column number"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      },
-      // SQL Module (ID: 41)
-      {
-        id: 41,
-        name: "SQL",
-        weeks: [
-          {
-            id: 401, // Week ID
-            weekNumber: 1,
-            title: "Data Retrieval and Filtering",
-            tasks: [
-              { id: 4011, question: "Which SQL clause is used to filter records?", options: ["SELECT", "FROM", "WHERE"], correctAnswer: 2 },
-              { id: 4012, question: "The `INNER JOIN` keyword returns:", options: ["All rows from both tables", "Matching rows only", "Non-matching rows only"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      }
-    ]
-  },
-
-  // ====================================
-  // 5. GRAPHIC DESIGN (Key: "Graphic Design")
-  // ====================================
-  "Graphic Design": {
-    id: 5,
-    course_name: "Graphic Design",
-    modules: [
-      // CorelDraw Module (ID: 50)
-      {
-        id: 50,
-        name: "CorelDraw",
-        weeks: [
-          {
-            id: 500, // Week ID
-            weekNumber: 1,
-            title: "Vector Graphics Fundamentals",
-            tasks: [
-              { id: 5001, question: "CorelDraw primarily creates which type of image?", options: ["Raster", "Bitmap", "Vector"], correctAnswer: 2 },
-              { id: 5002, question: "The tool used to reshape objects is called the:", options: ["Pick Tool", "Shape Tool", "Crop Tool"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      },
-      // Figma Module (ID: 51)
-      {
-        id: 51,
-        name: "Figma",
-        weeks: [
-          {
-            id: 501, // Week ID
-            weekNumber: 1,
-            title: "Figma Interface and Prototyping",
-            tasks: [
-              { id: 5011, question: "Figma is primarily used for:", options: ["3D Modeling", "UI/UX Design", "Photo Editing"], correctAnswer: 1 },
-              { id: 5012, question: "What is an 'Auto Layout' in Figma?", options: ["A grid system", "A feature for responsive design", "A pre-designed template"], correctAnswer: 1 },
-            ]
-          },
-        ]
-      }
-    ]
-  }
-};
 
 export default function TaskManagementSystem() {
   const [student, setStudent] = useState(null);
@@ -378,9 +105,7 @@ export default function TaskManagementSystem() {
     }
   }, []);
 
-  // Main loader
- // Main loader
-// Main loader
+
 const fetchProfile = useCallback(async () => {
     try {
         setLoading(true);
@@ -388,12 +113,12 @@ const fetchProfile = useCallback(async () => {
 
         const res = await api.get("/students/users/me");
         
-        // FIX: Handle if response is an array OR a single object
+
         const studentData = Array.isArray(res.data) ? res.data[0] : res.data;
 
         if (!studentData) throw new Error("No profile found");
 
-        // ... [Payment lock logic remains the same]
+    
         const nextDue = studentData.next_due_date ? new Date(studentData.next_due_date) : null;
         const today = new Date();
         const isOverdue = nextDue && nextDue < new Date(today.setHours(0,0,0,0));
@@ -407,14 +132,14 @@ const fetchProfile = useCallback(async () => {
             return;
         }
 
-        // --- NEW: Extract course name ---
+      
         let courseName = studentData.course?.course_name || studentData.course?.name || studentData.course;
 
         if (!courseName) throw new Error("No course assigned");
 
         let courseData = null;
 
-        // 1. Try real backend first using course ID (if available)
+
         const courseId = studentData.course?.id || studentData.course;
         if (courseId && typeof courseId === 'number') {
             try {
@@ -428,16 +153,15 @@ const fetchProfile = useCallback(async () => {
             console.warn("No valid course ID from backend, falling directly to mock");
         }
 
-        // 2. Fallback to mock data using course NAME
+        
         if (!courseData) {
-            // Normalize the name to handle potential slight case differences (e.g., 'Backend Development' vs 'backend development')
-            const normalizedCourseName = String(courseName).trim();
+                    const normalizedCourseName = String(courseName).trim();
             
-            // This is the CRITICAL change: uses the NAME key for lookup
+           
             courseData = mockCoursesData[normalizedCourseName]; 
             
             if (!courseData) {
-                // If direct lookup fails, try matching keys by converting them to lowercase
+               
                 const lowerCaseName = normalizedCourseName.toLowerCase();
                 const matchedKey = Object.keys(mockCoursesData).find(key => key.toLowerCase() === lowerCaseName);
                 

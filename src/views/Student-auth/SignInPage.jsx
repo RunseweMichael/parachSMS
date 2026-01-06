@@ -37,7 +37,6 @@ export default function SignInPage() {
       });
 
       setSuccess("OTP sent to your email.");
-      console.log("SEND OTP RESPONSE:", res.data);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to send OTP.");
     }
@@ -64,7 +63,7 @@ export default function SignInPage() {
         code: otp,
       });
 
-      console.log("LOGIN RESPONSE:", res.data);
+     
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user_id", res.data.user_id);
@@ -88,7 +87,7 @@ export default function SignInPage() {
       }, 1200);
 
     } catch (err) {
-      console.log("LOGIN ERROR:", err.response?.data);
+     
 
       const errorMsg =
         err.response?.data?.error ||

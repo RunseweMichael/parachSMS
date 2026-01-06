@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import api from "../../api";
 import useLogout from "../../hooks/useLogout";
-import usePaymentStatus from "../../hooks/usePaymentStatus";
+// import usePaymentStatus from "../../hooks/usePaymentStatus";
 import logoImg from "../../assets/1000561121.jpg";
 
 export default function Sidebar() {
@@ -26,7 +26,7 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const logout = useLogout();
-  const { isLocked, loading } = usePaymentStatus();
+  // const { isLocked, loading } = usePaymentStatus();
 
   useEffect(() => {
     const saved = localStorage.getItem("darkMode");
@@ -85,7 +85,7 @@ export default function Sidebar() {
 
   const renderMenuItem = (item, active, isMobile = false) => {
     // Payment page is always accessible
-    const isAccessible = item.alwaysAccessible || !isLocked;
+    // const isAccessible = item.alwaysAccessible || !isLocked;
     
     // Handle Internship special case
     if (item.name === "Internship") {
@@ -116,18 +116,18 @@ export default function Sidebar() {
     }
 
     // Locked items (non-payment pages)
-    if (!isAccessible) {
-      return (
-        <div
-          title="Payment required to access"
-          className="flex items-center gap-3 p-3 rounded-lg text-blue-100 opacity-50 cursor-not-allowed"
-        >
-          {item.icon}
-          {(open || isMobile) && <span className="text-sm">{item.name}</span>}
-          <Lock className="w-4 h-4 ml-auto" />
-        </div>
-      );
-    }
+    // if (!isAccessible) {
+    //   return (
+    //     <div
+    //       title="Payment required to access"
+    //       className="flex items-center gap-3 p-3 rounded-lg text-blue-100 opacity-50 cursor-not-allowed"
+    //     >
+    //       {item.icon}
+    //       {(open || isMobile) && <span className="text-sm">{item.name}</span>}
+    //       <Lock className="w-4 h-4 ml-auto" />
+    //     </div>
+    //   );
+    // }
 
     // Accessible items
     return (
@@ -148,9 +148,9 @@ export default function Sidebar() {
     );
   };
 
-  if (loading) {
-    return null; // Or a loading spinner
-  }
+  // if (loading) {
+  //   return null; // Or a loading spinner
+  // }
 
   return (
     <>
@@ -174,7 +174,7 @@ export default function Sidebar() {
         </div>
 
         {/* Payment Lock Warning */}
-        {isLocked && open && (
+        {/* {isLocked && open && (
           <div className="mx-3 mt-4 p-3 bg-red-500/20 border border-red-400/30 rounded-lg">
             <div className="flex items-center gap-2 text-red-100 mb-1">
               <Lock className="w-4 h-4" />
@@ -182,7 +182,7 @@ export default function Sidebar() {
             </div>
             <p className="text-xs text-red-100/80">Payment overdue</p>
           </div>
-        )}
+        )} */}
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto mt-5">
