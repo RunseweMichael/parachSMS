@@ -13,11 +13,13 @@ import SignInPage from './views/Student-auth/SignInPage.jsx';
 import SignInOTP from './views/Student-auth/SignInOTP.jsx';
 import Student from './layout/Student.jsx';
 import AdminLayout from './pages/AdminDashboard/AdminLayout';
+import ForgotPassword from './views/Student-auth/ForgotPassword.jsx';
+import ResetPassword from './views/Student-auth/ResetPassword.jsx';
 
 // Student Auth
 import RegistrationForm from './components/Students/RegistrationForm';
 import VerifyOTP from './components/Students/VerifyOTP.jsx';
-import ResetPassword from './components/Students/ResetPassword';
+// import ResetPassword from './components/Students/ResetPassword';
 
 // Student Interface
 import StudentDashboard from './views/Student-Interface/Dashboard.jsx';
@@ -40,6 +42,8 @@ import PaymentHistory from './pages/PaymentHistory';
 import CouponAdmin from './pages/CouponAdmin';
 import StaffManagement from './pages/StaffManagement';
 import AdminInternshipRequests from './pages/AdminInternshipRequests.jsx';
+import AdminForgotPassword from './pages/AdminForgotPassword.jsx';
+import AdminResetPassword from './pages/AdminResetPassword.jsx';
 
 // Courses
 import CourseList from './components/Course/CourseList';
@@ -104,9 +108,14 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegistrationForm />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        {/* <Route path="/reset-password" element={<ResetPassword />} /> */}
         <Route path="/choose" element={<LandingChoicePage />} />
         <Route path="/verify-certificate" element={<VerifyCertificate />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
+        <Route path="/admin/reset-password" element={<AdminResetPassword />} />
+
 
         {/* PUBLIC STUDENT ROUTES */}
         <Route path="/course/:id" element={<CourseDetails />} />

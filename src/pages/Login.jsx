@@ -75,6 +75,20 @@ const Login = () => {
           <button type="submit" style={styles.button} disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}
           </button>
+
+          <p
+            onClick={() => navigate("/admin/forgot-password")}
+            style={{
+            textAlign: "center",
+            fontSize: "13px",
+            color: "#1a237e",
+            cursor: "pointer",
+            marginTop: "10px",
+            }}
+          >
+            Forgot your password?
+          </p>
+
         </form>
       </div>
     </div>

@@ -118,6 +118,14 @@ export default function SignInPage() {
             Sign In
           </h1>
 
+          <p
+            onClick={() => navigate("/forgot-password")}
+            className="text-center text-sm text-gray-600 hover:underline cursor-pointer mt-3"
+            >
+              Forgot your password?
+          </p>
+
+
           {error && (
             <motion.p
               initial={{ opacity: 0, y: -10 }}
