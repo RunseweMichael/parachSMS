@@ -27,27 +27,11 @@ export default function Dashboard() {
   const featuredVideos = [
     {
       id: 1,
-      title: "Welcome to Parach ICT Academy",
-      description: "Get started with your learning journey at Parach ICT Academy",
-      videoId: "kykMRl8yJKs",
-      thumbnail: "https://img.youtube.com/vi/kykMRl8yJKs/maxresdefault.jpg",
-      category: "Introduction"
-    },
-    {
-      id: 2,
       title: "Tech Skills to Learn in 2025 and Beyond",
       description: "Stay ahead with the latest tech skills in demand",
-      videoId: "B1a_MConMFo", // Replace with actual YouTube video ID
+      videoId: "B1a_MConMFo",
       thumbnail: "https://img.youtube.com/vi/B1a_MConMFo/maxresdefault.jpg",
       category: "Tech Trends"
-    },
-    {
-      id: 3,
-      title: "WordPress Web Design Training",
-      description: "Hear from our graduates and their experiences",
-      videoId: "RMfXHytmVXA", // Replace with actual YouTube video ID
-      thumbnail: "https://img.youtube.com/vi/RMfXHytmVXA/maxresdefault.jpg",
-      category: "Web Design"
     }
   ];
 
