@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
-import { CheckCircle, XCircle, User, Search, Plus, X } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  User,
+  Search,
+  Plus,
+  X,
+  Trash2,
+} from "lucide-react";
 
 const StaffManagement = () => {
   const [users, setUsers] = useState([]);
@@ -8,11 +16,12 @@ const StaffManagement = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
-  // ✅ Filter defaults to staff only, options: staff / assistant
   const [filter, setFilter] = useState("staff");
 
-  // Add User modal state
+  // Super Admin state
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  // Add User modal
   const [showModal, setShowModal] = useState(false);
   const [newUser, setNewUser] = useState({
     name: "",
@@ -23,9 +32,21 @@ const StaffManagement = () => {
   });
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchUsers();
   }, [page, filter]);
 
+  // 🔐 Load current user and detect super admin
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await api.get("/students/me/");
+      setIsSuperAdmin(res.data.is_superadmin === true);
+    } catch (err) {
+      console.error("Failed to load current user:", err);
+    }
+  };
+
+  // 👥 Load staff users
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -35,12 +56,12 @@ const StaffManagement = () => {
         per_page: 20,
       };
 
-      // Only request staff or assistants
       if (filter === "staff") params.is_staff_admin = true;
       if (filter === "assistant") params.is_assistant = true;
 
       const res = await api.get("/admin-panel/paginated-users/", { params });
-      setUsers(res.data.results);
+
+      setUsers(res.data.results || []);
       setTotalPages(Math.ceil(res.data.count / 20));
     } catch (err) {
       console.error("Failed to load users:", err);
@@ -55,14 +76,17 @@ const StaffManagement = () => {
     fetchUsers();
   };
 
+  // ➕ Create User
   const createUser = async () => {
     if (!newUser.name || !newUser.email) {
       alert("Name and email are required");
       return;
     }
+
     try {
       const res = await api.post("/admin-panel/create-user/", newUser);
       alert(res.data.message);
+
       setUsers((prev) => [res.data.user, ...prev]);
       setNewUser({
         name: "",
@@ -75,6 +99,20 @@ const StaffManagement = () => {
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Failed to create user");
+    }
+  };
+
+  // ❌ Delete Staff (Super Admin only)
+  const handleDeleteUser = async (user) => {
+    if (!window.confirm(`Delete ${user.name || user.email}? This action is permanent.`)) return;
+
+    try {
+      const res = await api.delete(`/admin-panel/users/${user.id}/delete/`);
+      alert(res.data.message);
+      fetchUsers();
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert(err.response?.data?.error || "Failed to delete user");
     }
   };
 
@@ -136,8 +174,9 @@ const StaffManagement = () => {
             <tr>
               <th style={styles.th}>Name</th>
               <th style={styles.th}>Email</th>
-              <th style={styles.th}>Staff Role</th>
+              <th style={styles.th}>Staff Admin</th>
               <th style={styles.th}>Assistant</th>
+              {isSuperAdmin && <th style={styles.th}>Delete</th>}
             </tr>
           </thead>
           <tbody>
@@ -163,6 +202,23 @@ const StaffManagement = () => {
                     <span style={styles.inactiveRole}>No</span>
                   )}
                 </td>
+
+                {isSuperAdmin && (
+                  <td style={{ ...styles.td, textAlign: "center" }}>
+                    <button
+                      onClick={() => handleDeleteUser(u)}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#dc2626",
+                      }}
+                      title="Delete User"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -251,7 +307,7 @@ const StaffManagement = () => {
   );
 };
 
-// ✅ Add some modal styles
+/* styles remain unchanged */
 const styles = {
   wrapper: {
     background: "#f9fafb",
@@ -364,15 +420,6 @@ const styles = {
     justifyContent: "center",
     color: "#dc2626",
     fontWeight: "600",
-  },
-  actionBtn: {
-    padding: "8px 14px",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: "600",
-    transition: "all 0.2s",
   },
   pagination: {
     display: "flex",
