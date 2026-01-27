@@ -190,7 +190,9 @@ const CertificateManagement = () => {
                     <td style={styles.td}>{cert.student_name || "N/A"}</td>
                     <td style={styles.td}>{cert.course_name || "N/A"}</td>
                     <td style={styles.td}>
-                      {new Date(cert.issue_date).toLocaleDateString()}
+                      {cert.issue_date
+                        ? new Date(cert.issue_date).toLocaleDateString()
+                        : "—"}
                     </td>
                     <td style={styles.td}>
                       {hasOutstanding ? (
