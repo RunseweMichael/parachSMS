@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import api from "../../api";
-import { FaEdit, FaToggleOn, FaToggleOff, FaDownload } from "react-icons/fa";
+import { FaEdit, FaToggleOn, FaToggleOff, FaDownload, FaTrash } from "react-icons/fa";
+
 
 const StudentManagement = () => {
   const [students, setStudents] = useState([]);
@@ -140,6 +141,29 @@ const StudentManagement = () => {
       alert("Failed to perform bulk action");
     }
   };
+
+  const handleDeleteStudent = async (student) => {
+    const confirmed = window.confirm(
+      `⚠️ Are you sure you want to permanently delete this student?\n\n` +
+      `Name: ${student.name}\nEmail: ${student.email}\n\n` +
+      `This action CANNOT be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/students/users/${student.id}/`);
+      alert("✅ Student deleted successfully");
+      fetchStudents();
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert(
+        err?.response?.data?.error ||
+        "❌ Failed to delete student. You may not have permission."
+      );
+    }
+  };
+
 
   const handleExport = async () => {
     try {
@@ -328,16 +352,27 @@ const StudentManagement = () => {
                       </button>
                     </td>
                     <td>
-                      <button
-                        style={{
-                          ...styles.iconBtn,
-                          color: s.is_active ? "#f44336" : "#4CAF50",
-                        }}
-                        onClick={() => handleToggleActive(s.id)}
-                      >
-                        {s.is_active ? <FaToggleOff /> : <FaToggleOn />}
-                      </button>
-                    </td>
+  <div style={styles.actionCell}>
+    <button
+      style={{
+        ...styles.iconBtn,
+        color: s.is_active ? "#f44336" : "#4CAF50",
+      }}
+      onClick={() => handleToggleActive(s.id)}
+      title={s.is_active ? "Deactivate" : "Activate"}
+    >
+      {s.is_active ? <FaToggleOff /> : <FaToggleOn />}
+    </button>
+
+    <button
+      style={{ ...styles.iconBtn, color: "#f44336" }}
+      onClick={() => handleDeleteStudent(s)}
+      title="Delete Student"
+    >
+      <FaTrash />
+    </button>
+  </div>
+</td>
                   </tr>
                 ))}
               </tbody>
@@ -728,6 +763,13 @@ const styles = {
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" },
   cancelBtn: { padding: "10px 20px", backgroundColor: "#f5f5f5", color: "#333", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" },
   saveBtn: { padding: "10px 20px", backgroundColor: "#4CAF50", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" },
+  actionCell: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "8px",
+},
+
 };
 
 export default StudentManagement;
