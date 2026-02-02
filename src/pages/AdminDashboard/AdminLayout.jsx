@@ -69,6 +69,7 @@ const AdminLayout = () => {
     { path: "/admin", icon: <FaHome />, label: "Dashboard", exact: true },
     { path: "/admin/courses", icon: <FaHistory />, label: "Courses" },
     { path: "/admin/students", icon: <FaUsers />, label: "Students" },
+    { path: "/admin/add-student", icon: <FaUsers />, label: "Add Student" },
     { path: "/admin/staff-management", icon: <FaUserTie />, label: "Staff Management" },
     { path: "/admin/certificates", icon: <FaCertificate />, label: "Certificates" },
     { path: "/admin/payments/history", icon: <FaUsers />, label: "Payments" },

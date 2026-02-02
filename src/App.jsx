@@ -16,6 +16,7 @@ import AdminLayout from './pages/AdminDashboard/AdminLayout';
 import ForgotPassword from './views/Student-auth/ForgotPassword.jsx';
 import ResetPassword from './views/Student-auth/ResetPassword.jsx';
 
+import AdminAddStudent from './pages/AdminAddStudent.jsx';
 // Student Auth
 import RegistrationForm from './components/Students/RegistrationForm';
 import VerifyOTP from './components/Students/VerifyOTP.jsx';
@@ -156,6 +157,7 @@ function App() {
           <Route path="coupons" element={<CouponAdmin />} />
           <Route path="staff-management" element={<StaffManagement />} />
           <Route path="internship-requests" element={<AdminInternshipRequests />} />
+          <Route path="add-student" element={<AdminAddStudent />} />
 
           {/* COURSE ROUTES */}
           <Route path="courses">
