@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"; 
 import { Link } from "react-router-dom";
-import { FiEdit, FiTrash2, FiMail, FiSearch, FiFilter, FiPlus, FiCheckCircle, FiClock } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiMail, FiSearch, FiFilter, FiPlus, FiCheckCircle, FiClock, FiInfo } from "react-icons/fi";
 import api from "../../api";
 
 const EnquiryList = () => {
@@ -16,9 +16,13 @@ const EnquiryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
+  const [registrationFilter, setRegistrationFilter] = useState("All");
+
 
   const CENTER_OPTIONS = ["Orogun", "Samonda", "Online"];
   const STATUS_OPTIONS = ["NEW", "FOLLOWED_UP"];
+  const REGISTRATION_OPTIONS = ["All", "Registered", "Not Registered"];
+
 
   // Fetch enquiries and courses
   const fetchData = async () => {
@@ -138,13 +142,23 @@ const EnquiryList = () => {
       temp = temp.filter(e => e.course === courseFilter);
     }
 
+    if (registrationFilter !== "All") {
+      temp = temp.filter(e =>
+        registrationFilter === "Registered"
+          ? e.has_registered === true
+          : e.has_registered === false
+        );
+      }
+
+
     setFiltered(temp);
     setCurrentPage(1);
   };
 
   useEffect(() => {
     applyFilters();
-  }, [search, centerFilter, statusFilter, courseFilter, enquiries]);
+  }, [search, centerFilter, statusFilter, courseFilter, registrationFilter, enquiries]);
+
 
   // Pagination
   const indexOfLast = currentPage * itemsPerPage;
@@ -272,6 +286,17 @@ const EnquiryList = () => {
                 ))}
               </select>
 
+              <select
+                value={registrationFilter}
+                onChange={e => setRegistrationFilter(e.target.value)}
+                className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+              >
+                {REGISTRATION_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+
+
               {/* Status Filter */}
               <select
                 value={statusFilter}
@@ -364,6 +389,12 @@ const EnquiryList = () => {
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold text-slate-900">{enquiry.name}</span>
+                        {enquiry.has_registered && (
+                          <span className="inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                          Registered
+                          </span>
+                )}
+
                         <span className="text-xs text-slate-500">{enquiry.gender}</span>
                       </div>
                     </td>
@@ -420,13 +451,29 @@ const EnquiryList = () => {
                         >
                           <FiTrash2 className="text-base" />
                         </button>
-                        <button
-                          onClick={() => sendEmail(enquiry)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-all hover:shadow-md"
-                          title="Send email & SMS"
-                        >
-                          <FiMail className="text-base" />
-                        </button>
+                        <div className="relative group">
+  <button
+    onClick={() => !enquiry.has_registered && sendEmail(enquiry)}
+    disabled={enquiry.has_registered}
+    className={`p-2 rounded-lg transition-all ${
+      enquiry.has_registered
+        ? "bg-slate-300 text-slate-500 cursor-not-allowed"
+        : "bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md"
+    }`}
+  >
+    <FiMail className="text-base" />
+  </button>
+
+  {enquiry.has_registered && (
+    <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+        <FiInfo className="text-sm" />
+        Already registered
+      </div>
+    </div>
+  )}
+</div>
+
                       </div>
                     </td>
                   </tr>
