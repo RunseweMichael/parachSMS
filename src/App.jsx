@@ -45,6 +45,7 @@ import StaffManagement from './pages/StaffManagement';
 import AdminInternshipRequests from './pages/AdminInternshipRequests.jsx';
 import AdminForgotPassword from './pages/AdminForgotPassword.jsx';
 import AdminResetPassword from './pages/AdminResetPassword.jsx';
+import AdminDashboard from './pages/AdminDashboard/CourseDashboard.jsx';
 
 // Courses
 import CourseList from './components/Course/CourseList';
@@ -116,6 +117,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
         <Route path="/admin/reset-password" element={<AdminResetPassword />} />
+        
 
 
         {/* PUBLIC STUDENT ROUTES */}
@@ -149,6 +151,7 @@ function App() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="course-dashboard" element={<AdminDashboard />} />
           <Route path="students" element={<StudentManagement />} />
           <Route path="certificates" element={<CertificateManagement />} />
           <Route path="notifications" element={<Notifications />} />
@@ -158,6 +161,7 @@ function App() {
           <Route path="staff-management" element={<StaffManagement />} />
           <Route path="internship-requests" element={<AdminInternshipRequests />} />
           <Route path="add-student" element={<AdminAddStudent />} />
+          
 
           {/* COURSE ROUTES */}
           <Route path="courses">

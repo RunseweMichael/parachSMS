@@ -68,6 +68,7 @@ const AdminLayout = () => {
   const allMenuItems = [
     { path: "/admin", icon: <FaHome />, label: "Dashboard", exact: true },
     { path: "/admin/courses", icon: <FaHistory />, label: "Courses" },
+    { path: "/admin/course-dashboard", icon: <FaHistory />, label: "Course Dashboard" },
     { path: "/admin/students", icon: <FaUsers />, label: "Students" },
     { path: "/admin/add-student", icon: <FaUsers />, label: "Add Student" },
     { path: "/admin/staff-management", icon: <FaUserTie />, label: "Staff Management" },
@@ -96,6 +97,7 @@ const AdminLayout = () => {
         "/admin/coupons",
         "/admin/activity",
         "/admin/certificates",
+        "/admin/attendance",
       ];
       return !hiddenForStaff.includes(item.path);
     }
