@@ -6142,4 +6142,424 @@ const mockCoursesData = {
   }
 };
 
+mockCoursesData["Digital Marketing (Advanced)"] = {
+  id: 32,
+  course_name: "Digital Marketing (Advanced)",
+  modules: [
+    {
+      id: 320,
+      name: "SEO & Content",
+      weeks: [
+        {
+          id: 32000,
+          weekNumber: 1,
+          title: "Advanced SEO Strategy",
+          tasks: [
+            {
+              id: 320001,
+              question: "What is 'Search Intent' in SEO?",
+              options: [
+                "The speed at which a user types",
+                "The underlying reason why a user performs a specific search",
+                "The number of keywords on a page"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 320002,
+              question: "Which type of SEO focuses on improving elements within your own website?",
+              options: ["Off-Page SEO", "On-Page SEO", "Technical SEO"],
+              correctAnswer: 1
+            },
+            {
+              id: 320003,
+              question: "What is a 'Backlink'?",
+              options: [
+                "A link from one website to another",
+                "The back button on a browser",
+                "A link to a previous version of a website"
+              ],
+              correctAnswer: 0
+            },
+            {
+              id: 320004,
+              question: "What is the purpose of a 'Meta Description'?",
+              options: [
+                "To host the website's images",
+                "To provide a brief summary of a page in search results",
+                "To encrypt the website's data"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 320005,
+              question: "What is 'Keyword Stuffing'?",
+              options: [
+                "Using keywords naturally in a blog",
+                "Overloading a webpage with keywords to manipulate rankings (unethical)",
+                "Finding new keywords for a campaign"
+              ],
+              correctAnswer: 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 321,
+      name: "Google Ads",
+      weeks: [
+        {
+          id: 32100,
+          weekNumber: 1,
+          title: "Advanced Search Engine Marketing",
+          tasks: [
+            {
+              id: 321001,
+              question: "What does 'PPC' stand for?",
+              options: ["Point Per Customer", "Pay Per Click", "Price Per Conversion"],
+              correctAnswer: 1
+            },
+            {
+              id: 321002,
+              question: "Which factor determines the 'Ad Rank' in Google Ads?",
+              options: [
+                "Only the bid amount",
+                "Bid amount, Ad quality, and context of the search",
+                "The date the account was created"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 321003,
+              question: "What are 'Negative Keywords' used for?",
+              options: [
+                "To target angry customers",
+                "To prevent your ad from showing for specific irrelevant search terms",
+                "To lower the cost of your website"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 321004,
+              question: "What is a 'Display Ad'?",
+              options: [
+                "A text-only ad on Google search",
+                "A visual/image-based ad shown on websites in the Google Network",
+                "An ad that only shows on shop windows"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 321005,
+              question: "What is 'Remarketing'?",
+              options: [
+                "Showing ads to people who have previously interacted with your site",
+                "Marketing to people in a different country",
+                "Changing the name of your brand"
+              ],
+              correctAnswer: 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 322,
+      name: "Email Marketing",
+      weeks: [
+        {
+          id: 32200,
+          weekNumber: 1,
+          title: "Email Strategy & Automation",
+          tasks: [
+            {
+              id: 322001,
+              question: "What is 'Email Segmentation'?",
+              options: [
+                "Sending every email to every subscriber",
+                "Breaking your email list into smaller groups based on specific criteria",
+                "Deleting emails that bounce"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 322002,
+              question: "What is a 'Soft Bounce' in email marketing?",
+              options: [
+                "A permanent delivery failure (invalid email)",
+                "A temporary delivery failure (e.g., full inbox)",
+                "When someone unsubscribes immediately"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 322003,
+              question: "What is 'Double Opt-In'?",
+              options: [
+                "When a user signs up twice",
+                "When a user signs up and then confirms via a follow-up email",
+                "When a user follows you on two platforms"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 322004,
+              question: "What is the 'Open Rate'?",
+              options: [
+                "The percentage of subscribers who clicked a link",
+                "The percentage of sent emails that were opened",
+                "The speed at which the email was opened"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 322005,
+              question: "Why is a 'Call to Action' (CTA) important in an email?",
+              options: [
+                "To make the email look colorful",
+                "To tell the reader exactly what action to take next",
+                "To provide the sender's phone number"
+              ],
+              correctAnswer: 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 323,
+      name: "Social Media Marketing",
+      weeks: [
+        {
+          id: 32300,
+          weekNumber: 1,
+          title: "Social Platforms & Engagement",
+          tasks: [
+            {
+              id: 323001,
+              question: "What is the difference between Reach and Impressions?",
+              options: [
+                "Reach is unique people; Impressions is total views",
+                "Reach is total views; Impressions is unique people",
+                "There is no difference"
+              ],
+              correctAnswer: 0
+            },
+            {
+              id: 323002,
+              question: "Which platform is primarily known as a 'Visual Discovery Engine'?",
+              options: ["Twitter/X", "Pinterest", "LinkedIn"],
+              correctAnswer: 1
+            },
+            {
+              id: 323003,
+              question: "What is 'Social Listening'?",
+              options: [
+                "Playing music on social media",
+                "Monitoring social media for mentions of your brand or industry",
+                "Counting the number of followers you have"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 323004,
+              question: "What is the primary benefit of 'User-Generated Content' (UGC)?",
+              options: [
+                "It is cheaper to produce",
+                "It builds trust and authenticity with the audience",
+                "It always goes viral"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 323005,
+              question: "What is an 'Influencer' in Social Media Marketing?",
+              options: [
+                "A software program",
+                "A person with the power to affect purchasing decisions of others",
+                "A type of paid advertisement"
+              ],
+              correctAnswer: 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 324,
+      name: "Marketing Analytics",
+      weeks: [
+        {
+          id: 32400,
+          weekNumber: 1,
+          title: "Data-Driven Decision Making",
+          tasks: [
+            {
+              id: 324001,
+              question: "What is a 'KPI' in marketing?",
+              options: [
+                "Key Performance Indicator",
+                "Keyword Processing Index",
+                "Knowledgeable Personal Interest"
+              ],
+              correctAnswer: 0
+            },
+            {
+              id: 324002,
+              question: "What does 'Bounce Rate' on a website represent?",
+              options: [
+                "The speed of the website",
+                "The percentage of visitors who leave after viewing only one page",
+                "The number of times a user clicks 'Back'"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 324003,
+              question: "What are 'UTM Parameters' used for?",
+              options: [
+                "To speed up the server",
+                "To track the specific source of traffic in analytics tools",
+                "To change the font on a website"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 324004,
+              question: "What is 'Attribution Modeling'?",
+              options: [
+                "Designing 3D models of products",
+                "Determining which marketing touchpoints get credit for a conversion",
+                "Calculating the total cost of a campaign"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 324005,
+              question: "What is 'ROI' (Return on Investment)?",
+              options: [
+                "The total amount of money spent",
+                "A measure of the profit gained relative to the cost of the marketing",
+                "The number of new followers gained"
+              ],
+              correctAnswer: 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 325,
+      name: "CMS (WordPress)",
+      weeks: [
+        {
+          id: 32500,
+          weekNumber: 1,
+          title: "Content Management Systems",
+          tasks: [
+            {
+              id: 325001,
+              question: "What does CMS stand for?",
+              options: [
+                "Creative Management System",
+                "Content Management System",
+                "Computer Metadata Software"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 325002,
+              question: "What is the main difference between WordPress.com and WordPress.org?",
+              options: [
+                "WordPress.org is self-hosted and offers full control",
+                "WordPress.com is only for developers",
+                "There is no difference"
+              ],
+              correctAnswer: 0
+            },
+            {
+              id: 325003,
+              question: "What are 'Plugins' in WordPress?",
+              options: [
+                "Themes for the website",
+                "Tools that add specific features or functionality",
+                "The core code of WordPress"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 325004,
+              question: "What is the name of the default block-based editor in WordPress?",
+              options: ["Classic Editor", "Gutenberg", "Elementor"],
+              correctAnswer: 1
+            },
+            {
+              id: 325005,
+              question: "Which programming language is primarily used for styling a WordPress theme?",
+              options: ["HTML", "PHP", "CSS"],
+              correctAnswer: 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 326,
+      name: "Graphics Design",
+      weeks: [
+        {
+          id: 32600,
+          weekNumber: 1,
+          title: "Visual Communication for Marketers",
+          tasks: [
+            {
+              id: 326001,
+              question: "What is the difference between 'Raster' and 'Vector' graphics?",
+              options: [
+                "Raster is made of pixels; Vector is made of mathematical paths",
+                "Raster is for printing; Vector is for web only",
+                "There is no difference"
+              ],
+              correctAnswer: 0
+            },
+            {
+              id: 326002,
+              question: "Which color mode should be used for designs intended for print?",
+              options: ["RGB", "CMYK", "HEX"],
+              correctAnswer: 1
+            },
+            {
+              id: 326003,
+              question: "What is 'Typography'?",
+              options: [
+                "The study of colors",
+                "The art and technique of arranging type (fonts)",
+                "The process of taking photos"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 326004,
+              question: "What does 'White Space' (Negative Space) refer to?",
+              options: [
+                "An error in the design",
+                "The empty space between design elements",
+                "The background color of a page"
+              ],
+              correctAnswer: 1
+            },
+            {
+              id: 326005,
+              question: "Which design principle helps create a clear order of importance for elements?",
+              options: ["Hierarchy", "Saturation", "Opacity"],
+              correctAnswer: 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
 export default mockCoursesData;

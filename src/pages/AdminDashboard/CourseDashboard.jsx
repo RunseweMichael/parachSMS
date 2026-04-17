@@ -454,7 +454,7 @@ const CourseDashboard = () => {
                     <th>Status</th>
                     <th>Payment</th>
                     <th>Center</th>
-                    <th>Actions</th>
+            
                   </tr>
                 </thead>
 
@@ -500,37 +500,6 @@ const CourseDashboard = () => {
                         </td>
 
                         <td>{student.center}</td>
-
-                        <td className="actions">
-
-                          <button
-                            onClick={() =>
-                              window.location.href =
-                                `/admin/students/${student.id}`
-                            }
-                          >
-                            View
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              window.location.href =
-                                `/admin/payments/${student.id}`
-                            }
-                          >
-                            Payments
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              window.location.href =
-                                `/admin/edit-student/${student.id}`
-                            }
-                          >
-                            Edit
-                          </button>
-
-                        </td>
 
                       </tr>
                     );
