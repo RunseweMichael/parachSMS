@@ -6562,4 +6562,336 @@ mockCoursesData["Digital Marketing (Advanced)"] = {
   ]
 };
 
+
+// ── KEY ALIASES (fix mismatches between API names and mock keys) ──────────────
+mockCoursesData["MS Office (Advanced)"]      = mockCoursesData["Advanced MS Office"];
+mockCoursesData["MS Office (Basic)"]         = mockCoursesData["Basic Microsoft Office"];
+mockCoursesData["MS Office (Intermediate)"]  = mockCoursesData["Intermediate Microsoft Office"];
+mockCoursesData["Power BI"]                  = mockCoursesData["PowerBI"];
+mockCoursesData["UiUx Design"]               = mockCoursesData["UiUx & Design"];
+mockCoursesData["Backend Web Development"]   = mockCoursesData["Backend Development"];
+
+// Fix the tab-character key issue for Fullstack Web Dev (Interm)
+mockCoursesData["Fullstack Web Dev (Interm)"] = mockCoursesData["Fullstack Web Dev (Interm)"];
+
+// ── NEW COURSES ───────────────────────────────────────────────────────────────
+
+mockCoursesData["3D Architectural Modelling"] = {
+  id: 33,
+  course_name: "3D Architectural Modelling",
+  modules: [
+    {
+      id: 330,
+      name: "Revit",
+      weeks: [
+        {
+          id: 33000,
+          weekNumber: 1,
+          title: "Revit for Architecture",
+          tasks: [
+            { id: 330001, question: "What does BIM stand for?", options: ["Building Information Modeling", "Basic Interior Mapping", "Building Integration Method"], correctAnswer: 0 },
+            { id: 330002, question: "Which Revit element is used to create floors?", options: ["Wall", "Floor", "Ceiling"], correctAnswer: 1 },
+            { id: 330003, question: "What is a 'Level' in Revit used for?", options: ["To apply textures", "To define building heights and floors", "To create 3D views"], correctAnswer: 1 },
+            { id: 330004, question: "Which view shows a top-down view of the building?", options: ["Section View", "Floor Plan View", "Elevation View"], correctAnswer: 1 },
+            { id: 330005, question: "What is the purpose of a Revit 'Family'?", options: ["A group of users", "A reusable building component", "A project template"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 331,
+      name: "SketchUp",
+      weeks: [
+        {
+          id: 33100,
+          weekNumber: 1,
+          title: "SketchUp 3D Modeling",
+          tasks: [
+            { id: 331001, question: "SketchUp is best known for being:", options: ["Complex and technical", "Simple and intuitive for 3D modeling", "Only used for animation"], correctAnswer: 1 },
+            { id: 331002, question: "Which tool is used to push or pull surfaces in SketchUp?", options: ["Move Tool", "Push/Pull Tool", "Rotate Tool"], correctAnswer: 1 },
+            { id: 331003, question: "What are Components used for in SketchUp?", options: ["Adding colors", "Preventing geometry from sticking together", "Rendering scenes"], correctAnswer: 1 },
+            { id: 331004, question: "Which file format is native to SketchUp?", options: [".skp", ".dwg", ".obj"], correctAnswer: 0 },
+            { id: 331005, question: "Which SketchUp feature allows you to add detailed textures to surfaces?", options: ["Materials", "Layers", "Groups"], correctAnswer: 0 }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+mockCoursesData["Fullstack Web Dev"] = {
+  id: 34,
+  course_name: "Fullstack Web Dev",
+  modules: [
+    {
+      id: 340,
+      name: "HTML & CSS",
+      weeks: [
+        {
+          id: 34000,
+          weekNumber: 1,
+          title: "Web Foundations",
+          tasks: [
+            { id: 340001, question: "What does HTML stand for?", options: ["HyperText Markup Language", "High Tech Modern Language", "Hyperlink Text Method"], correctAnswer: 0 },
+            { id: 340002, question: "Which CSS property controls the space outside an element's border?", options: ["Padding", "Margin", "Border"], correctAnswer: 1 },
+            { id: 340003, question: "Which HTML tag creates a hyperlink?", options: ["<href>", "<a>", "<link>"], correctAnswer: 1 },
+            { id: 340004, question: "In Flexbox, which property aligns items along the main axis?", options: ["align-items", "justify-content", "flex-wrap"], correctAnswer: 1 },
+            { id: 340005, question: "What does a CSS Media Query do?", options: ["Plays media files", "Applies styles based on device screen size", "Queries a database"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 341,
+      name: "JavaScript",
+      weeks: [
+        {
+          id: 34100,
+          weekNumber: 1,
+          title: "JS Fundamentals",
+          tasks: [
+            { id: 341001, question: "Which keyword declares a block-scoped variable?", options: ["var", "let", "define"], correctAnswer: 1 },
+            { id: 341002, question: "What does the DOM stand for?", options: ["Document Object Model", "Data Output Method", "Digital Object Manager"], correctAnswer: 0 },
+            { id: 341003, question: "Which method adds an element to the end of an array?", options: ["pop()", "push()", "shift()"], correctAnswer: 1 },
+            { id: 341004, question: "What does 'async/await' help with?", options: ["Styling elements", "Handling asynchronous operations", "Declaring variables"], correctAnswer: 1 },
+            { id: 341005, question: "Which operator checks both value and type?", options: ["==", "=", "==="], correctAnswer: 2 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 342,
+      name: "React",
+      weeks: [
+        {
+          id: 34200,
+          weekNumber: 1,
+          title: "React Basics",
+          tasks: [
+            { id: 342001, question: "Which hook manages local state in React?", options: ["useEffect", "useState", "useContext"], correctAnswer: 1 },
+            { id: 342002, question: "What is JSX?", options: ["A database language", "A syntax extension that looks like HTML in JavaScript", "A CSS framework"], correctAnswer: 1 },
+            { id: 342003, question: "What are 'props' in React?", options: ["Internal state", "Data passed from parent to child component", "Global variables"], correctAnswer: 1 },
+            { id: 342004, question: "What is the Virtual DOM?", options: ["A backup server", "A lightweight copy of the real DOM for performance", "A browser plugin"], correctAnswer: 1 },
+            { id: 342005, question: "What does useEffect with an empty [] dependency array do?", options: ["Runs on every render", "Runs only once after the first render", "Never runs"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 343,
+      name: "Node.js",
+      weeks: [
+        {
+          id: 34300,
+          weekNumber: 1,
+          title: "Server-Side JavaScript",
+          tasks: [
+            { id: 343001, question: "What is Node.js?", options: ["A CSS framework", "A JavaScript runtime environment", "A SQL database"], correctAnswer: 1 },
+            { id: 343002, question: "Which framework is commonly used with Node.js for APIs?", options: ["Django", "Express", "Laravel"], correctAnswer: 1 },
+            { id: 343003, question: "What does NPM stand for?", options: ["Node Package Manager", "New Project Module", "Network Protocol Method"], correctAnswer: 0 },
+            { id: 343004, question: "Which Node.js module handles file system operations?", options: ["http", "fs", "path"], correctAnswer: 1 },
+            { id: 343005, question: "What does 'Middleware' do in Express?", options: ["Styles the page", "Functions with access to request and response objects", "Connects to the database only"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 344,
+      name: "MongoDB",
+      weeks: [
+        {
+          id: 34400,
+          weekNumber: 1,
+          title: "NoSQL with MongoDB",
+          tasks: [
+            { id: 344001, question: "What type of database is MongoDB?", options: ["Relational (SQL)", "Document-oriented (NoSQL)", "Graph Database"], correctAnswer: 1 },
+            { id: 344002, question: "How does MongoDB store data?", options: ["In tables and rows", "In BSON documents", "In CSV files"], correctAnswer: 1 },
+            { id: 344003, question: "What is a 'Collection' in MongoDB equivalent to in SQL?", options: ["A Row", "A Table", "A Database"], correctAnswer: 1 },
+            { id: 344004, question: "Which command retrieves all documents from a collection?", options: ["get()", "find()", "select()"], correctAnswer: 1 },
+            { id: 344005, question: "What is Mongoose?", options: ["A MongoDB GUI", "An ODM library for MongoDB and Node.js", "A type of query language"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+mockCoursesData["Graphic Design"] = {
+  id: 35,
+  course_name: "Graphic Design",
+  modules: [
+    {
+      id: 350,
+      name: "Photoshop",
+      weeks: [
+        {
+          id: 35000,
+          weekNumber: 1,
+          title: "Photoshop Fundamentals",
+          tasks: [
+            { id: 350001, question: "What type of graphics does Photoshop primarily work with?", options: ["Vector", "Raster (Pixel-based)", "3D"], correctAnswer: 1 },
+            { id: 350002, question: "What is a 'Layer' in Photoshop?", options: ["A filter effect", "A separate level that holds design elements independently", "A brush type"], correctAnswer: 1 },
+            { id: 350003, question: "Which tool is used to remove backgrounds in Photoshop?", options: ["Crop Tool", "Magic Wand / Quick Selection Tool", "Brush Tool"], correctAnswer: 1 },
+            { id: 350004, question: "What does 'Resolution' (PPI) refer to?", options: ["The file size", "The number of pixels per inch", "The color depth"], correctAnswer: 1 },
+            { id: 350005, question: "Which color mode is best for web/screen designs?", options: ["CMYK", "RGB", "Grayscale"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 351,
+      name: "Illustrator",
+      weeks: [
+        {
+          id: 35100,
+          weekNumber: 1,
+          title: "Vector Design with Illustrator",
+          tasks: [
+            { id: 351001, question: "Adobe Illustrator primarily creates which type of graphics?", options: ["Raster", "Vector", "3D"], correctAnswer: 1 },
+            { id: 351002, question: "What is the main advantage of vector graphics?", options: ["They load faster", "They can be scaled infinitely without losing quality", "They support more colors"], correctAnswer: 1 },
+            { id: 351003, question: "Which tool is used to draw custom shapes and paths in Illustrator?", options: ["Brush Tool", "Pen Tool", "Shape Tool"], correctAnswer: 1 },
+            { id: 351004, question: "What is a 'Stroke' in Illustrator?", options: ["The fill color of a shape", "The outline/border of a path or shape", "A layer effect"], correctAnswer: 1 },
+            { id: 351005, question: "Which file format is best for exporting vector graphics for web?", options: [".jpg", ".svg", ".png"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 352,
+      name: "InDesign",
+      weeks: [
+        {
+          id: 35200,
+          weekNumber: 1,
+          title: "Layout Design with InDesign",
+          tasks: [
+            { id: 352001, question: "What is Adobe InDesign primarily used for?", options: ["Photo editing", "Page layout and publishing (books, magazines, flyers)", "Video editing"], correctAnswer: 1 },
+            { id: 352002, question: "What is a 'Master Page' in InDesign?", options: ["The first page of a document", "A template that applies consistent layout to multiple pages", "A special color palette"], correctAnswer: 1 },
+            { id: 352003, question: "Which InDesign feature links text across multiple frames?", options: ["Text Wrap", "Threaded Text / Text Linking", "Paragraph Styles"], correctAnswer: 1 },
+            { id: 352004, question: "What does 'Bleed' mean in print design?", options: ["A color that bleeds into another", "Extending artwork beyond the trim edge to avoid white borders after cutting", "A type of font style"], correctAnswer: 1 },
+            { id: 352005, question: "Which format should you export to when sending a document for professional printing?", options: [".docx", ".pdf (Print)", ".jpg"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+mockCoursesData["Digital Marketing (Intermediate)"] = {
+  id: 36,
+  course_name: "Digital Marketing (Intermediate)",
+  modules: [
+    {
+      id: 360,
+      name: "SEO & Content",
+      weeks: [
+        {
+          id: 36000,
+          weekNumber: 1,
+          title: "Intermediate SEO Strategy",
+          tasks: [
+            { id: 360001, question: "What is 'Domain Authority'?", options: ["The age of your domain", "A score predicting how well a website will rank on search engines", "The number of pages on a site"], correctAnswer: 1 },
+            { id: 360002, question: "What is a 'Featured Snippet'?", options: ["A paid ad at the top of Google", "A boxed summary answer displayed at the top of search results", "A type of backlink"], correctAnswer: 1 },
+            { id: 360003, question: "What is 'Technical SEO'?", options: ["Writing blog posts", "Optimizing the technical aspects of a website for crawling and indexing", "Running Google Ads"], correctAnswer: 1 },
+            { id: 360004, question: "What tool does Google provide to monitor your site's search performance?", options: ["Google Ads", "Google Search Console", "Google Analytics"], correctAnswer: 1 },
+            { id: 360005, question: "What is a 'Canonical Tag' used for?", options: ["To redirect a page", "To tell search engines which version of a duplicate page is the preferred one", "To add keywords to images"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 361,
+      name: "Google Ads",
+      weeks: [
+        {
+          id: 36100,
+          weekNumber: 1,
+          title: "Intermediate Google Ads",
+          tasks: [
+            { id: 361001, question: "What is a 'Conversion' in Google Ads?", options: ["A click on the ad", "A desired action completed by a user (e.g., purchase, signup)", "An impression"], correctAnswer: 1 },
+            { id: 361002, question: "What is 'Cost Per Acquisition' (CPA)?", options: ["The cost per click", "The average cost to acquire one converting customer", "The daily budget"], correctAnswer: 1 },
+            { id: 361003, question: "Which match type shows your ad for searches that include the meaning of your keyword?", options: ["Exact Match", "Broad Match", "Phrase Match"], correctAnswer: 1 },
+            { id: 361004, question: "What is a 'Landing Page' in the context of Google Ads?", options: ["The Google homepage", "The specific page a user arrives on after clicking your ad", "Your ad creative"], correctAnswer: 1 },
+            { id: 361005, question: "What does 'CTR' stand for in Google Ads reporting?", options: ["Cost To Reach", "Click-Through Rate", "Conversion Tracking Rate"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 362,
+      name: "Email Marketing",
+      weeks: [
+        {
+          id: 36200,
+          weekNumber: 1,
+          title: "Email Campaigns & Strategy",
+          tasks: [
+            { id: 362001, question: "What is 'Email Segmentation'?", options: ["Sending one email to all subscribers", "Dividing your list into groups based on criteria to send targeted emails", "Deleting bounced emails"], correctAnswer: 1 },
+            { id: 362002, question: "What is the 'Open Rate'?", options: ["The number of emails delivered", "The percentage of recipients who opened the email", "The number of unsubscribes"], correctAnswer: 1 },
+            { id: 362003, question: "What is a 'Drip Campaign'?", options: ["A spam tactic", "A series of automated emails sent over time based on user actions", "A one-time promotional email"], correctAnswer: 1 },
+            { id: 362004, question: "What does 'A/B Testing' an email subject line help you determine?", options: ["The best sending time", "Which subject line generates more opens", "The ideal email length"], correctAnswer: 1 },
+            { id: 362005, question: "What is a 'Hard Bounce'?", options: ["A temporary delivery failure", "A permanent delivery failure due to an invalid email address", "When a user marks email as spam"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 363,
+      name: "Social Media Marketing",
+      weeks: [
+        {
+          id: 36300,
+          weekNumber: 1,
+          title: "Social Media Strategy",
+          tasks: [
+            { id: 363001, question: "What is 'Organic Reach'?", options: ["Paid post visibility", "The number of people who see your content without paid promotion", "Follower count"], correctAnswer: 1 },
+            { id: 363002, question: "What is a 'Content Calendar'?", options: ["A social media app", "A planning tool to schedule and organize posts in advance", "An analytics dashboard"], correctAnswer: 1 },
+            { id: 363003, question: "What does 'Engagement Rate' measure?", options: ["Number of followers", "The level of interaction (likes, comments, shares) relative to reach", "Post frequency"], correctAnswer: 1 },
+            { id: 363004, question: "Which platform is best suited for B2B marketing?", options: ["TikTok", "Snapchat", "LinkedIn"], correctAnswer: 2 },
+            { id: 363005, question: "What is 'User-Generated Content' (UGC)?", options: ["AI-generated posts", "Content created voluntarily by customers or fans of a brand", "Paid influencer content"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 364,
+      name: "Marketing Analytics",
+      weeks: [
+        {
+          id: 36400,
+          weekNumber: 1,
+          title: "Measuring Performance",
+          tasks: [
+            { id: 364001, question: "What does KPI stand for?", options: ["Key Performance Indicator", "Keyword Priority Index", "Known Profit Insight"], correctAnswer: 0 },
+            { id: 364002, question: "What is 'Bounce Rate' on a website?", options: ["The page load speed", "The percentage of visitors who leave after viewing only one page", "The number of 404 errors"], correctAnswer: 1 },
+            { id: 364003, question: "What is Google Analytics used for?", options: ["Creating ads", "Tracking and analyzing website traffic and user behavior", "Managing email lists"], correctAnswer: 1 },
+            { id: 364004, question: "What is 'ROI' in marketing?", options: ["Rate of Impressions", "Return on Investment — profit relative to the cost", "Reach of Influencers"], correctAnswer: 1 },
+            { id: 364005, question: "What are 'UTM Parameters' used for?", options: ["To speed up a website", "To track the specific source of traffic in analytics", "To create landing pages"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 365,
+      name: "CMS (WordPress)",
+      weeks: [
+        {
+          id: 36500,
+          weekNumber: 1,
+          title: "Website Management with WordPress",
+          tasks: [
+            { id: 365001, question: "What is WordPress?", options: ["A social media platform", "A Content Management System (CMS) for building websites", "A graphic design tool"], correctAnswer: 1 },
+            { id: 365002, question: "What is the difference between a 'Post' and a 'Page' in WordPress?", options: ["Posts are static; Pages are for blogs", "Posts are for time-based content (blogs); Pages are for static content", "There is no difference"], correctAnswer: 1 },
+            { id: 365003, question: "What are 'Plugins' in WordPress?", options: ["Themes for design", "Add-ons that extend the functionality of a website", "The core WordPress files"], correctAnswer: 1 },
+            { id: 365004, question: "What is 'SEO' in the context of WordPress?", options: ["A security plugin", "Optimizing your site content to rank higher in search engines", "A payment gateway"], correctAnswer: 1 },
+            { id: 365005, question: "Which popular plugin is used to optimize WordPress sites for SEO?", options: ["WooCommerce", "Yoast SEO", "Elementor"], correctAnswer: 1 }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+
+
 export default mockCoursesData;
