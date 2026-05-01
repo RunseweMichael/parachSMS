@@ -8,13 +8,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ CLEAR ANY STUDENT SESSION WHEN ADMIN LOGIN PAGE OPENS
+  // Clear previous sessions
   useEffect(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("user");
     localStorage.removeItem("user_id");
     localStorage.removeItem("username");
+    localStorage.removeItem("pending_user_id");
   }, []);
 
   const handleSubmit = async (e) => {
@@ -25,20 +26,19 @@ const Login = () => {
     try {
       const response = await api.post('students/login/', credentials);
 
-      // Store new admin session
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user_id', response.data.user_id);
-      localStorage.setItem('username', response.data.username);
-      localStorage.setItem('role', "admin");  // optional but helpful
+      // ✅ Store temporary user ID (NO TOKEN YET)
+      localStorage.setItem('pending_user_id', response.data.user_id);
 
-      // Reliable redirect
-      window.location.replace("/admin");
+      // 👉 Redirect to OTP page
+      navigate("/admin/verify-otp");
+
     } catch (err) {
       console.error('Login error:', err);
+
       if (err.response?.status === 403) {
-        setError('Your account is not active. Please verify your email.');
+        setError('Your account is not active or not authorized.');
       } else if (err.response?.status === 400) {
-        setError('Invalid credentials. Please check your email or password.');
+        setError('Invalid email or password.');
       } else {
         setError('Login failed. Please try again.');
       }
@@ -51,51 +51,47 @@ const Login = () => {
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.title}>Admin Login</h2>
+
         <form onSubmit={handleSubmit} style={styles.form}>
           {error && <div style={styles.error}>{error}</div>}
-          
+
           <input
             type="email"
             placeholder="Email"
             value={credentials.email}
-            onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+            onChange={(e) =>
+              setCredentials({ ...credentials, email: e.target.value })
+            }
             style={styles.input}
             required
           />
-          
+
           <input
             type="password"
             placeholder="Password"
             value={credentials.password}
-            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+            onChange={(e) =>
+              setCredentials({ ...credentials, password: e.target.value })
+            }
             style={styles.input}
             required
           />
-          
+
           <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Sending OTP...' : 'Continue'}
           </button>
 
           <p
             onClick={() => navigate("/admin/forgot-password")}
-            style={{
-            textAlign: "center",
-            fontSize: "13px",
-            color: "#1a237e",
-            cursor: "pointer",
-            marginTop: "10px",
-            }}
+            style={styles.forgot}
           >
             Forgot your password?
           </p>
-
         </form>
       </div>
     </div>
   );
 };
-
-// (styles unchanged)
 
 const styles = {
   container: {
@@ -118,7 +114,6 @@ const styles = {
     fontWeight: '700',
     marginBottom: '30px',
     textAlign: 'center',
-    color: '#333',
   },
   form: {
     display: 'flex',
@@ -126,10 +121,9 @@ const styles = {
     gap: '15px',
   },
   input: {
-    padding: '12px 15px',
+    padding: '12px',
     border: '1px solid #ccc',
     borderRadius: '8px',
-    fontSize: '14px',
   },
   button: {
     padding: '12px',
@@ -137,18 +131,20 @@ const styles = {
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: '600',
     cursor: 'pointer',
-    marginTop: '10px',
   },
   error: {
-    padding: '12px',
+    padding: '10px',
     backgroundColor: '#f8d7da',
     color: '#721c24',
-    borderRadius: '8px',
-    fontSize: '14px',
+    borderRadius: '6px',
   },
+  forgot: {
+    textAlign: "center",
+    fontSize: "13px",
+    color: "#1a237e",
+    cursor: "pointer",
+  }
 };
 
 export default Login;

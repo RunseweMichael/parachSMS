@@ -46,6 +46,7 @@ import AdminInternshipRequests from './pages/AdminInternshipRequests.jsx';
 import AdminForgotPassword from './pages/AdminForgotPassword.jsx';
 import AdminResetPassword from './pages/AdminResetPassword.jsx';
 import AdminDashboard from './pages/AdminDashboard/CourseDashboard.jsx';
+import AdminVerifyOTP from './pages/AdminVerifyOTP.jsx';
 
 // Courses
 import CourseList from './components/Course/CourseList';
@@ -108,6 +109,7 @@ function App() {
         <Route path="/signin/otp" element={<SignInOTP />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin/verify-otp" element={<AdminVerifyOTP />} />
         <Route path="/register" element={<RegistrationForm />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         {/* <Route path="/reset-password" element={<ResetPassword />} /> */}
