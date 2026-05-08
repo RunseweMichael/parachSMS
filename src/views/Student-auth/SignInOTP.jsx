@@ -23,34 +23,51 @@ export default function SignInOTP() {
 
   // LOGIN WITH OTP
   const handleLogin = async () => {
-    setError("");
-    setSuccess("");
-    if (!otp) {
-      setError("Enter OTP.");
-      return;
-    }
+  setError("");
+  setSuccess("");
 
-    try {
-      setLoading(true);
-      const res = await apiPublic.post("/students/login/", {
-        email,
-        password,
-        code: otp,
-      });
+  if (!otp) {
+    setError("Enter OTP.");
+    return;
+  }
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user_id", res.data.user_id);
-      localStorage.setItem("username", res.data.username);
-      localStorage.setItem("role", res.data.role || "student");
+  try {
+    setLoading(true);
 
-      setSuccess("Login successful! Redirecting...");
-      setTimeout(() => navigate("/student/dashboard"), 1200);
-    } catch (err) {
-      setError(err.response?.data?.error || "Login failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // STEP 1: Get user_id from localStorage
+    const user_id = localStorage.getItem("pending_user_id");
+
+    // STEP 2: Verify OTP
+    const res = await apiPublic.post("/students/verify-login-otp/", {
+      user_id,
+      code: otp,
+    });
+
+    // STEP 3: Save auth data
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("user_id", res.data.user_id);
+    localStorage.setItem("username", res.data.username);
+
+    // IMPORTANT
+    localStorage.setItem("role", res.data.role || "student");
+
+    setSuccess("Login successful! Redirecting...");
+
+    // STEP 4: Redirect based on role
+    setTimeout(() => {
+      if (res.data.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
+    }, 1200);
+
+  } catch (err) {
+    setError(err.response?.data?.error || "Login failed.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // RESEND OTP
   const handleResend = async () => {

@@ -14,22 +14,36 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
 
   const handleNext = async () => {
-    setError("");
-    if (!email || !password) {
-      setError("Enter both email and password.");
-      return;
-    }
+  setError("");
 
-    try {
-      setLoading(true);
-      await apiPublic.post("/students/resend-otp/", { email });
-      navigate("/signin/otp", { state: { email, password } });
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to send OTP.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!email || !password) {
+    setError("Enter both email and password.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // LOGIN STEP 1
+    const res = await apiPublic.post("/students/login/", {
+      email,
+      password,
+    });
+
+    // Save pending user ID for OTP verification
+    localStorage.setItem("pending_user_id", res.data.user_id);
+
+    // Go to OTP page
+    navigate("/signin/otp", {
+      state: { email, password },
+    });
+
+  } catch (err) {
+    setError(err.response?.data?.error || "Login failed.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-center px-4 py-6 overflow-hidden">
