@@ -14,6 +14,7 @@ const StudentManagement = () => {
   const [editingStudent, setEditingStudent] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [showLegacy, setShowLegacy] = useState(false); // ← toggle legacy visibility
 
   useEffect(() => {
     fetchStudents();
@@ -53,6 +54,7 @@ const StudentManagement = () => {
         next_due_date: s.next_due_date || null,
         is_active: s.is_active,
         is_staff: s.is_staff,
+        is_legacy_student: s.is_legacy_student || false, // ← capture legacy flag
         center: s.center || "Orogun",
         address: s.address || "",
       }));
@@ -60,6 +62,17 @@ const StudentManagement = () => {
       data = data.filter((s) => !s.is_staff);
       if (filter === "active") data = data.filter((s) => s.is_active);
       if (filter === "inactive") data = data.filter((s) => !s.is_active);
+
+      // Sort: non-legacy first (by registration_date desc), legacy last
+      data.sort((a, b) => {
+        if (a.is_legacy_student !== b.is_legacy_student) {
+          return a.is_legacy_student ? 1 : -1; // legacy sinks to bottom
+        }
+        // Within each group, sort newest first
+        const dateA = a.registration_date !== "—" ? new Date(a.registration_date) : 0;
+        const dateB = b.registration_date !== "—" ? new Date(b.registration_date) : 0;
+        return dateB - dateA;
+      });
 
       setStudents(data);
       setSelectedStudents([]);
@@ -73,13 +86,21 @@ const StudentManagement = () => {
   };
 
   const filteredStudents = useMemo(() => {
-    return students.filter((s) =>
-      [s.name, s.email, s.course_name, s.center]
-        .join(" ")
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    );
-  }, [students, search]);
+    return students
+      .filter((s) => {
+        // Hide legacy students unless the toggle is on
+        if (s.is_legacy_student && !showLegacy) return false;
+        return [s.name, s.email, s.course_name, s.center]
+          .join(" ")
+          .toLowerCase()
+          .includes(search.toLowerCase());
+      });
+  }, [students, search, showLegacy]);
+
+  const legacyCount = useMemo(
+    () => students.filter((s) => s.is_legacy_student).length,
+    [students]
+  );
 
   const totalPages = Math.ceil(filteredStudents.length / pageSize);
   const paginatedStudents = filteredStudents.slice(
@@ -164,7 +185,6 @@ const StudentManagement = () => {
     }
   };
 
-
   const handleExport = async () => {
     try {
       const response = await api.post(
@@ -208,8 +228,8 @@ const StudentManagement = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "—";
-    const options = { month: "short", day: "2-digit" };
+    if (!dateString || dateString === "—") return "—";
+    const options = { month: "short", day: "2-digit", year: "numeric" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
@@ -223,6 +243,25 @@ const StudentManagement = () => {
           </button>
         </div>
       </div>
+
+      {/* Legacy student notice banner */}
+      {legacyCount > 0 && (
+        <div style={styles.legacyBanner}>
+          <span>
+            🕰️ <strong>{legacyCount} legacy student{legacyCount !== 1 ? "s" : ""}</strong> enrolled before the system was set up{" "}
+            {!showLegacy && "are hidden from this view."}
+          </span>
+          <button
+            style={styles.legacyToggleBtn}
+            onClick={() => {
+              setShowLegacy((v) => !v);
+              setCurrentPage(1);
+            }}
+          >
+            {showLegacy ? "Hide Legacy Students" : "Show Legacy Students"}
+          </button>
+        </div>
+      )}
 
       <div style={styles.controls}>
         <input
@@ -312,7 +351,13 @@ const StudentManagement = () => {
               </thead>
               <tbody>
                 {paginatedStudents.map((s, i) => (
-                  <tr key={s.id} style={styles.tr}>
+                  <tr
+                    key={s.id}
+                    style={{
+                      ...styles.tr,
+                      ...(s.is_legacy_student ? styles.legacyRow : {}),
+                    }}
+                  >
                     <td>
                       <input
                         type="checkbox"
@@ -321,7 +366,16 @@ const StudentManagement = () => {
                       />
                     </td>
                     <td>{(currentPage - 1) * pageSize + i + 1}</td>
-                    <td>{s.name}</td>
+                    <td>
+                      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {s.name}
+                        {s.is_legacy_student && (
+                          <span style={styles.legacyTag} title="Legacy student — enrolled before the system was set up">
+                            Legacy
+                          </span>
+                        )}
+                      </span>
+                    </td>
                     <td>{s.email}</td>
                     <td>{s.phone_number}</td>
                     <td>{s.course_name}</td>
@@ -352,27 +406,27 @@ const StudentManagement = () => {
                       </button>
                     </td>
                     <td>
-  <div style={styles.actionCell}>
-    <button
-      style={{
-        ...styles.iconBtn,
-        color: s.is_active ? "#f44336" : "#4CAF50",
-      }}
-      onClick={() => handleToggleActive(s.id)}
-      title={s.is_active ? "Deactivate" : "Activate"}
-    >
-      {s.is_active ? <FaToggleOff /> : <FaToggleOn />}
-    </button>
+                      <div style={styles.actionCell}>
+                        <button
+                          style={{
+                            ...styles.iconBtn,
+                            color: s.is_active ? "#f44336" : "#4CAF50",
+                          }}
+                          onClick={() => handleToggleActive(s.id)}
+                          title={s.is_active ? "Deactivate" : "Activate"}
+                        >
+                          {s.is_active ? <FaToggleOff /> : <FaToggleOn />}
+                        </button>
 
-    <button
-      style={{ ...styles.iconBtn, color: "#f44336" }}
-      onClick={() => handleDeleteStudent(s)}
-      title="Delete Student"
-    >
-      <FaTrash />
-    </button>
-  </div>
-</td>
+                        <button
+                          style={{ ...styles.iconBtn, color: "#f44336" }}
+                          onClick={() => handleDeleteStudent(s)}
+                          title="Delete Student"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -480,61 +534,42 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
   };
 
   const handlePaymentAdjustment = async () => {
-  const amount = parseFloat(paymentAdjustment?.trim());
-  if (isNaN(amount) || amount === 0) {
-    alert("Please enter a valid payment amount");
-    return;
-  }
-
-  if (!window.confirm(
-    `Record a payment of ₦${amount.toLocaleString()} for ${student.name}?\n\n` +
-    `This will create a transaction record and update the student's balance.`
-  )) return;
-
-  // Prepare payload
-  const payload = {
-    user_id: student.id,
-    amount: amount,
-    note: adjustmentNote || "Admin manual payment adjustment"
-  };
-
-   try {
-    const res = await api.post("/payments/admin-payment-adjustment/", payload);
-
-   
-    alert(res.data.message);
-    setPaymentAdjustment("");
-    setAdjustmentNote("");
-    onSuccess(); // Refresh the student list
-  } catch (err) {
-    console.error("❌ Payment adjustment failed:", err);
-
-    let errorMessage = "Failed to record payment";
-
-    if (err.response) {
-      // Server responded with a status code out of 2xx
-      console.error("Status:", err.response.status);
-      console.error("Response data:", err.response.data);
-      console.error("Response headers:", err.response.headers);
-      errorMessage = `
-        ❌ Payment adjustment failed!
-        Status: ${err.response.status}
-        Error: ${err.response.data?.error || err.response.data?.details || JSON.stringify(err.response.data)}
-      `;
-    } else if (err.request) {
-      // Request was made but no response
-      console.error("No response received:", err.request);
-      errorMessage = "No response from server. Please check network or server logs.";
-    } else {
-      // Something else happened
-      console.error("Error:", err.message);
-      errorMessage = `Error: ${err.message}`;
+    const amount = parseFloat(paymentAdjustment?.trim());
+    if (isNaN(amount) || amount === 0) {
+      alert("Please enter a valid payment amount");
+      return;
     }
 
-    alert(errorMessage);
-  }
-};
+    if (!window.confirm(
+      `Record a payment of ₦${amount.toLocaleString()} for ${student.name}?\n\n` +
+      `This will create a transaction record and update the student's balance.`
+    )) return;
 
+    const payload = {
+      user_id: student.id,
+      amount: amount,
+      note: adjustmentNote || "Admin manual payment adjustment"
+    };
+
+    try {
+      const res = await api.post("/payments/admin-payment-adjustment/", payload);
+      alert(res.data.message);
+      setPaymentAdjustment("");
+      setAdjustmentNote("");
+      onSuccess();
+    } catch (err) {
+      console.error("❌ Payment adjustment failed:", err);
+      let errorMessage = "Failed to record payment";
+      if (err.response) {
+        errorMessage = `❌ Payment adjustment failed!\nStatus: ${err.response.status}\nError: ${err.response.data?.error || err.response.data?.details || JSON.stringify(err.response.data)}`;
+      } else if (err.request) {
+        errorMessage = "No response from server. Please check network or server logs.";
+      } else {
+        errorMessage = `Error: ${err.message}`;
+      }
+      alert(errorMessage);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!formData.email) {
@@ -564,15 +599,14 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
         next_due_date: formData.next_due_date || null,
         center: formData.center,
         course: formData.course,
-        // ⚠️ REMOVED: amount_paid - no longer directly updated
       });
-      
+
       if (res.data.warning) {
         alert(`✅ ${res.data.warning}`);
       } else {
         alert("Student updated successfully.");
       }
-      
+
       onSuccess();
     } catch (err) {
       console.error("Update failed:", err);
@@ -585,23 +619,26 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3 style={styles.modalTitle}>Edit Student — {student.name}</h3>
-        
+        <h3 style={styles.modalTitle}>
+          Edit Student — {student.name}
+          {student.is_legacy_student && (
+            <span style={{ ...styles.legacyTag, marginLeft: 10, fontSize: 13 }}>
+              Legacy
+            </span>
+          )}
+        </h3>
+
         {courseChanging && (
           <div style={styles.warningBox}>
             ⚠️ <strong>Warning:</strong> Changing course will reset payment data!
           </div>
         )}
-        
-        <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {/* Payment Adjustment Section */}
-          <div style={{
-            ...styles.warningBox,
-            backgroundColor: '#e3f2fd',
-            borderColor: '#2196F3'
-          }}>
+          <div style={{ ...styles.warningBox, backgroundColor: "#e3f2fd", borderColor: "#2196F3" }}>
             <strong>💰 Record Payment</strong>
-            <p style={{margin: '8px 0', fontSize: '13px', color: '#555'}}>
+            <p style={{ margin: "8px 0", fontSize: "13px", color: "#555" }}>
               Use this to record payments made outside the system (cash, bank transfer, etc.)
             </p>
             <input
@@ -610,22 +647,18 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
               placeholder="Enter payment amount..."
               value={paymentAdjustment}
               onChange={(e) => setPaymentAdjustment(e.target.value)}
-              style={{...styles.input, marginBottom: '8px'}}
+              style={{ ...styles.input, marginBottom: "8px" }}
             />
             <input
               type="text"
               placeholder="Note (optional)..."
               value={adjustmentNote}
               onChange={(e) => setAdjustmentNote(e.target.value)}
-              style={{...styles.input, marginBottom: '8px'}}
+              style={{ ...styles.input, marginBottom: "8px" }}
             />
             <button
               onClick={handlePaymentAdjustment}
-              style={{
-                ...styles.saveBtn,
-                width: '100%',
-                backgroundColor: '#4CAF50'
-              }}
+              style={{ ...styles.saveBtn, width: "100%", backgroundColor: "#4CAF50" }}
             >
               Record Payment
             </button>
@@ -633,38 +666,22 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
 
           <div style={styles.formGroup}>
             <label style={styles.label}>Email</label>
-            <input
-              value={formData.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-              style={styles.input}
-            />
+            <input value={formData.email} onChange={(e) => handleChange("email", e.target.value)} style={styles.input} />
           </div>
-          
+
           <div style={styles.formGroup}>
             <label style={styles.label}>Full Name</label>
-            <input
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-              style={styles.input}
-            />
+            <input value={formData.name} onChange={(e) => handleChange("name", e.target.value)} style={styles.input} />
           </div>
-          
+
           <div style={styles.formGroup}>
             <label style={styles.label}>Phone</label>
-            <input
-              value={formData.phone_number}
-              onChange={(e) => handleChange("phone_number", e.target.value)}
-              style={styles.input}
-            />
+            <input value={formData.phone_number} onChange={(e) => handleChange("phone_number", e.target.value)} style={styles.input} />
           </div>
-          
+
           <div style={styles.formGroup}>
             <label style={styles.label}>Center</label>
-            <select
-              value={formData.center}
-              onChange={(e) => handleChange("center", e.target.value)}
-              style={styles.input}
-            >
+            <select value={formData.center} onChange={(e) => handleChange("center", e.target.value)} style={styles.input}>
               <option value="Orogun">Orogun</option>
               <option value="Samonda">Samonda</option>
               <option value="Online">Online</option>
@@ -673,15 +690,12 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
 
           <div style={styles.formGroup}>
             <label style={styles.label}>
-              Course {courseChanging && <span style={{color: '#f44336'}}>⚠️</span>}
+              Course {courseChanging && <span style={{ color: "#f44336" }}>⚠️</span>}
             </label>
             <select
               value={formData.course}
               onChange={(e) => handleChange("course", e.target.value)}
-              style={{
-                ...styles.input,
-                ...(courseChanging ? {borderColor: '#f44336', borderWidth: 2} : {})
-              }}
+              style={{ ...styles.input, ...(courseChanging ? { borderColor: "#f44336", borderWidth: 2 } : {}) }}
             >
               <option value="">-- Select Course --</option>
               {courses.map((c) => (
@@ -691,16 +705,16 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
               ))}
             </select>
           </div>
-          
+
           <div style={styles.formGroup}>
             <label style={styles.label}>
               Current Amount Paid: ₦{student.amount_paid.toLocaleString()}
             </label>
-            <small style={{color: '#666', display: 'block', marginTop: '4px'}}>
+            <small style={{ color: "#666", display: "block", marginTop: "4px" }}>
               Use "Record Payment" section above to add new payments
             </small>
           </div>
-          
+
           <div style={styles.formGroup}>
             <label style={styles.label}>Next Due Date</label>
             <input
@@ -710,21 +724,12 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
               style={styles.input}
             />
           </div>
-          
+
           <div style={styles.modalActions}>
+            <button type="button" style={styles.cancelBtn} onClick={onClose}>Cancel</button>
             <button
               type="button"
-              style={styles.cancelBtn}
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button 
-              type="button"
-              style={{
-                ...styles.saveBtn,
-                ...(courseChanging ? {backgroundColor: '#f44336'} : {})
-              }} 
+              style={{ ...styles.saveBtn, ...(courseChanging ? { backgroundColor: "#f44336" } : {}) }}
               disabled={saving}
               onClick={handleSubmit}
             >
@@ -750,26 +755,59 @@ const styles = {
   tableContainer: { backgroundColor: "#fff", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", overflowX: "auto" },
   table: { width: "100%", borderCollapse: "collapse" },
   tr: { transition: "background-color 0.2s" },
+  // Legacy row: subtle warm tint to distinguish without being alarming
+  legacyRow: { backgroundColor: "#fffbf0" },
+  legacyTag: {
+    display: "inline-block",
+    fontSize: "10px",
+    fontWeight: "700",
+    padding: "2px 7px",
+    borderRadius: "10px",
+    backgroundColor: "#fff3cd",
+    color: "#856404",
+    border: "1px solid #ffc107",
+    letterSpacing: "0.3px",
+    whiteSpace: "nowrap",
+  },
+  legacyBanner: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff8e1",
+    border: "1px solid #ffe082",
+    borderRadius: "8px",
+    padding: "12px 16px",
+    marginBottom: "16px",
+    fontSize: "14px",
+    color: "#795548",
+    gap: "12px",
+  },
+  legacyToggleBtn: {
+    padding: "6px 14px",
+    backgroundColor: "#ff8f00",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "600",
+    fontSize: "13px",
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+  },
   badge: { display: "inline-block", padding: "5px 12px", borderRadius: "12px", fontSize: "12px", fontWeight: "600" },
   iconBtn: { padding: "6px 10px", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "16px", backgroundColor: "transparent", color: "#2196F3", transition: "all 0.2s" },
   message: { textAlign: "center", padding: "40px", color: "#666", backgroundColor: "#fff", borderRadius: "12px" },
   modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
   modal: { backgroundColor: "#fff", padding: "30px", borderRadius: "12px", width: "90%", maxWidth: "600px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" },
-  modalTitle: { fontSize: "20px", fontWeight: "600", marginBottom: "20px", color: "#333" },
+  modalTitle: { fontSize: "20px", fontWeight: "600", marginBottom: "20px", color: "#333", display: "flex", alignItems: "center" },
   warningBox: { backgroundColor: "#fff3cd", border: "1px solid #ffc107", padding: "12px", borderRadius: "6px", marginBottom: "15px", color: "#856404" },
   formGroup: { marginBottom: "12px" },
   label: { display: "block", marginBottom: "6px", fontWeight: "500", color: "#333" },
-  input: { width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", fontSize: "14px" },
+  input: { width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", fontSize: "14px", boxSizing: "border-box" },
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" },
   cancelBtn: { padding: "10px 20px", backgroundColor: "#f5f5f5", color: "#333", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" },
   saveBtn: { padding: "10px 20px", backgroundColor: "#4CAF50", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" },
-  actionCell: {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "8px",
-},
-
+  actionCell: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" },
 };
 
 export default StudentManagement;
