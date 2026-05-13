@@ -6893,5 +6893,397 @@ mockCoursesData["Digital Marketing (Intermediate)"] = {
 };
 
 
+// ─────────────────────────────────────────────────────────────────
+// FIX 1: Digital Literacy — split into three separate tier keys
+// ─────────────────────────────────────────────────────────────────
+
+mockCoursesData["Digital Literacy (Basic)"] = {
+  id: 37,
+  course_name: "Digital Literacy (Basic)",
+  modules: [
+    {
+      id: 370,
+      name: "Microsoft Word",
+      weeks: [
+        {
+          id: 37000,
+          weekNumber: 1,
+          title: "Word Processing Basics",
+          tasks: [
+            { id: 370001, question: "Which keyboard shortcut copies selected text?", options: ["Ctrl + V", "Ctrl + C", "Ctrl + X"], correctAnswer: 1 },
+            { id: 370002, question: "How is text aligned by default in a new Word document?", options: ["Centered", "Right-aligned", "Left-aligned"], correctAnswer: 2 },
+            { id: 370003, question: "Which feature changes the page from Portrait to Landscape?", options: ["Margins", "Orientation", "Size"], correctAnswer: 1 },
+            { id: 370004, question: "What does Spell Check do?", options: ["Changes font colors", "Identifies and corrects spelling errors", "Counts pages"], correctAnswer: 1 },
+            { id: 370005, question: "Which tab is used to insert a Table or Image?", options: ["Home", "Design", "Insert"], correctAnswer: 2 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 371,
+      name: "Microsoft Excel",
+      weeks: [
+        {
+          id: 37100,
+          weekNumber: 1,
+          title: "Spreadsheet Fundamentals",
+          tasks: [
+            { id: 371001, question: "In Excel, columns are identified by:", options: ["Numbers", "Letters", "Colors"], correctAnswer: 1 },
+            { id: 371002, question: "What is the intersection of a row and a column called?", options: ["Block", "Cell", "Grid"], correctAnswer: 1 },
+            { id: 371003, question: "Every Excel formula must start with:", options: ["+", "=", "$"], correctAnswer: 1 },
+            { id: 371004, question: "Which function adds a range of numbers?", options: ["=SUM()", "=ADD()", "=TOTAL()"], correctAnswer: 0 },
+            { id: 371005, question: "The file you create in Excel is called a:", options: ["Document", "Workbook", "Presentation"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 372,
+      name: "PowerPoint",
+      weeks: [
+        {
+          id: 37200,
+          weekNumber: 1,
+          title: "Presentation Basics",
+          tasks: [
+            { id: 372001, question: "An individual page in PowerPoint is called a:", options: ["Sheet", "Slide", "Frame"], correctAnswer: 1 },
+            { id: 372002, question: "Which view shows all slides in a grid?", options: ["Slide Sorter View", "Normal View", "Reading View"], correctAnswer: 0 },
+            { id: 372003, question: "The visual effect when moving between slides is called a:", options: ["Animation", "Transition", "Motion Path"], correctAnswer: 1 },
+            { id: 372004, question: "Which shortcut starts a slideshow from the first slide?", options: ["F1", "F5", "Esc"], correctAnswer: 1 },
+            { id: 372005, question: "Speaker Notes help the presenter to:", options: ["Show the audience more text", "Remember what to say", "Record audio"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+mockCoursesData["Digital Literacy (Intermediate)"] = {
+  id: 38,
+  course_name: "Digital Literacy (Intermediate)",
+  modules: [
+    {
+      id: 380,
+      name: "Microsoft Word",
+      weeks: [
+        {
+          id: 38000,
+          weekNumber: 1,
+          title: "Intermediate Document Formatting",
+          tasks: [
+            { id: 380001, question: "Which feature must be used consistently to auto-generate a Table of Contents?", options: ["Bold text", "Heading Styles (Heading 1, 2, etc.)", "Bullet points"], correctAnswer: 1 },
+            { id: 380002, question: "Where do you insert page numbers to appear on every page?", options: ["Header / Footer", "Margins", "Cover Page"], correctAnswer: 0 },
+            { id: 380003, question: "How do you combine two or more cells in a Word table?", options: ["Split Cells", "Merge Cells", "Align Cells"], correctAnswer: 1 },
+            { id: 380004, question: "Which Save As format ensures the document looks the same on all devices?", options: [".docx", ".txt", ".pdf"], correctAnswer: 2 },
+            { id: 380005, question: "Which tab contains the Paragraph spacing options?", options: ["Insert", "Layout / Design", "Home"], correctAnswer: 2 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 381,
+      name: "Microsoft Excel",
+      weeks: [
+        {
+          id: 38100,
+          weekNumber: 1,
+          title: "Intermediate Excel Functions",
+          tasks: [
+            { id: 381001, question: "Which tool automatically changes a cell's color based on its value?", options: ["Format as Table", "Conditional Formatting", "Data Validation"], correctAnswer: 1 },
+            { id: 381002, question: "Which function looks up data in a vertical table?", options: ["HLOOKUP", "VLOOKUP", "XLOOKUP"], correctAnswer: 1 },
+            { id: 381003, question: "What does a PivotTable do?", options: ["Creates charts only", "Summarizes and analyzes large datasets quickly", "Sorts alphabetically"], correctAnswer: 1 },
+            { id: 381004, question: "Which shortcut turns a range into an official Excel Table?", options: ["Ctrl + T", "Ctrl + E", "Ctrl + L"], correctAnswer: 0 },
+            { id: 381005, question: "What does the AVERAGE function calculate?", options: ["The highest value", "The sum of values", "The mean of a range"], correctAnswer: 2 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 382,
+      name: "PowerPoint",
+      weeks: [
+        {
+          id: 38200,
+          weekNumber: 1,
+          title: "Intermediate Presentations",
+          tasks: [
+            { id: 382001, question: "What is SmartArt used for?", options: ["Inserting photos", "Creating professional diagrams and org charts", "Adding transitions"], correctAnswer: 1 },
+            { id: 382002, question: "What is the fastest way to duplicate a slide?", options: ["Ctrl + N", "Ctrl + D", "Ctrl + M"], correctAnswer: 1 },
+            { id: 382003, question: "What does an Action Button do?", options: ["Makes text move", "Creates a clickable link to another slide or file", "Changes the theme"], correctAnswer: 1 },
+            { id: 382004, question: "What is the difference between Animation and Transition?", options: ["They are the same", "Animations apply to objects on a slide; Transitions apply between slides", "Transitions are for text only"], correctAnswer: 1 },
+            { id: 382005, question: "How do you set audio to play automatically when a slide appears?", options: ["Right-click the slide", "Set Start to 'Automatically' in the Playback tab", "Press F5"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 383,
+      name: "Google Workspace",
+      weeks: [
+        {
+          id: 38300,
+          weekNumber: 1,
+          title: "Cloud Collaboration",
+          tasks: [
+            { id: 383001, question: "What is Google Drive?", options: ["An email app", "Google's cloud-based storage service", "A spreadsheet tool"], correctAnswer: 1 },
+            { id: 383002, question: "Which Google app is equivalent to Microsoft Word?", options: ["Google Slides", "Google Docs", "Google Forms"], correctAnswer: 1 },
+            { id: 383003, question: "What is a key advantage of Google Workspace?", options: ["Works only offline", "Real-time collaboration with others", "No internet required"], correctAnswer: 1 },
+            { id: 383004, question: "Which Google app is equivalent to Microsoft Excel?", options: ["Google Keep", "Google Sheets", "Google Meet"], correctAnswer: 1 },
+            { id: 383005, question: "How do you share a Google Doc?", options: ["By printing it", "By clicking Share and entering their email", "By saving to USB"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+mockCoursesData["Digital Literacy (Advanced)"] = {
+  id: 39,
+  course_name: "Digital Literacy (Advanced)",
+  modules: [
+    {
+      id: 390,
+      name: "Microsoft Word",
+      weeks: [
+        {
+          id: 39000,
+          weekNumber: 1,
+          title: "Advanced Document Processing",
+          tasks: [
+            { id: 390001, question: "Which feature sends personalized letters to a list of people?", options: ["Track Changes", "Mail Merge", "Macro Recording"], correctAnswer: 1 },
+            { id: 390002, question: "Which feature records and automates repetitive tasks in Word?", options: ["Styles", "Macros", "Captions"], correctAnswer: 1 },
+            { id: 390003, question: "How do multiple people track exactly what changes each person made?", options: ["Password Protect", "Track Changes", "Read-Only Mode"], correctAnswer: 1 },
+            { id: 390004, question: "What is a Section Break used for?", options: ["Starting a new paragraph", "Applying different page numbering within one document", "Checking spelling"], correctAnswer: 1 },
+            { id: 390005, question: "What does inserting a Table of Contents require first?", options: ["Bold text", "Applied Heading Styles", "Page borders"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 391,
+      name: "Microsoft Excel",
+      weeks: [
+        {
+          id: 39100,
+          weekNumber: 1,
+          title: "Advanced Excel & Data Analysis",
+          tasks: [
+            { id: 391001, question: "Which modern function replaces VLOOKUP and can look left or right?", options: ["HLOOKUP", "XLOOKUP", "INDEX"], correctAnswer: 1 },
+            { id: 391002, question: "What does Goal Seek do?", options: ["Calculates the sum", "Finds the input value to achieve a target result", "Deletes duplicates"], correctAnswer: 1 },
+            { id: 391003, question: "What is Power Query used for?", options: ["Creating 3D charts", "Connecting, cleaning and transforming data from multiple sources", "Checking spelling"], correctAnswer: 1 },
+            { id: 391004, question: "In a Pivot Table, where do you drag a field to get a SUM?", options: ["Rows", "Columns", "Values"], correctAnswer: 2 },
+            { id: 391005, question: "In Excel, what is a Macro primarily written in?", options: ["JavaScript", "VBA (Visual Basic for Applications)", "Python"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 392,
+      name: "PowerPoint",
+      weeks: [
+        {
+          id: 39200,
+          weekNumber: 1,
+          title: "Advanced Presentations & Design",
+          tasks: [
+            { id: 392001, question: "What is the Slide Master used for?", options: ["Full screen view", "Global layout and design changes across all slides", "Recording voiceovers"], correctAnswer: 1 },
+            { id: 392002, question: "Which transition creates cinematic seamless movement between slides?", options: ["Fade", "Morph", "Wipe"], correctAnswer: 1 },
+            { id: 392003, question: "What is Presenter View used for?", options: ["Letting the audience see your notes", "Seeing speaker notes while the audience only sees the current slide", "Editing while presenting"], correctAnswer: 1 },
+            { id: 392004, question: "Which tool converts a list into a professional graphic or diagram?", options: ["WordArt", "SmartArt", "ClipArt"], correctAnswer: 1 },
+            { id: 392005, question: "How do you create a non-linear presentation with clickable navigation?", options: ["Animations", "Hyperlinks / Action Buttons", "Transitions"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 393,
+      name: "AI Tools",
+      weeks: [
+        {
+          id: 39300,
+          weekNumber: 1,
+          title: "AI Tools for Productivity",
+          tasks: [
+            { id: 393001, question: "What is generative AI primarily used for?", options: ["Fixing hardware", "Creating text, images, code, and other content from prompts", "Running Excel macros"], correctAnswer: 1 },
+            { id: 393002, question: "What is a 'Prompt' in the context of AI tools?", options: ["A type of virus", "An instruction or question you give to an AI model", "A spreadsheet formula"], correctAnswer: 1 },
+            { id: 393003, question: "Which of these is an example of a generative AI writing assistant?", options: ["Google Maps", "ChatGPT", "Microsoft Teams"], correctAnswer: 1 },
+            { id: 393004, question: "What is 'AI Hallucination'?", options: ["When AI generates visuals", "When an AI produces confident but factually incorrect information", "When AI refuses to answer"], correctAnswer: 1 },
+            { id: 393005, question: "Which feature in Microsoft 365 uses AI to help draft documents and emails?", options: ["SmartArt", "Copilot", "Quick Access Toolbar"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+// ─────────────────────────────────────────────────────────────────
+// FIX 2: Microsoft Excel (Basic) — completely new entry
+// ─────────────────────────────────────────────────────────────────
+
+mockCoursesData["Microsoft Excel (Basic)"] = {
+  id: 40,
+  course_name: "Microsoft Excel (Basic)",
+  modules: [
+    {
+      id: 400,
+      name: "Excel Basics",
+      weeks: [
+        {
+          id: 40000,
+          weekNumber: 1,
+          title: "Excel Interface & Navigation",
+          tasks: [
+            { id: 400001, question: "What is the intersection of a row and a column called?", options: ["Block", "Cell", "Table"], correctAnswer: 1 },
+            { id: 400002, question: "Columns in Excel are identified by:", options: ["Numbers", "Letters", "Colors"], correctAnswer: 1 },
+            { id: 400003, question: "Rows in Excel are identified by:", options: ["Numbers", "Letters", "Symbols"], correctAnswer: 0 },
+            { id: 400004, question: "What is the Name Box in Excel used for?", options: ["Naming the file", "Displaying the address of the active cell", "Entering a formula"], correctAnswer: 1 },
+            { id: 400005, question: "What keyboard shortcut saves an Excel file?", options: ["Ctrl + P", "Ctrl + S", "Ctrl + Z"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 401,
+      name: "Excel Formatting",
+      weeks: [
+        {
+          id: 40100,
+          weekNumber: 1,
+          title: "Formatting Cells and Data",
+          tasks: [
+            { id: 401001, question: "Every Excel formula must start with:", options: ["$", "+", "="], correctAnswer: 2 },
+            { id: 401002, question: "Which function adds a range of numbers together?", options: ["=ADD()", "=SUM()", "=TOTAL()"], correctAnswer: 1 },
+            { id: 401003, question: "Which function calculates the average of a range?", options: ["=MEAN()", "=AVERAGE()", "=MID()"], correctAnswer: 1 },
+            { id: 401004, question: "How do you make text Bold in a cell?", options: ["Ctrl + I", "Ctrl + B", "Ctrl + U"], correctAnswer: 1 },
+            { id: 401005, question: "Which feature highlights cells based on their value automatically?", options: ["Conditional Formatting", "Format as Table", "Cell Styles"], correctAnswer: 0 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 402,
+      name: "Charts",
+      weeks: [
+        {
+          id: 40200,
+          weekNumber: 1,
+          title: "Basic Charts & Visualization",
+          tasks: [
+            { id: 402001, question: "Which chart type is best for showing percentages of a whole?", options: ["Line Chart", "Bar Chart", "Pie Chart"], correctAnswer: 2 },
+            { id: 402002, question: "Which chart is best for showing trends over time?", options: ["Pie Chart", "Line Chart", "Scatter Plot"], correctAnswer: 1 },
+            { id: 402003, question: "To insert a chart, you first need to:", options: ["Save the file", "Select the data you want to chart", "Open a new sheet"], correctAnswer: 1 },
+            { id: 402004, question: "What does the 'Chart Title' do?", options: ["Filters the data", "Labels the chart to describe what it shows", "Sorts the data"], correctAnswer: 1 },
+            { id: 402005, question: "Which Excel tab is used to insert a chart?", options: ["Home", "Insert", "Data"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+// ─────────────────────────────────────────────────────────────────
+// FIX 3: "Front End Web Dev.(Interm)" — exact API name (no space before bracket)
+// ─────────────────────────────────────────────────────────────────
+
+mockCoursesData["Front End Web Dev.(Interm)"] = {
+  id: 41,
+  course_name: "Front End Web Dev.(Interm)",
+  modules: [
+    {
+      id: 410,
+      name: "HTML",
+      weeks: [
+        {
+          id: 41000,
+          weekNumber: 1,
+          title: "Semantic HTML and Forms",
+          tasks: [
+            { id: 410001, question: "Which HTML5 tag is best for a standalone blog post or article?", options: ["<section>", "<article>", "<div>"], correctAnswer: 1 },
+            { id: 410002, question: "What does the 'placeholder' attribute in an <input> do?", options: ["Sets a default submitted value", "Shows a hint describing the expected value", "Hides the input"], correctAnswer: 1 },
+            { id: 410003, question: "Which meta tag ensures responsiveness on mobile?", options: ["name='viewport'", "name='description'", "charset='UTF-8'"], correctAnswer: 0 },
+            { id: 410004, question: "Which attribute prevents form submission if a field is empty?", options: ["validate", "required", "checked"], correctAnswer: 1 },
+            { id: 410005, question: "What does the <iframe> tag do?", options: ["Creates a bold border", "Displays a nested webpage within the current page", "Defines an image gallery"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 411,
+      name: "CSS",
+      weeks: [
+        {
+          id: 41100,
+          weekNumber: 1,
+          title: "Flexbox, Grid & Layouts",
+          tasks: [
+            { id: 411001, question: "In Flexbox (flex-direction: row), which property aligns items vertically?", options: ["justify-content", "align-items", "flex-wrap"], correctAnswer: 1 },
+            { id: 411002, question: "What does 'box-sizing: border-box' do?", options: ["Includes padding and border in total width/height", "Removes all borders", "Makes borders transparent"], correctAnswer: 0 },
+            { id: 411003, question: "Which CSS property creates space between Grid columns?", options: ["grid-margin", "gap", "grid-spacing"], correctAnswer: 1 },
+            { id: 411004, question: "What is the default CSS position of every HTML element?", options: ["relative", "absolute", "static"], correctAnswer: 2 },
+            { id: 411005, question: "Which CSS unit is relative to the browser window width?", options: ["px", "rem", "vw"], correctAnswer: 2 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 412,
+      name: "JavaScript",
+      weeks: [
+        {
+          id: 41200,
+          weekNumber: 1,
+          title: "ES6+ and DOM Manipulation",
+          tasks: [
+            { id: 412001, question: "Correct syntax for an ES6 Arrow Function:", options: ["const myFunc = () => {}", "function myFunc() => {}", "let myFunc = function() {}"], correctAnswer: 0 },
+            { id: 412002, question: "What is the result of '5' + 5 in JavaScript?", options: ["10", "55", "Error"], correctAnswer: 1 },
+            { id: 412003, question: "Which array method creates a new array filtering elements by condition?", options: ["map()", "forEach()", "filter()"], correctAnswer: 2 },
+            { id: 412004, question: "What do 'async' and 'await' keywords do?", options: ["Speed up the computer", "Handle asynchronous operations more cleanly", "Make browser wait for a click"], correctAnswer: 1 },
+            { id: 412005, question: "Which method converts a JSON string into a JavaScript object?", options: ["JSON.stringify()", "JSON.parse()", "JSON.toObject()"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 413,
+      name: "React",
+      weeks: [
+        {
+          id: 41300,
+          weekNumber: 1,
+          title: "Hooks and State Management",
+          tasks: [
+            { id: 413001, question: "What is the purpose of the useState hook?", options: ["Fetch data from an API", "Add state to a functional component", "Style the component"], correctAnswer: 1 },
+            { id: 413002, question: "What happens when a component's state changes?", options: ["The whole page reloads", "The component re-renders", "The browser closes"], correctAnswer: 1 },
+            { id: 413003, question: "Which hook performs side effects like fetching data?", options: ["useEffect", "useContext", "useReducer"], correctAnswer: 0 },
+            { id: 413004, question: "How is data passed from a parent to a child component?", options: ["Through state", "Through props", "Through local storage"], correctAnswer: 1 },
+            { id: 413005, question: "What is the Virtual DOM in React?", options: ["A separate internet", "A lightweight copy of the real DOM for performance", "A database type"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 414,
+      name: "GitHub",
+      weeks: [
+        {
+          id: 41400,
+          weekNumber: 1,
+          title: "Version Control & Collaboration",
+          tasks: [
+            { id: 414001, question: "Which git command saves changes locally with a message?", options: ["git push", "git save", "git commit -m 'message'"], correctAnswer: 2 },
+            { id: 414002, question: "What is a Repository in GitHub?", options: ["A folder storing the project and its version history", "A programming language", "A profile picture"], correctAnswer: 0 },
+            { id: 414003, question: "What does 'git push' do?", options: ["Downloads code", "Uploads local changes to a remote repository", "Deletes a file"], correctAnswer: 1 },
+            { id: 414004, question: "What is a Branch in Git?", options: ["A parallel version of the repo for developing features safely", "A link to another website", "The final version of a project"], correctAnswer: 0 },
+            { id: 414005, question: "What does a Pull Request (PR) do?", options: ["Deletes code on GitHub", "Notifies others that changes are ready to be reviewed and merged", "Clones a project"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+
+mockCoursesData["Fullstack Web Dev (Interm)"] = mockCoursesData["	Fullstack Web Dev (Interm)"];
+
 
 export default mockCoursesData;
