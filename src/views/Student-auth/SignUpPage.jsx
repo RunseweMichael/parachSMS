@@ -449,11 +449,11 @@ export default function SignUpPage() {
     isOpen={showOnboarding}
     onComplete={() => {
       setShowOnboarding(false);
-      navigate("/verify-otp");
+      navigate("/signin");
     }}
     onSkip={() => {
       setShowOnboarding(false);
-      navigate("/verify-otp");
+      navigate("/signin");
     }}
   />
 )}
