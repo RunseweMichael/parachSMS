@@ -274,6 +274,48 @@ const styles = `
   .badge.owing     { background: var(--crimson-pale); color: var(--crimson); }
   .badge.owing::before   { background: var(--crimson); }
 
+  /* ── PROGRESS BAR ── */
+  .progress-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 160px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 7px;
+    border-radius: 100px;
+    background: #ececea;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--gold), #b3922f);
+    transition: width 0.3s ease;
+  }
+  .progress-fill.complete {
+    background: linear-gradient(90deg, var(--emerald), #146249);
+  }
+  .progress-fill.overdue {
+    background: linear-gradient(90deg, var(--crimson), #962727);
+  }
+  .progress-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    min-width: 34px;
+    text-align: right;
+  }
+  .progress-grace {
+    font-size: 12px;
+    color: var(--ink-muted);
+    font-style: italic;
+    white-space: nowrap;
+  }
+
   /* ── ACTION BUTTONS ── */
   .actions {
     display: flex;
@@ -300,6 +342,9 @@ const styles = `
   .actions button:nth-child(2):hover { background: #bde2d8; border-color: var(--emerald); }
   .actions button:nth-child(3):hover { background: #eedcb0; border-color: var(--gold);    }
 `;
+
+// How many days after registration before progress starts accruing.
+const GRACE_PERIOD_DAYS = 2;
 
 const CourseDashboard = () => {
   const [courses, setCourses] = useState([]);
@@ -332,6 +377,50 @@ const CourseDashboard = () => {
   const paymentStatus = (student) => {
     if (Number(student.amount_owed) <= 0) return "Paid";
     return "Owing";
+  };
+
+  /**
+   * Computes course-progress info for a student.
+   *
+   * - Counts days elapsed since registration_date.
+   * - Subtracts a grace period (days that don't count toward progress,
+   *   since a student might not start studying the day they register).
+   * - Expresses progress as a % of (course.duration weeks * 7 days).
+   *
+   * Returns null if we don't have enough data (no registration date,
+   * no course, or no/zero duration) to compute anything meaningful.
+   */
+  const getProgress = (student) => {
+    const course = student.course;
+    const durationWeeks = course?.duration;
+    const regDateRaw = student.registration_date;
+
+    if (!regDateRaw || !durationWeeks || Number(durationWeeks) <= 0) {
+      return null;
+    }
+
+    const regDate = new Date(regDateRaw);
+    if (Number.isNaN(regDate.getTime())) return null;
+
+    const now = new Date();
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const daysElapsed = (now.getTime() - regDate.getTime()) / msPerDay;
+
+    const inGracePeriod = daysElapsed < GRACE_PERIOD_DAYS;
+    const countedDays = Math.max(0, daysElapsed - GRACE_PERIOD_DAYS);
+    const totalDays = Number(durationWeeks) * 7;
+
+    const rawPercent = (countedDays / totalDays) * 100;
+    const percent = Math.min(100, Math.max(0, rawPercent));
+
+    return {
+      percent,
+      inGracePeriod,
+      isComplete: percent >= 100,
+      // "Overdue": finished the expected duration but hasn't completed
+      // (kept generic here since we don't track a separate completion flag;
+      // currently just mirrors isComplete, flagged below for clarity).
+    };
   };
 
   const getCourseStudents = (courseId) => {
@@ -453,8 +542,9 @@ const CourseDashboard = () => {
                     <th>Name</th>
                     <th>Status</th>
                     <th>Payment</th>
+                    <th>Progress</th>
                     <th>Center</th>
-            
+
                   </tr>
                 </thead>
 
@@ -464,6 +554,8 @@ const CourseDashboard = () => {
 
                     const owing =
                       Number(student.amount_owed) > 0;
+
+                    const progress = getProgress(student);
 
                     return (
                       <tr
@@ -497,6 +589,29 @@ const CourseDashboard = () => {
                           >
                             {paymentStatus(student)}
                           </span>
+                        </td>
+
+                        <td>
+                          {progress === null ? (
+                            <span className="progress-grace">—</span>
+                          ) : progress.inGracePeriod ? (
+                            <span className="progress-grace">Starting soon</span>
+                          ) : (
+                            <div className="progress-cell">
+                              <div className="progress-track">
+                                <div
+                                  className={
+                                    "progress-fill" +
+                                    (progress.isComplete ? " complete" : "")
+                                  }
+                                  style={{ width: `${progress.percent}%` }}
+                                />
+                              </div>
+                              <span className="progress-label">
+                                {Math.round(progress.percent)}%
+                              </span>
+                            </div>
+                          )}
                         </td>
 
                         <td>{student.center}</td>
