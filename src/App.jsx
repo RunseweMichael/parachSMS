@@ -61,6 +61,8 @@ import EnquiryForm from './views/Student-Interface/Enquiry.jsx';
 
 import VerifyCertificate from './pages/verifyCertificate.jsx';
 
+import BroadcastSMS from './pages/BroadcastSMS.jsx';
+
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -163,6 +165,7 @@ function App() {
           <Route path="staff-management" element={<StaffManagement />} />
           <Route path="internship-requests" element={<AdminInternshipRequests />} />
           <Route path="add-student" element={<AdminAddStudent />} />
+          <Route path="broadcast-sms" element={<BroadcastSMS />} />
           
 
           {/* COURSE ROUTES */}

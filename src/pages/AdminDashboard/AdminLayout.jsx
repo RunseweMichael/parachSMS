@@ -12,6 +12,7 @@ import {
   FaTimes,
   FaTicketAlt,
   FaUserTie,
+  FaSms,
 } from "react-icons/fa";
 import logoImg from "../../assets/1000561121.jpg";
 
@@ -69,6 +70,7 @@ const AdminLayout = () => {
     { path: "/admin", icon: <FaHome />, label: "Dashboard", exact: true },
     { path: "/admin/courses", icon: <FaHistory />, label: "Courses" },
     { path: "/admin/course-dashboard", icon: <FaHistory />, label: "Course Dashboard" },
+    { path: "/admin/broadcast-sms", icon: <FaSms />, label: "Broadcast SMS" },
     { path: "/admin/students", icon: <FaUsers />, label: "Students" },
     { path: "/admin/add-student", icon: <FaUsers />, label: "Add Student" },
     { path: "/admin/staff-management", icon: <FaUserTie />, label: "Staff Management" },
