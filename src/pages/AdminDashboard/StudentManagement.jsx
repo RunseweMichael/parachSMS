@@ -3,6 +3,21 @@ import api from "../../api";
 import { FaEdit, FaToggleOn, FaToggleOff, FaDownload, FaTrash } from "react-icons/fa";
 
 
+// ── Discount helpers ──
+const discountLabel = (d) =>
+  d.discount_type === "percent"
+    ? `${Number(d.value)}%`
+    : `₦${Number(d.value).toLocaleString()}`;
+
+const formatShortDate = (iso) =>
+  iso
+    ? new Date(iso).toLocaleDateString(undefined, {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      })
+    : "";
+
 const StudentManagement = () => {
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -15,10 +30,12 @@ const StudentManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [showLegacy, setShowLegacy] = useState(false); // ← toggle legacy visibility
+  const [discounts, setDiscounts] = useState({}); // ← active admin discounts keyed by student id
 
   useEffect(() => {
     fetchStudents();
     fetchCourses();
+    fetchDiscounts();
   }, [filter]);
 
   const fetchCourses = async () => {
@@ -27,6 +44,16 @@ const StudentManagement = () => {
       setCourses(res.data || []);
     } catch (err) {
       console.error("Failed to fetch courses:", err);
+    }
+  };
+
+  const fetchDiscounts = async () => {
+    try {
+      const res = await api.get("/payments/admin-discount/list/");
+      setDiscounts(res.data || {});
+    } catch (err) {
+      // Non-fatal: the table still works, just without discount badges
+      console.error("Failed to fetch discounts:", err);
     }
   };
 
@@ -381,7 +408,17 @@ const StudentManagement = () => {
                     <td>{s.course_name}</td>
                     <td>{s.center}</td>
                     <td>{formatDate(s.registration_date)}</td>
-                    <td>₦{s.discount.toLocaleString()}</td>
+                    <td>
+                      {s.discount > 0 ? `₦${s.discount.toLocaleString()}` : "—"}
+                      {discounts[s.id] && (
+                        <span
+                          style={{ ...styles.discountTag, marginLeft: 6 }}
+                          title={`${discountLabel(discounts[s.id])} discount applied by ${discounts[s.id].applied_by || "admin"} on ${formatShortDate(discounts[s.id].applied_at)}`}
+                        >
+                          🏷️ −{discountLabel(discounts[s.id])}
+                        </span>
+                      )}
+                    </td>
                     <td>₦{s.amount_paid.toLocaleString()}</td>
                     <td>₦{s.amount_owed.toLocaleString()}</td>
                     <td>{formatDate(s.next_due_date)}</td>
@@ -493,12 +530,14 @@ const StudentManagement = () => {
         <EditStudentModal
           student={editingStudent}
           courses={courses}
+          discountRecord={discounts[editingStudent.id] || null}
           onClose={() => {
             setShowEditModal(false);
             setEditingStudent(null);
           }}
           onSuccess={() => {
             fetchStudents();
+            fetchDiscounts();
             setShowEditModal(false);
             setEditingStudent(null);
           }}
@@ -508,7 +547,7 @@ const StudentManagement = () => {
   );
 };
 
-const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
+const EditStudentModal = ({ student, courses, discountRecord, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     email: student.email || "",
     amount_paid: student.amount_paid ?? 0,
@@ -523,6 +562,43 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
   const [courseChanging, setCourseChanging] = useState(false);
   const [paymentAdjustment, setPaymentAdjustment] = useState("");
   const [adjustmentNote, setAdjustmentNote] = useState("");
+
+  // ── Discount state ──
+  const [discountType, setDiscountType] = useState("percent");
+  const [discountValue, setDiscountValue] = useState("");
+  const [discountNote, setDiscountNote] = useState("");
+  const [applyingDiscount, setApplyingDiscount] = useState(false);
+  const [removingDiscount, setRemovingDiscount] = useState(false);
+
+  const coursePrice = Number(
+    courses.find((c) => String(c.id) === String(student.course_id))?.price || 0
+  );
+  // student.discount is discounted_price (0 when none)
+  const currentPrice = student.discount > 0 ? student.discount : coursePrice;
+
+  const discountPreview = useMemo(() => {
+    const v = parseFloat(discountValue);
+    if (!currentPrice || !(v > 0)) return null;
+    if (discountType === "percent" && v >= 100)
+      return { error: "Percentage must be less than 100." };
+
+    const deduction =
+      discountType === "percent" ? Math.round(currentPrice * v) / 100 : v;
+    const newPrice = currentPrice - deduction;
+
+    if (newPrice <= 0)
+      return { error: "Discount can't reduce the price to zero." };
+    if (newPrice < student.amount_paid)
+      return {
+        error: `Price would fall below what the student already paid (₦${student.amount_paid.toLocaleString()}).`,
+      };
+
+    return {
+      deduction,
+      newPrice,
+      newOwed: Math.max(0, newPrice - student.amount_paid),
+    };
+  }, [discountType, discountValue, currentPrice, student.amount_paid]);
 
   const handleChange = (key, value) => {
     if (key === "course" && value !== student.course_id) {
@@ -568,6 +644,68 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
         errorMessage = `Error: ${err.message}`;
       }
       alert(errorMessage);
+    }
+  };
+
+  const handleApplyDiscount = async () => {
+    if (!discountPreview || discountPreview.error) return;
+
+    const label =
+      discountType === "percent"
+        ? `${discountValue}%`
+        : `₦${Number(discountValue).toLocaleString()}`;
+
+    if (
+      !window.confirm(
+        `Give ${student.name} a ${label} discount?\n\n` +
+          `Current price: ₦${currentPrice.toLocaleString()}\n` +
+          `New price: ₦${discountPreview.newPrice.toLocaleString()}\n` +
+          `New balance owed: ₦${discountPreview.newOwed.toLocaleString()}`
+      )
+    )
+      return;
+
+    setApplyingDiscount(true);
+    try {
+      const res = await api.post("/payments/admin-discount/", {
+        user_id: student.id,
+        discount_type: discountType,
+        value: parseFloat(discountValue),
+        note: discountNote,
+      });
+      alert(res.data.message);
+      onSuccess();
+    } catch (err) {
+      console.error("Discount failed:", err);
+      alert(err?.response?.data?.error || "Failed to apply discount");
+    } finally {
+      setApplyingDiscount(false);
+    }
+  };
+
+  const handleRemoveDiscount = async () => {
+    if (!discountRecord) return;
+
+    if (
+      !window.confirm(
+        `Remove the ${discountLabel(discountRecord)} discount from ${student.name}?\n\n` +
+          `Price will go back to ₦${Number(discountRecord.price_before).toLocaleString()}.`
+      )
+    )
+      return;
+
+    setRemovingDiscount(true);
+    try {
+      const res = await api.post("/payments/admin-discount/remove/", {
+        user_id: student.id,
+      });
+      alert(res.data.message);
+      onSuccess();
+    } catch (err) {
+      console.error("Remove discount failed:", err);
+      alert(err?.response?.data?.error || "Failed to remove discount");
+    } finally {
+      setRemovingDiscount(false);
     }
   };
 
@@ -663,6 +801,120 @@ const EditStudentModal = ({ student, courses, onClose, onSuccess }) => {
               Record Payment
             </button>
           </div>
+
+          {/* Discount Section */}
+          {discountRecord ? (
+            <div style={{ ...styles.warningBox, backgroundColor: "#e8f5e9", borderColor: "#4CAF50", color: "#333" }}>
+              <strong>🏷️ Discount already applied</strong>
+              <p style={{ margin: "8px 0 4px", fontSize: "13px" }}>
+                <strong>{discountLabel(discountRecord)} off</strong> (₦
+                {Number(discountRecord.amount_deducted).toLocaleString()} deducted): price went from ₦
+                {Number(discountRecord.price_before).toLocaleString()} to{" "}
+                <strong>₦{Number(discountRecord.price_after).toLocaleString()}</strong>.
+              </p>
+              <p style={{ margin: "0 0 8px", fontSize: "12px", color: "#555" }}>
+                Applied by {discountRecord.applied_by || "an admin"} on{" "}
+                {formatShortDate(discountRecord.applied_at)}
+                {discountRecord.note ? ` — “${discountRecord.note}”` : ""}
+              </p>
+              <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#555" }}>
+                Only one discount can be given per student. If this was a mistake, remove it and
+                apply the correct one.
+              </p>
+              <button
+                onClick={handleRemoveDiscount}
+                disabled={removingDiscount}
+                style={{
+                  ...styles.saveBtn,
+                  width: "100%",
+                  backgroundColor: "#fff",
+                  color: "#c62828",
+                  border: "1px solid #c62828",
+                }}
+              >
+                {removingDiscount ? "Removing..." : "Remove Discount"}
+              </button>
+            </div>
+          ) : (
+            <div style={{ ...styles.warningBox, backgroundColor: "#f3e5f5", borderColor: "#9c27b0", color: "#333" }}>
+              <strong>🏷️ Apply Discount</strong>
+              <p style={{ margin: "8px 0", fontSize: "13px", color: "#555" }}>
+                Current price: <strong>₦{currentPrice.toLocaleString()}</strong>
+                {student.discount > 0 && coursePrice > student.discount && (
+                  <> (course price ₦{coursePrice.toLocaleString()})</>
+                )}
+              </p>
+
+              {!student.course_id || courseChanging ? (
+                <p style={{ fontSize: "13px", color: "#888" }}>
+                  Save the student's course first before applying a discount.
+                </p>
+              ) : (
+                <>
+                  <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                    <select
+                      value={discountType}
+                      onChange={(e) => setDiscountType(e.target.value)}
+                      style={{ ...styles.input, width: "45%" }}
+                    >
+                      <option value="percent">Percentage (%)</option>
+                      <option value="fixed">Fixed amount (₦)</option>
+                    </select>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder={discountType === "percent" ? "e.g. 10" : "e.g. 5000"}
+                      value={discountValue}
+                      onChange={(e) => setDiscountValue(e.target.value)}
+                      style={styles.input}
+                    />
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="Reason / note (optional)..."
+                    value={discountNote}
+                    onChange={(e) => setDiscountNote(e.target.value)}
+                    style={{ ...styles.input, marginBottom: "8px" }}
+                  />
+
+                  {discountPreview && (
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        margin: "0 0 8px",
+                        color: discountPreview.error ? "#c62828" : "#2e7d32",
+                      }}
+                    >
+                      {discountPreview.error ? (
+                        discountPreview.error
+                      ) : (
+                        <>
+                          −₦{discountPreview.deduction.toLocaleString()} → new price{" "}
+                          <strong>₦{discountPreview.newPrice.toLocaleString()}</strong>, balance owed{" "}
+                          <strong>₦{discountPreview.newOwed.toLocaleString()}</strong>
+                        </>
+                      )}
+                    </p>
+                  )}
+
+                  <button
+                    onClick={handleApplyDiscount}
+                    disabled={applyingDiscount || !discountPreview || !!discountPreview.error}
+                    style={{
+                      ...styles.saveBtn,
+                      width: "100%",
+                      backgroundColor: "#9c27b0",
+                      opacity: !discountPreview || discountPreview.error ? 0.5 : 1,
+                    }}
+                  >
+                    {applyingDiscount ? "Applying..." : "Apply Discount"}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           <div style={styles.formGroup}>
             <label style={styles.label}>Email</label>
@@ -793,6 +1045,18 @@ const styles = {
     fontSize: "13px",
     whiteSpace: "nowrap",
     flexShrink: 0,
+  },
+  discountTag: {
+    display: "inline-block",
+    fontSize: "10px",
+    fontWeight: "700",
+    padding: "2px 7px",
+    borderRadius: "10px",
+    backgroundColor: "#f3e5f5",
+    color: "#6a1b9a",
+    border: "1px solid #9c27b0",
+    whiteSpace: "nowrap",
+    cursor: "help",
   },
   badge: { display: "inline-block", padding: "5px 12px", borderRadius: "12px", fontSize: "12px", fontWeight: "600" },
   iconBtn: { padding: "6px 10px", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "16px", backgroundColor: "transparent", color: "#2196F3", transition: "all 0.2s" },
