@@ -138,7 +138,7 @@ const Dashboard = () => {
   <h1 style={styles.title}>Admin Dashboard</h1>
   <div style={{ display: "flex", gap: "12px" }}>
     <a
-      href="report.excelpracticehub.com"
+      href="https://report.excelpracticehub.com"
       target="_blank"
       rel="noopener noreferrer"
       style={{ ...styles.refreshBtn, backgroundColor: "#4CAF50", textDecoration: "none" }}
