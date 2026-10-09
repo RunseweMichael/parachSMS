@@ -135,11 +135,21 @@ const Dashboard = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.title}>Admin Dashboard</h1>
-        <button style={styles.refreshBtn} onClick={fetchDashboardData}>
-          🔄 Refresh
-        </button>
-      </div>
+  <h1 style={styles.title}>Admin Dashboard</h1>
+  <div style={{ display: "flex", gap: "12px" }}>
+    <a
+      href="report.excelpracticehub.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ ...styles.refreshBtn, backgroundColor: "#4CAF50", textDecoration: "none" }}
+    >
+      📊 Report Management
+    </a>
+    <button style={styles.refreshBtn} onClick={fetchDashboardData}>
+      🔄 Refresh
+    </button>
+  </div>
+</div>
 
       {/* Stats Cards */}
       <div style={styles.statsGrid}>
