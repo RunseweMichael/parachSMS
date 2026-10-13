@@ -7286,4 +7286,102 @@ mockCoursesData["Front End Web Dev.(Interm)"] = {
 mockCoursesData["Fullstack Web Dev (Interm)"] = mockCoursesData["	Fullstack Web Dev (Interm)"];
 
 
+mockCoursesData["Data Analytics Essentials"] = {
+  id: 42,
+  course_name: "Data Analytics Essentials",
+  modules: [
+    {
+      id: 420,
+      name: "Excel",
+      weeks: [
+        {
+          id: 42000,
+          weekNumber: 1,
+          title: "Excel Formulas & Functions",
+          tasks: [
+            { id: 420001, question: "Which function counts only the cells that contain numbers?", options: ["COUNT()", "COUNTA()", "COUNTBLANK()"], correctAnswer: 0 },
+            { id: 420002, question: "Which function returns one value if a test is TRUE and another if it is FALSE?", options: ["SUMIF()", "IF()", "VLOOKUP()"], correctAnswer: 1 },
+            { id: 420003, question: "What does the reference $B$2 mean?", options: ["It changes when copied down", "It never changes when the formula is copied", "It refers to the whole column B"], correctAnswer: 1 },
+            { id: 420004, question: "Which function joins text from several cells using a separator?", options: ["LEN()", "TRIM()", "TEXTJOIN()"], correctAnswer: 2 },
+            { id: 420005, question: "What does the #N/A error usually mean?", options: ["The value was not found", "A number was divided by zero", "The column is too narrow"], correctAnswer: 0 },
+          ],
+        },
+        {
+          id: 42001,
+          weekNumber: 2,
+          title: "Data Cleaning & PivotTables",
+          tasks: [
+            { id: 420011, question: "Which feature deletes repeated rows from a dataset?", options: ["Freeze Panes", "Remove Duplicates", "Goal Seek"], correctAnswer: 1 },
+            { id: 420012, question: "Which function removes extra spaces from text?", options: ["TRIM()", "LEN()", "FIND()"], correctAnswer: 0 },
+            { id: 420013, question: "What is the main use of a PivotTable?", options: ["To design logos", "To summarize and analyze large datasets quickly", "To protect a worksheet"], correctAnswer: 1 },
+            { id: 420014, question: "Which feature limits a cell to values chosen from a drop-down list?", options: ["Data Validation", "Conditional Formatting", "Flash Fill"], correctAnswer: 0 },
+            { id: 420015, question: "What does 'Text to Columns' do?", options: ["Merges two columns", "Splits text in one cell into several columns", "Sorts text alphabetically"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 421,
+      name: "Power BI",
+      weeks: [
+        {
+          id: 42100,
+          weekNumber: 1,
+          title: "Getting and Preparing Data",
+          tasks: [
+            { id: 421001, question: "Which Power BI Desktop view is used to build and arrange visuals?", options: ["Report View", "Data View", "Model View"], correctAnswer: 0 },
+            { id: 421002, question: "Which tool is used to clean and transform data before loading it?", options: ["Power BI Service", "Power Query Editor", "Slicer"], correctAnswer: 1 },
+            { id: 421003, question: "What does 'Close & Apply' do in Power Query?", options: ["Deletes the query", "Publishes the report online", "Loads the transformed data into the model"], correctAnswer: 2 },
+            { id: 421004, question: "Which of these can Power BI connect to as a data source?", options: ["Only Excel files", "Only cloud services", "Excel files, MySQL databases and web sources"], correctAnswer: 2 },
+            { id: 421005, question: "What does 'Use First Row as Headers' do?", options: ["Turns the first row into column names", "Deletes the first row", "Sorts the first column"], correctAnswer: 0 },
+          ],
+        },
+        {
+          id: 42101,
+          weekNumber: 2,
+          title: "Visualization, DAX & Sharing",
+          tasks: [
+            { id: 421011, question: "Which DAX function adds up all the values in a column?", options: ["COUNT()", "SUM()", "MAX()"], correctAnswer: 1 },
+            { id: 421012, question: "Which visual is best for showing a trend over time?", options: ["Line Chart", "Pie Chart", "Card"], correctAnswer: 0 },
+            { id: 421013, question: "What is a Slicer in Power BI?", options: ["A tool that deletes data", "A visual filter that lets users filter the report", "A type of table"], correctAnswer: 1 },
+            { id: 421014, question: "Why do you create relationships between tables in the model?", options: ["To change colors", "To let data from different tables work together correctly", "To rename columns"], correctAnswer: 1 },
+            { id: 421015, question: "Where do you publish a report so colleagues can view it online?", options: ["Power Query", "Power BI Service", "Excel"], correctAnswer: 1 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 422,
+      name: "MySQL",
+      weeks: [
+        {
+          id: 42200,
+          weekNumber: 1,
+          title: "SQL Basics & Querying",
+          tasks: [
+            { id: 422001, question: "Which SQL statement is used to retrieve data from a table?", options: ["INSERT", "SELECT", "UPDATE"], correctAnswer: 1 },
+            { id: 422002, question: "Which clause filters rows based on a condition?", options: ["WHERE", "ORDER BY", "GROUP BY"], correctAnswer: 0 },
+            { id: 422003, question: "Which command creates a new table in MySQL?", options: ["MAKE TABLE", "NEW TABLE", "CREATE TABLE"], correctAnswer: 2 },
+            { id: 422004, question: "Which keyword sorts the result set?", options: ["SORT", "ORDER BY", "ARRANGE"], correctAnswer: 1 },
+            { id: 422005, question: "Which constraint uniquely identifies each row in a table?", options: ["PRIMARY KEY", "DEFAULT", "CHECK"], correctAnswer: 0 },
+          ],
+        },
+        {
+          id: 42201,
+          weekNumber: 2,
+          title: "Joins & Aggregations",
+          tasks: [
+            { id: 422011, question: "What does an INNER JOIN return?", options: ["All rows from both tables", "Only rows with matching values in both tables", "Only rows with no match"], correctAnswer: 1 },
+            { id: 422012, question: "Which clause groups rows so aggregate functions can be applied?", options: ["GROUP BY", "LIMIT", "DISTINCT"], correctAnswer: 0 },
+            { id: 422013, question: "Which clause filters groups created by GROUP BY?", options: ["WHERE", "HAVING", "FROM"], correctAnswer: 1 },
+            { id: 422014, question: "What does a LEFT JOIN return?", options: ["Only matching rows", "All rows from the left table plus matching rows from the right", "All rows from the right table only"], correctAnswer: 1 },
+            { id: 422015, question: "Which function returns the number of rows?", options: ["SUM(*)", "TOTAL(*)", "COUNT(*)"], correctAnswer: 2 },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+
 export default mockCoursesData;
