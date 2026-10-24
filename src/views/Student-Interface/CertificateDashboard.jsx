@@ -63,54 +63,111 @@ const Certificates = () => {
   };
 
   // Load an image so its pixels can be drawn onto a canvas
+  
+  // Load an image and report useful errors
   const loadImage = (src) =>
     new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = "anonymous"; // needed to read pixels from another origin
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Could not load certificate image"));
+
+      img.crossOrigin = "anonymous";
+
+      img.onload = () => {
+        if (!img.naturalWidth || !img.naturalHeight) {
+          reject(new Error("The certificate image has invalid dimensions."));
+          return;
+        }
+
+        resolve(img);
+      };
+
+      img.onerror = () => {
+        reject(
+          new Error(
+            `Unable to load certificate image. Check the image URL and server CORS settings: ${src}`
+          )
+        );
+      };
+
       img.src = src;
     });
 
-  // Convert the certificate image to a PDF in the browser and download it
+  // Generate and download the certificate PDF
   const handleDownloadPdf = async (cert, imageUrl) => {
     setDownloadingId(cert.id);
+
     try {
+      if (!imageUrl) {
+        throw new Error("No certificate image URL was provided.");
+      }
+
       const img = await loadImage(imageUrl);
-      const w = img.naturalWidth;
-      const h = img.naturalHeight;
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
 
-      // White background so transparent PNGs don't turn black as JPEG
+      // Draw the image onto a white canvas
       const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, w, h);
-      ctx.drawImage(img, 0, 0);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+      canvas.width = width;
+      canvas.height = height;
 
-      // PDF page matches the certificate size exactly (no margins)
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        throw new Error("Could not create the image canvas.");
+      }
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Convert to JPEG; this will also expose canvas CORS restrictions
+      const imageData = canvas.toDataURL("image/jpeg", 0.95);
+
+      // Convert pixel dimensions to millimetres at 96 DPI
+      const widthMm = (width * 25.4) / 96;
+      const heightMm = (height * 25.4) / 96;
+
       const pdf = new jsPDF({
-        orientation: w >= h ? "landscape" : "portrait",
-        unit: "px",
-        format: [w, h],
-        hotfixes: ["px_scaling"],
+        orientation: width >= height ? "landscape" : "portrait",
+        unit: "mm",
+        format: [widthMm, heightMm],
+        compress: true,
       });
-      pdf.addImage(dataUrl, "JPEG", 0, 0, w, h);
+
+      pdf.addImage(
+        imageData,
+        "JPEG",
+        0,
+        0,
+        widthMm,
+        heightMm,
+        undefined,
+        "FAST"
+      );
 
       const fileName = (cert.certificate_name || "certificate")
         .replace(/[^\w\s-]/g, "")
         .trim()
         .replace(/\s+/g, "_");
+
       pdf.save(`${fileName || "certificate"}.pdf`);
     } catch (err) {
-      console.error("PDF download failed:", err);
-      alert("Could not generate the PDF. Please try again.");
+      console.error("Certificate PDF generation failed:", {
+        message: err.message,
+        imageUrl,
+        certificateId: cert.id,
+        error: err,
+      });
+
+      alert(
+        `Could not generate the PDF: ${
+          err.message || "Unknown error"
+        }. Check the browser console for details.`
+      );
     } finally {
       setDownloadingId(null);
     }
   };
+
 
   const completedCount = completedWeeks?.size ?? 0;
   const canViewCertificates =
