@@ -113,12 +113,23 @@ const handleDownloadPdf = async (cert) => {
     const link = document.createElement("a");
     link.href = downloadUrl;
 
-    const filename = (cert.certificate_name || "certificate")
-      .replace(/[^\w\s-]/g, "")
-      .trim()
-      .replace(/\s+/g, "_");
+    
+const studentName =
+  cert.student_name ||
+  cert.student?.name ||
+  cert.student?.username ||
+  cert.student?.first_name ||
+  "student";
 
-    link.download = `${filename || "certificate"}.pdf`;
+const filename = `${studentName}_certificate`
+  .normalize("NFKD")
+  .replace(/[^\w\s-]/g, "")
+  .trim()
+  .replace(/\s+/g, "_")
+  .toLowerCase();
+
+link.download = `${filename || "student_certificate"}.pdf`;
+
 
     document.body.appendChild(link);
     link.click();
