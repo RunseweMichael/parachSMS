@@ -8,6 +8,7 @@ import {
   Award,
   TrendingUp,
 } from "lucide-react";
+import { jsPDF } from "jspdf";
 import api from "../../api";
 import { useCourseProgress } from "../../hooks/CourseContext";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +21,7 @@ const Certificates = () => {
   const [error, setError] = useState("");
   const [visibleCerts, setVisibleCerts] = useState({});
   const [hasLeftReview, setHasLeftReview] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const { courseCompleted, completionPercentage, completedWeeks, totalWeeks } =
     useCourseProgress();
@@ -60,21 +62,56 @@ const Certificates = () => {
     setHasLeftReview(true);
   };
 
-  const renderDownloadButton = (url, baseName) => {
-    return (
-      <a
-        href={url}
-        download={baseName}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700"
-      >
-        <Download size={16} /> Download
-      </a>
-    );
+  // Load an image so its pixels can be drawn onto a canvas
+  const loadImage = (src) =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous"; // needed to read pixels from another origin
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Could not load certificate image"));
+      img.src = src;
+    });
+
+  // Convert the certificate image to a PDF in the browser and download it
+  const handleDownloadPdf = async (cert, imageUrl) => {
+    setDownloadingId(cert.id);
+    try {
+      const img = await loadImage(imageUrl);
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+
+      // White background so transparent PNGs don't turn black as JPEG
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+
+      // PDF page matches the certificate size exactly (no margins)
+      const pdf = new jsPDF({
+        orientation: w >= h ? "landscape" : "portrait",
+        unit: "px",
+        format: [w, h],
+        hotfixes: ["px_scaling"],
+      });
+      pdf.addImage(dataUrl, "JPEG", 0, 0, w, h);
+
+      const fileName = (cert.certificate_name || "certificate")
+        .replace(/[^\w\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "_");
+      pdf.save(`${fileName || "certificate"}.pdf`);
+    } catch (err) {
+      console.error("PDF download failed:", err);
+      alert("Could not generate the PDF. Please try again.");
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
-  // ✅ Move canViewCertificates inside render so it recalculates automatically
   const completedCount = completedWeeks?.size ?? 0;
   const canViewCertificates =
     courseCompleted &&
@@ -205,10 +242,16 @@ const Certificates = () => {
                           )}
                         </button>
 
-                        {renderDownloadButton(
-                          imageUrl,
-                          cert.certificate_name || "certificate"
-                        )}
+                        <button
+                          onClick={() => handleDownloadPdf(cert, imageUrl)}
+                          disabled={downloadingId === cert.id}
+                          className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          <Download size={16} />
+                          {downloadingId === cert.id
+                            ? "Preparing..."
+                            : "Download PDF"}
+                        </button>
                       </div>
 
                       {visibleCerts[cert.id] && (
