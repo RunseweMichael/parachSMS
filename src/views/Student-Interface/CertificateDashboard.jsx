@@ -92,81 +92,52 @@ const Certificates = () => {
     });
 
   // Generate and download the certificate PDF
-  const handleDownloadPdf = async (cert, imageUrl) => {
-    setDownloadingId(cert.id);
+  
+const handleDownloadPdf = async (cert) => {
+  setDownloadingId(cert.id);
 
-    try {
-      if (!imageUrl) {
-        throw new Error("No certificate image URL was provided.");
-      }
+  let downloadUrl = null;
 
-      const img = await loadImage(imageUrl);
-      const width = img.naturalWidth;
-      const height = img.naturalHeight;
+  try {
+    const response = await api.get(
+      `certificates/certificates/${cert.id}/download-pdf/`,
+      { responseType: "blob" }
+    );
 
-      // Draw the image onto a white canvas
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
+    const pdfBlob = new Blob([response.data], {
+      type: "application/pdf",
+    });
 
-      const ctx = canvas.getContext("2d");
+    downloadUrl = window.URL.createObjectURL(pdfBlob);
 
-      if (!ctx) {
-        throw new Error("Could not create the image canvas.");
-      }
+    const link = document.createElement("a");
+    link.href = downloadUrl;
 
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(img, 0, 0, width, height);
+    const filename = (cert.certificate_name || "certificate")
+      .replace(/[^\w\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "_");
 
-      // Convert to JPEG; this will also expose canvas CORS restrictions
-      const imageData = canvas.toDataURL("image/jpeg", 0.95);
+    link.download = `${filename || "certificate"}.pdf`;
 
-      // Convert pixel dimensions to millimetres at 96 DPI
-      const widthMm = (width * 25.4) / 96;
-      const heightMm = (height * 25.4) / 96;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (err) {
+    console.error("Certificate PDF download failed:", err);
 
-      const pdf = new jsPDF({
-        orientation: width >= height ? "landscape" : "portrait",
-        unit: "mm",
-        format: [widthMm, heightMm],
-        compress: true,
-      });
-
-      pdf.addImage(
-        imageData,
-        "JPEG",
-        0,
-        0,
-        widthMm,
-        heightMm,
-        undefined,
-        "FAST"
-      );
-
-      const fileName = (cert.certificate_name || "certificate")
-        .replace(/[^\w\s-]/g, "")
-        .trim()
-        .replace(/\s+/g, "_");
-
-      pdf.save(`${fileName || "certificate"}.pdf`);
-    } catch (err) {
-      console.error("Certificate PDF generation failed:", {
-        message: err.message,
-        imageUrl,
-        certificateId: cert.id,
-        error: err,
-      });
-
-      alert(
-        `Could not generate the PDF: ${
-          err.message || "Unknown error"
-        }. Check the browser console for details.`
-      );
-    } finally {
-      setDownloadingId(null);
+    alert(
+      "Could not download the certificate PDF. Please try again."
+    );
+  } finally {
+    if (downloadUrl) {
+      window.URL.revokeObjectURL(downloadUrl);
     }
-  };
+
+    setDownloadingId(null);
+  }
+};
+
 
 
   const completedCount = completedWeeks?.size ?? 0;
@@ -300,7 +271,7 @@ const Certificates = () => {
                         </button>
 
                         <button
-                          onClick={() => handleDownloadPdf(cert, imageUrl)}
+                          onClick={() => handleDownloadPdf(cert)}
                           disabled={downloadingId === cert.id}
                           className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
