@@ -72,6 +72,7 @@ const StudentManagement = () => {
         name: s.name || "—",
         email: s.email,
         phone_number: s.phone_number || "—",
+        alternative_phone_number: s.alternative_phone_number || "—",
         course_id: s.course?.id || null,
         course_name: s.course_name || (s.course?.course_name || "—"),
         amount_paid: Number(s.amount_paid || 0),
@@ -364,6 +365,7 @@ const StudentManagement = () => {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone</th>
+                  <th>Alternative Phone</th>
                   <th>Course</th>
                   <th>Center</th>
                   <th>Reg. Date</th>
@@ -405,6 +407,7 @@ const StudentManagement = () => {
                     </td>
                     <td>{s.email}</td>
                     <td>{s.phone_number}</td>
+                    <td>{s.alternative_phone_number}</td>
                     <td>{s.course_name}</td>
                     <td>{s.center}</td>
                     <td>{formatDate(s.registration_date)}</td>
@@ -554,6 +557,7 @@ const EditStudentModal = ({ student, courses, discountRecord, onClose, onSuccess
     next_due_date: student.next_due_date || "",
     name: student.name || "",
     phone_number: student.phone_number || "",
+    alternative_phone_number: student.alternative_phone_number || "",
     address: student.address || "",
     center: student.center || "Orogun",
     course: student.course_id || "",
@@ -733,6 +737,7 @@ const EditStudentModal = ({ student, courses, discountRecord, onClose, onSuccess
         email: formData.email,
         name: formData.name,
         phone_number: formData.phone_number,
+        alternative_phone_number: formData.alternative_phone_number,
         address: formData.address,
         next_due_date: formData.next_due_date || null,
         center: formData.center,
@@ -929,6 +934,11 @@ const EditStudentModal = ({ student, courses, discountRecord, onClose, onSuccess
           <div style={styles.formGroup}>
             <label style={styles.label}>Phone</label>
             <input value={formData.phone_number} onChange={(e) => handleChange("phone_number", e.target.value)} style={styles.input} />
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Alternative Phone</label>
+            <input value={formData.alternative_phone_number} onChange={(e) => handleChange("alternative_phone_number", e.target.value)} style={styles.input} placeholder="Optional alternative phone number" />
           </div>
 
           <div style={styles.formGroup}>
