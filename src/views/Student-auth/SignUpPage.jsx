@@ -1,697 +1,1488 @@
 import React, { useState, useEffect, useRef } from "react";
+
 import { motion, AnimatePresence } from "framer-motion";
+
 import { useNavigate, Link } from "react-router-dom";
+
 import api from "../../api";
+
 import { toast, Toaster } from "react-hot-toast";
+
 import OnboardingModal from "../Student-Interface/OnboardingModal";
 
+
+
 import {
+
   User,
+
   Mail,
+
   Lock,
+
   Phone,
+
   MapPin,
+
   Calendar,
+
   BookOpen,
+
   CheckSquare,
+
   AlertCircle,
+
 } from "lucide-react";
 
+
+
 import FloatingBackground from "../../component/FloatingBackground";
+
 import logoImg from "../../assets/1000561121.jpg";
 
+
+
 export default function SignUpPage() {
+
   const navigate = useNavigate();
 
+  // Show the policies before allowing access to the signup form.
+  const [showTermsModal, setShowTermsModal] = useState(true);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+
+
   const [formData, setFormData] = useState({
+
     email: "",
+
     password: "",
+
     name: "",
+
     gender: "male",
+
     course: "",
+
     birth_date: "",
+
     phone_number: "",
+
     alternative_phone_number: "",
+
     consent: false,
+
     center: "",
+
   });
 
+
+
   const [courses, setCourses] = useState([]);
+
   const [loading, setLoading] = useState(false);
+
   const [courseLoading, setCourseLoading] = useState(true);
+
   const [errors, setErrors] = useState({});
+
   const [showOnboarding, setShowOnboarding] = useState(false);
+
+
 
   const inputOrderRef = useRef(0);
 
+
+
   useEffect(() => {
+
     api
+
       .get("/courses/courses/")
+
       .then((res) => {
+
         setCourses(res.data || []);
+
         setCourseLoading(false);
+
       })
+
       .catch((err) => {
+
         console.error("Failed to load courses:", err);
+
         toast.error("Could not load courses.");
+
         setCourseLoading(false);
+
       });
+
   }, []);
 
+
+
   // Validation
+
   const validate = () => {
+
     const e = {};
 
+
+
     if (!formData.name.trim()) {
+
       e.name = "Name required";
+
     }
+
+
 
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
+
       e.email = "Valid email required";
+
     }
+
+
 
     if (!formData.password || formData.password.length < 6) {
+
       e.password = "Password (min 6)";
+
     }
+
+
 
     if (!formData.course) {
+
       e.course = "Please choose a course";
+
     }
+
+
 
     if (!formData.center) {
+
       e.center = "Center required";
+
     }
+
+
 
     if (!formData.phone_number.trim()) {
+
       e.phone_number = "Phone required";
+
     }
+
+
 
     if (!formData.birth_date) {
+
       e.birth_date = "Birth date required";
+
     }
 
-    if (!formData.consent) {
-      e.consent = "Consent required";
-    }
 
-    setErrors(e);
+
+setErrors(e);
+
     return Object.keys(e).length === 0;
+
   };
+
+
 
   const handleChange = (e) => {
+
     const { name, value, type, checked } = e.target;
 
+
+
     setFormData((prev) => ({
+
       ...prev,
+
       [name]: type === "checkbox" ? checked : value,
+
     }));
+
+
 
     setErrors((prev) => ({
+
       ...prev,
+
       [name]: undefined,
+
     }));
 
+
+
     inputOrderRef.current += 1;
+
   };
 
+
+
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
+
+
     if (!validate()) {
+
       toast.error("Please fix the highlighted fields");
+
       return;
+
     }
+
+
 
     setLoading(true);
 
+
+
     try {
+
       const res = await api.post("/students/users/", formData);
+
+
 
       const { token, user_id, user } = res.data;
 
+
+
       if (token) localStorage.setItem("token", token);
+
       if (user_id) localStorage.setItem("user_id", user_id);
+
       if (user) localStorage.setItem("user", JSON.stringify(user));
+
+
 
       toast.success("Registration successful!");
 
+
+
       setTimeout(() => {
+
         setShowOnboarding(true);
+
       }, 800);
+
     } catch (err) {
+
       const data = err.response?.data;
 
+
+
       if (!err.response) {
+
         toast.error("Network error — is backend running?");
+
       } else if (data) {
+
         const msg = Object.entries(data)
+
           .map(([k, v]) => {
+
             const message = Array.isArray(v)
+
               ? v.join(", ")
+
               : typeof v === "object" && v !== null
+
                 ? JSON.stringify(v)
+
                 : v;
 
+
+
             return `${k}: ${message}`;
+
           })
+
           .join(" • ");
 
+
+
         toast.error(msg || "Registration failed.");
+
       } else {
+
         toast.error("Registration failed.");
+
       }
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
+
+
 
   // Animation variants
+
   const container = {
+
     hidden: {},
+
     show: {
+
       transition: { staggerChildren: 0.06 },
+
     },
+
   };
+
+
 
   const headerVariant = {
+
     hidden: { opacity: 0, y: -18 },
+
     show: {
+
       opacity: 1,
+
       y: 0,
+
       transition: { duration: 0.5, ease: "easeOut" },
+
     },
+
   };
+
+
 
   const fieldVariant = (i = 0) => ({
+
     hidden: { opacity: 0, y: 14, scale: 0.995 },
+
     show: {
+
       opacity: 1,
+
       y: 0,
+
       scale: 1,
+
       transition: { duration: 0.45, delay: i * 0.03 },
+
     },
+
   });
 
+
+
   const shake = {
+
     x: [0, -8, 8, -6, 6, -2, 2, 0],
+
     transition: { duration: 0.5, ease: "easeInOut" },
+
   };
 
+
+
   return (
+
     <>
-      <Toaster position="top-center" />
-
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-4 py-5">
-        <div className="w-full z-10 max-w-2xl relative">
-          <FloatingBackground />
-
+      <AnimatePresence>
+        {showTermsModal && (
           <motion.div
-            className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 overflow-hidden relative z-10"
-            variants={container}
-            initial="hidden"
-            animate="show"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
-            <form
-              onSubmit={handleSubmit}
-              className="p-6 md:p-8 lg:p-10"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="terms-modal-title"
+              className="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
             >
-              {/* Header */}
-              <motion.div
-                variants={headerVariant}
-                className="text-center mb-6"
-              >
-                <div className="inline-flex items-center justify-center font-bold mb-4">
-                  <img
-                    className="w-20 h-18 rounded-full shadow-lg"
-                    src={logoImg}
-                    alt="Parach ICT Academy"
-                  />
-                </div>
-
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                  Join Parach ICT Academy
-                </h1>
-
-                <p className="text-gray-600 mt-2">
-                  Start your ICT journey today!
+              <div className="bg-gradient-to-r from-blue-600 to-purple-700 p-5 text-white">
+                <h2 id="terms-modal-title" className="text-xl font-bold">
+                  Terms & Conditions and Privacy Policy
+                </h2>
+                <p className="text-blue-100 text-sm mt-1">
+                  Please review and accept before creating your account.
                 </p>
-              </motion.div>
+              </div>
 
-              <motion.div
-                className="grid md:grid-cols-2 gap-5"
-                layout
-              >
-                {/* Full Name */}
-                <motion.div
-                  variants={fieldVariant(0)}
-                  animate={errors.name ? shake : undefined}
-                  className="relative"
-                >
-                  <User
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
+              <div className="p-5 overflow-y-auto text-sm text-gray-700 space-y-4">
+                <section>
+                  <h3 className="font-bold text-gray-900 mb-1">Terms & Conditions</h3>
+                  <p>
+                    By registering, you agree to provide accurate information,
+                    keep your account details secure, and use Parach ICT Academy's
+                    services respectfully and responsibly.
+                  </p>
+                  <p className="mt-2">
+                    Course fees and payment arrangements must be honoured.
+                    Academy learning materials are for personal learning and may
+                    not be copied, sold, or shared without permission. Accounts
+                    may be restricted for misuse or violation of these terms.
+                  </p>
+                </section>
 
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Full Name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
-                      errors.name
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-300 bg-white/70"
-                    }`}
-                  />
+                <section>
+                  <h3 className="font-bold text-gray-900 mb-1">Privacy Policy</h3>
+                  <p>
+                    We collect information such as your name, contact details,
+                    date of birth, course and payment records to manage your
+                    account, enrolment, learning progress, and provide support.
+                  </p>
+                  <p className="mt-2">
+                    We take reasonable steps to protect your information. We do
+                    not sell personal information, but may share it with trusted
+                    service providers when needed to operate our services or
+                    comply with the law. You may contact the academy to request
+                    access to or correction of your information.
+                  </p>
+                </section>
 
-                  <AnimatePresence>
-                    {errors.name && (
-                      <motion.p
-                        className="text-xs text-red-600 mt-1"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        <AlertCircle
-                          className="inline mr-1"
-                          size={12}
-                        />
-                        {errors.name}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                <p className="text-xs text-gray-500">
+                  For questions about these policies or your personal information,
+                  please contact Parach ICT Academy.
+                </p>
+              </div>
 
-                {/* Email */}
-                <motion.div
-                  variants={fieldVariant(1)}
-                  animate={errors.email ? shake : undefined}
-                  className="relative"
-                >
-                  <Mail
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
-
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Email Address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
-                      errors.email
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-300 bg-white/70"
-                    }`}
-                  />
-
-                  <AnimatePresence>
-                    {errors.email && (
-                      <motion.p
-                        className="text-xs text-red-600 mt-1"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        <AlertCircle
-                          className="inline mr-1"
-                          size={12}
-                        />
-                        {errors.email}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* Password */}
-                <motion.div
-                  variants={fieldVariant(2)}
-                  className="relative md:col-span-2"
-                >
-                  <Lock
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
-
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="Create Password (min. 6 chars)"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    minLength={6}
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
-                      errors.password
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-300 bg-white/70"
-                    }`}
-                  />
-
-                  <AnimatePresence>
-                    {errors.password && (
-                      <motion.p
-                        className="text-xs text-red-600 mt-1"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        <AlertCircle
-                          className="inline mr-1"
-                          size={12}
-                        />
-                        {errors.password}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* Primary Phone Number */}
-                <motion.div
-                  variants={fieldVariant(3)}
-                  animate={errors.phone_number ? shake : undefined}
-                  className="relative"
-                >
-                  <Phone
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
-
-                  <input
-                    type="tel"
-                    name="phone_number"
-                    placeholder="Phone Number"
-                    value={formData.phone_number}
-                    onChange={handleChange}
-                    required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
-                      errors.phone_number
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-300 bg-white/70"
-                    }`}
-                  />
-
-                  <AnimatePresence>
-                    {errors.phone_number && (
-                      <motion.p
-                        className="text-xs text-red-600 mt-1"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        <AlertCircle
-                          className="inline mr-1"
-                          size={12}
-                        />
-                        {errors.phone_number}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* Alternative Phone Number */}
-                <motion.div
-                  variants={fieldVariant(3.5)}
-                  className="relative"
-                >
-                  <Phone
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
-
-                  <input
-                    type="tel"
-                    name="alternative_phone_number"
-                    placeholder="Alternative Phone (Optional)"
-                    value={formData.alternative_phone_number}
-                    onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 bg-white/70 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </motion.div>
-
-                {/* Center */}
-                <motion.div
-                  variants={fieldVariant(4.5)}
-                  animate={errors.center ? shake : undefined}
-                  className="relative"
-                >
-                  <MapPin
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
-
-                  <select
-                    name="center"
-                    value={formData.center}
-                    onChange={handleChange}
-                    required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border bg-white/70 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.center
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">Select a center</option>
-                    <option value="Orogun">Orogun</option>
-                    <option value="Samonda">Samonda</option>
-                    <option value="Online">Online</option>
-                  </select>
-
-                  <AnimatePresence>
-                    {errors.center && (
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="text-xs text-red-600 mt-1"
-                      >
-                        <AlertCircle
-                          className="inline mr-1"
-                          size={12}
-                        />
-                        {errors.center}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* Gender */}
-                <motion.div
-                  variants={fieldVariant(5)}
-                  className="relative"
-                >
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white/70 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </select>
-                </motion.div>
-
-                {/* Birth Date */}
-                <motion.div
-                  variants={fieldVariant(6)}
-                  animate={errors.birth_date ? shake : undefined}
-                  className="relative"
-                >
-                  <Calendar
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
-
-                  <input
-                    type="date"
-                    name="birth_date"
-                    value={formData.birth_date}
-                    onChange={handleChange}
-                    required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
-                      errors.birth_date
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-300 bg-white/70"
-                    }`}
-                  />
-
-                  <AnimatePresence>
-                    {errors.birth_date && (
-                      <motion.p
-                        className="text-xs text-red-600 mt-1"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        <AlertCircle
-                          className="inline mr-1"
-                          size={12}
-                        />
-                        {errors.birth_date}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* Course */}
-                <motion.div
-                  variants={fieldVariant(7)}
-                  animate={errors.course ? shake : undefined}
-                  className="relative"
-                >
-                  <BookOpen
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
-
-                  <select
-                    name="course"
-                    value={formData.course}
-                    onChange={handleChange}
-                    required
-                    className={`w-full pl-11 pr-4 py-3 rounded-xl border appearance-none transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.course
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-300 bg-white/70"
-                    }`}
-                  >
-                    <option value="">Choose Course</option>
-
-                    {courseLoading ? (
-                      <option value="" disabled>
-                        Loading...
-                      </option>
-                    ) : (
-                      courses.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.course_name} (₦
-                          {Number(c.price).toLocaleString()})
-                        </option>
-                      ))
-                    )}
-                  </select>
-
-                  <AnimatePresence>
-                    {errors.course && (
-                      <motion.p
-                        className="text-xs text-red-600 mt-1"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        <AlertCircle
-                          className="inline mr-1"
-                          size={12}
-                        />
-                        {errors.course}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* Consent */}
-                <motion.label
-                  variants={fieldVariant(8)}
-                  className="flex items-start gap-3 cursor-pointer md:col-span-2 -mb-2"
-                >
+              <div className="border-t border-gray-200 p-4 bg-gray-50">
+                <label className="flex items-start gap-3 cursor-pointer mb-4">
                   <input
                     type="checkbox"
-                    name="consent"
-                    checked={formData.consent}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-1 w-5 h-5 accent-blue-600"
+                  />
+                  <span className="text-sm text-gray-700">
+                    I agree to the <strong>Terms & Conditions</strong> and
+                    <strong> Privacy Policy</strong>.
+                  </span>
+                </label>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="flex-1 py-3 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition"
+                  >
+                    Decline
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!termsAccepted}
+                    onClick={() => setShowTermsModal(false)}
+                    className="flex-1 py-3 rounded-xl text-white font-bold bg-gradient-to-r from-blue-600 to-purple-700 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  >
+                    Accept & Continue
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Toaster position="top-center" />
+
+
+
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-4 py-5">
+
+        <div className="w-full z-10 max-w-2xl relative">
+
+          <FloatingBackground />
+
+
+
+          <motion.div
+
+            className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 overflow-hidden relative z-10"
+
+            variants={container}
+
+            initial="hidden"
+
+            animate="show"
+
+          >
+
+            <form
+
+              onSubmit={handleSubmit}
+
+              className="p-6 md:p-8 lg:p-10"
+
+            >
+
+              {/* Header */}
+
+              <motion.div
+
+                variants={headerVariant}
+
+                className="text-center mb-6"
+
+              >
+
+                <div className="inline-flex items-center justify-center font-bold mb-4">
+
+                  <img
+
+                    className="w-20 h-18 rounded-full shadow-lg"
+
+                    src={logoImg}
+
+                    alt="Parach ICT Academy"
+
                   />
 
+                </div>
+
+
+
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+
+                  Join Parach ICT Academy
+
+                </h1>
+
+
+
+                <p className="text-gray-600 mt-2">
+
+                  Start your ICT journey today!
+
+                </p>
+
+              </motion.div>
+
+
+
+              <motion.div
+
+                className="grid md:grid-cols-2 gap-5"
+
+                layout
+
+              >
+
+                {/* Full Name */}
+
+                <motion.div
+
+                  variants={fieldVariant(0)}
+
+                  animate={errors.name ? shake : undefined}
+
+                  className="relative"
+
+                >
+
+                  <User
+
+                    className="absolute left-3 top-3.5 text-gray-400"
+
+                    size={20}
+
+                  />
+
+
+
+                  <input
+
+                    type="text"
+
+                    name="name"
+
+                    placeholder="Full Name"
+
+                    value={formData.name}
+
+                    onChange={handleChange}
+
+                    required
+
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
+
+                      errors.name
+
+                        ? "border-red-400 bg-red-50"
+
+                        : "border-gray-300 bg-white/70"
+
+                    }`}
+
+                  />
+
+
+
+                  <AnimatePresence>
+
+                    {errors.name && (
+
+                      <motion.p
+
+                        className="text-xs text-red-600 mt-1"
+
+                        initial={{ opacity: 0 }}
+
+                        animate={{ opacity: 1 }}
+
+                        exit={{ opacity: 0 }}
+
+                      >
+
+                        <AlertCircle
+
+                          className="inline mr-1"
+
+                          size={12}
+
+                        />
+
+                        {errors.name}
+
+                      </motion.p>
+
+                    )}
+
+                  </AnimatePresence>
+
+                </motion.div>
+
+
+
+                {/* Email */}
+
+                <motion.div
+
+                  variants={fieldVariant(1)}
+
+                  animate={errors.email ? shake : undefined}
+
+                  className="relative"
+
+                >
+
+                  <Mail
+
+                    className="absolute left-3 top-3.5 text-gray-400"
+
+                    size={20}
+
+                  />
+
+
+
+                  <input
+
+                    type="email"
+
+                    name="email"
+
+                    placeholder="Email Address"
+
+                    value={formData.email}
+
+                    onChange={handleChange}
+
+                    required
+
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
+
+                      errors.email
+
+                        ? "border-red-400 bg-red-50"
+
+                        : "border-gray-300 bg-white/70"
+
+                    }`}
+
+                  />
+
+
+
+                  <AnimatePresence>
+
+                    {errors.email && (
+
+                      <motion.p
+
+                        className="text-xs text-red-600 mt-1"
+
+                        initial={{ opacity: 0 }}
+
+                        animate={{ opacity: 1 }}
+
+                        exit={{ opacity: 0 }}
+
+                      >
+
+                        <AlertCircle
+
+                          className="inline mr-1"
+
+                          size={12}
+
+                        />
+
+                        {errors.email}
+
+                      </motion.p>
+
+                    )}
+
+                  </AnimatePresence>
+
+                </motion.div>
+
+
+
+                {/* Password */}
+
+                <motion.div
+
+                  variants={fieldVariant(2)}
+
+                  className="relative md:col-span-2"
+
+                >
+
+                  <Lock
+
+                    className="absolute left-3 top-3.5 text-gray-400"
+
+                    size={20}
+
+                  />
+
+
+
+                  <input
+
+                    type="password"
+
+                    name="password"
+
+                    placeholder="Create Password (min. 6 chars)"
+
+                    value={formData.password}
+
+                    onChange={handleChange}
+
+                    required
+
+                    minLength={6}
+
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
+
+                      errors.password
+
+                        ? "border-red-400 bg-red-50"
+
+                        : "border-gray-300 bg-white/70"
+
+                    }`}
+
+                  />
+
+
+
+                  <AnimatePresence>
+
+                    {errors.password && (
+
+                      <motion.p
+
+                        className="text-xs text-red-600 mt-1"
+
+                        initial={{ opacity: 0 }}
+
+                        animate={{ opacity: 1 }}
+
+                        exit={{ opacity: 0 }}
+
+                      >
+
+                        <AlertCircle
+
+                          className="inline mr-1"
+
+                          size={12}
+
+                        />
+
+                        {errors.password}
+
+                      </motion.p>
+
+                    )}
+
+                  </AnimatePresence>
+
+                </motion.div>
+
+
+
+                {/* Primary Phone Number */}
+
+                <motion.div
+
+                  variants={fieldVariant(3)}
+
+                  animate={errors.phone_number ? shake : undefined}
+
+                  className="relative"
+
+                >
+
+                  <Phone
+
+                    className="absolute left-3 top-3.5 text-gray-400"
+
+                    size={20}
+
+                  />
+
+
+
+                  <input
+
+                    type="tel"
+
+                    name="phone_number"
+
+                    placeholder="Phone Number"
+
+                    value={formData.phone_number}
+
+                    onChange={handleChange}
+
+                    required
+
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
+
+                      errors.phone_number
+
+                        ? "border-red-400 bg-red-50"
+
+                        : "border-gray-300 bg-white/70"
+
+                    }`}
+
+                  />
+
+
+
+                  <AnimatePresence>
+
+                    {errors.phone_number && (
+
+                      <motion.p
+
+                        className="text-xs text-red-600 mt-1"
+
+                        initial={{ opacity: 0 }}
+
+                        animate={{ opacity: 1 }}
+
+                        exit={{ opacity: 0 }}
+
+                      >
+
+                        <AlertCircle
+
+                          className="inline mr-1"
+
+                          size={12}
+
+                        />
+
+                        {errors.phone_number}
+
+                      </motion.p>
+
+                    )}
+
+                  </AnimatePresence>
+
+                </motion.div>
+
+
+
+                {/* Alternative Phone Number */}
+
+                <motion.div
+
+                  variants={fieldVariant(3.5)}
+
+                  className="relative"
+
+                >
+
+                  <Phone
+
+                    className="absolute left-3 top-3.5 text-gray-400"
+
+                    size={20}
+
+                  />
+
+
+
+                  <input
+
+                    type="tel"
+
+                    name="alternative_phone_number"
+
+                    placeholder="Alternative Phone (Optional)"
+
+                    value={formData.alternative_phone_number}
+
+                    onChange={handleChange}
+
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 bg-white/70 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+                  />
+
+                </motion.div>
+
+
+
+                {/* Center */}
+
+                <motion.div
+
+                  variants={fieldVariant(4.5)}
+
+                  animate={errors.center ? shake : undefined}
+
+                  className="relative"
+
+                >
+
+                  <MapPin
+
+                    className="absolute left-3 top-3.5 text-gray-400"
+
+                    size={20}
+
+                  />
+
+
+
+                  <select
+
+                    name="center"
+
+                    value={formData.center}
+
+                    onChange={handleChange}
+
+                    required
+
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border bg-white/70 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+
+                      errors.center
+
+                        ? "border-red-400 bg-red-50"
+
+                        : "border-gray-300"
+
+                    }`}
+
+                  >
+
+                    <option value="">Select a center</option>
+
+                    <option value="Orogun">Orogun</option>
+
+                    <option value="Samonda">Samonda</option>
+
+                    <option value="Online">Online</option>
+
+                  </select>
+
+
+
+                  <AnimatePresence>
+
+                    {errors.center && (
+
+                      <motion.p
+
+                        initial={{ opacity: 0 }}
+
+                        animate={{ opacity: 1 }}
+
+                        exit={{ opacity: 0 }}
+
+                        className="text-xs text-red-600 mt-1"
+
+                      >
+
+                        <AlertCircle
+
+                          className="inline mr-1"
+
+                          size={12}
+
+                        />
+
+                        {errors.center}
+
+                      </motion.p>
+
+                    )}
+
+                  </AnimatePresence>
+
+                </motion.div>
+
+
+
+                {/* Gender */}
+
+                <motion.div
+
+                  variants={fieldVariant(5)}
+
+                  className="relative"
+
+                >
+
+                  <select
+
+                    name="gender"
+
+                    value={formData.gender}
+
+                    onChange={handleChange}
+
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white/70 focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+                  >
+
+                    <option value="male">Male</option>
+
+                    <option value="female">Female</option>
+
+                  </select>
+
+                </motion.div>
+
+
+
+                {/* Birth Date */}
+
+                <motion.div
+
+                  variants={fieldVariant(6)}
+
+                  animate={errors.birth_date ? shake : undefined}
+
+                  className="relative"
+
+                >
+
+                  <Calendar
+
+                    className="absolute left-3 top-3.5 text-gray-400"
+
+                    size={20}
+
+                  />
+
+
+
+                  <input
+
+                    type="date"
+
+                    name="birth_date"
+
+                    value={formData.birth_date}
+
+                    onChange={handleChange}
+
+                    required
+
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border transition ${
+
+                      errors.birth_date
+
+                        ? "border-red-400 bg-red-50"
+
+                        : "border-gray-300 bg-white/70"
+
+                    }`}
+
+                  />
+
+
+
+                  <AnimatePresence>
+
+                    {errors.birth_date && (
+
+                      <motion.p
+
+                        className="text-xs text-red-600 mt-1"
+
+                        initial={{ opacity: 0 }}
+
+                        animate={{ opacity: 1 }}
+
+                        exit={{ opacity: 0 }}
+
+                      >
+
+                        <AlertCircle
+
+                          className="inline mr-1"
+
+                          size={12}
+
+                        />
+
+                        {errors.birth_date}
+
+                      </motion.p>
+
+                    )}
+
+                  </AnimatePresence>
+
+                </motion.div>
+
+
+
+                {/* Course */}
+
+                <motion.div
+
+                  variants={fieldVariant(7)}
+
+                  animate={errors.course ? shake : undefined}
+
+                  className="relative"
+
+                >
+
+                  <BookOpen
+
+                    className="absolute left-3 top-3.5 text-gray-400"
+
+                    size={20}
+
+                  />
+
+
+
+                  <select
+
+                    name="course"
+
+                    value={formData.course}
+
+                    onChange={handleChange}
+
+                    required
+
+                    className={`w-full pl-11 pr-4 py-3 rounded-xl border appearance-none transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+
+                      errors.course
+
+                        ? "border-red-400 bg-red-50"
+
+                        : "border-gray-300 bg-white/70"
+
+                    }`}
+
+                  >
+
+                    <option value="">Choose Course</option>
+
+
+
+                    {courseLoading ? (
+
+                      <option value="" disabled>
+
+                        Loading...
+
+                      </option>
+
+                    ) : (
+
+                      courses.map((c) => (
+
+                        <option key={c.id} value={c.id}>
+
+                          {c.course_name} (₦
+
+                          {Number(c.price).toLocaleString()})
+
+                        </option>
+
+                      ))
+
+                    )}
+
+                  </select>
+
+
+
+                  <AnimatePresence>
+
+                    {errors.course && (
+
+                      <motion.p
+
+                        className="text-xs text-red-600 mt-1"
+
+                        initial={{ opacity: 0 }}
+
+                        animate={{ opacity: 1 }}
+
+                        exit={{ opacity: 0 }}
+
+                      >
+
+                        <AlertCircle
+
+                          className="inline mr-1"
+
+                          size={12}
+
+                        />
+
+                        {errors.course}
+
+                      </motion.p>
+
+                    )}
+
+                  </AnimatePresence>
+
+                </motion.div>
+
+
+
+                {/* Consent */}
+
+                <motion.label
+
+                  variants={fieldVariant(8)}
+
+                  className="flex items-start gap-3 cursor-pointer md:col-span-2 -mb-2"
+
+                >
+
+                  <input
+
+                    type="checkbox"
+
+                    name="consent"
+
+                    checked={formData.consent}
+
+                    onChange={handleChange}
+
+
+                    className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+
+                  />
+
+
+
                   <span className="text-sm text-gray-700 leading-tight">
+
                     <CheckSquare
+
                       className="inline mr-1 text-green-500"
+
                       size={16}
+
                     />
+
                     I agree to receive updates & messages via Email
+
                     and WhatsApp/SMS
+
                   </span>
+
                 </motion.label>
 
+
+
                 {/* Submit */}
+
                 <motion.div className="md:col-span-2 mt-4">
+
                   <motion.button
+
                     type="submit"
+
                     whileTap={{ scale: 0.98 }}
+
                     whileHover={{ scale: 1.01 }}
+
                     initial={{ opacity: 0, y: 18 }}
+
                     animate={{ opacity: 1, y: 0 }}
+
                     transition={{ delay: 0.05 }}
+
                     disabled={loading || courseLoading}
+
                     className="w-full py-4 text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl shadow-lg hover:shadow-xl disabled:opacity-70 flex items-center justify-center gap-3"
+
                   >
+
                     {loading ? (
+
                       <svg
+
                         className="animate-spin h-5 w-5 text-white"
+
                         viewBox="0 0 24 24"
+
                       >
+
                         <circle
+
                           className="opacity-25"
+
                           cx="12"
+
                           cy="12"
+
                           r="10"
+
                           stroke="currentColor"
+
                           strokeWidth="4"
+
                         />
+
                         <path
+
                           className="opacity-75"
+
                           fill="currentColor"
+
                           d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+
                         />
+
                       </svg>
+
                     ) : null}
 
+
+
                     {loading ? "Creating Account..." : "Register Now"}
+
                   </motion.button>
 
+
+
                   <motion.p
+
                     className="text-center text-gray-600 mt-4"
+
                     initial={{ opacity: 0 }}
+
                     animate={{ opacity: 1 }}
+
                     transition={{ delay: 0.2 }}
+
                   >
+
                     Already have an account?{" "}
+
                     <Link
+
                       to="/signin"
+
                       className="text-blue-600 font-bold hover:underline"
+
                     >
+
                       Sign In
+
                     </Link>
+
                   </motion.p>
+
                 </motion.div>
+
               </motion.div>
+
             </form>
+
           </motion.div>
 
+
+
           <p className="text-center text-gray-500 text-xs mt-6 relative z-10">
+
             © 2025 Parach Computers, Orogun, Ibadan
+
           </p>
 
+
+
           {showOnboarding && (
+
             <OnboardingModal
+
               type="post-signup"
+
               isOpen={showOnboarding}
+
               onComplete={() => {
+
                 setShowOnboarding(false);
+
                 navigate("/signin");
+
               }}
+
               onSkip={() => {
+
                 setShowOnboarding(false);
+
                 navigate("/signin");
+
               }}
+
             />
+
           )}
+
         </div>
+
       </div>
+
     </>
+
   );
+
 }
