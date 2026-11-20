@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PlayCircle, AlertCircle, Youtube, Play } from "lucide-react";
@@ -79,6 +80,7 @@ export default function Dashboard() {
         const res = await api.get("students/me/", {
           headers: { Authorization: `Token ${token}` },
         });
+
         const courseData = res.data.course ? [res.data.course] : res.data.courses || [];
         setCourses(courseData);
       } catch (err) {
@@ -88,31 +90,38 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
+
     fetchUserCourse();
   }, []);
 
   // 4. Handle Course Details View
   if (selectedCourseId) {
-    return <CourseDetails id={selectedCourseId} onBack={() => setSelectedCourseId(null)} />;
+    return (
+      <CourseDetails
+        id={selectedCourseId}
+        onBack={() => setSelectedCourseId(null)}
+      />
+    );
   }
 
   // 5. Prevent "Flash of content" before redirect
   if (!paymentLoading && !checkingTourStatus && !showDashboardTour && isLocked) {
-    return null; 
+    return null;
   }
 
   return (
     <>
       {/* Main Content Wrapper */}
       <div className={`relative min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 transition-filter duration-300 ${isLocked ? 'blur-sm pointer-events-none select-none' : ''}`}>
-        
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
 
         <div className="relative z-10 px-4 md:px-10 mx-auto w-full max-w-7xl py-8">
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            
+
             {/* Left Column */}
             <div className="xl:col-span-8 space-y-6">
+
               {/* My Courses Section */}
               <div className="bg-white p-6 rounded-xl shadow-lg">
                 <h2 className="text-xl font-bold text-blue-700 mb-4">My Courses</h2>
@@ -130,7 +139,9 @@ export default function Dashboard() {
                 ) : courses.length === 0 ? (
                   <div className="text-center py-12">
                     <p className="text-slate-600 text-lg">No course assigned yet.</p>
-                    <p className="text-slate-500 text-sm mt-2">Check back later or contact your administrator.</p>
+                    <p className="text-slate-500 text-sm mt-2">
+                      Check back later or contact your administrator.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -178,15 +189,21 @@ export default function Dashboard() {
                         allowFullScreen
                       ></iframe>
                     </div>
+
                     <div className="mt-4">
                       <div className="flex items-start justify-between">
                         <div>
                           <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full mb-2">
                             {selectedVideo.category}
                           </span>
-                          <h3 className="text-lg font-bold text-slate-800">{selectedVideo.title}</h3>
-                          <p className="text-slate-600 text-sm mt-1">{selectedVideo.description}</p>
+                          <h3 className="text-lg font-bold text-slate-800">
+                            {selectedVideo.title}
+                          </h3>
+                          <p className="text-slate-600 text-sm mt-1">
+                            {selectedVideo.description}
+                          </p>
                         </div>
+
                         <button
                           onClick={() => setSelectedVideo(null)}
                           className="text-slate-400 hover:text-slate-600 transition-colors"
@@ -212,17 +229,20 @@ export default function Dashboard() {
                           alt={video.title}
                           className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
                         />
+
                         <div className="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-50 transition-all flex items-center justify-center">
                           <div className="w-14 h-14 rounded-full bg-red-600 group-hover:bg-red-700 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-all">
                             <Play className="w-6 h-6 text-white ml-1" fill="white" />
                           </div>
                         </div>
+
                         <div className="absolute top-2 left-2">
                           <span className="px-2 py-1 bg-black bg-opacity-70 text-white text-xs rounded">
                             {video.category}
                           </span>
                         </div>
                       </div>
+
                       <div className="mt-2">
                         <h4 className="font-semibold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-2">
                           {video.title}
@@ -237,8 +257,12 @@ export default function Dashboard() {
 
                 {/* View All Videos Link */}
                 <div className="mt-6 text-center">
-                  <a href="https://www.youtube.com/channel/UCbHBjB06C4jm_gFvAMxaRhw" target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors">
+                  <a
+                    href="https://www.youtube.com/channel/UCbHBjB06C4jm_gFvAMxaRhw"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors"
+                  >
                     <Youtube className="w-5 h-5" />
                     View All Videos on YouTube
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,17 +288,44 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-200 py-5 px-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+
+          <p className="text-sm text-slate-500">
+            © {new Date().getFullYear()} Parach ICT Academy. All rights reserved.
+          </p>
+
+          <div className="flex items-center gap-4 text-sm">
+            <a
+              href="https://parachictacademy.com.ng/terms-conditions/"
+              className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            >
+              Terms & Conditions
+            </a>
+
+            <span className="text-slate-300">|</span>
+
+            <span className="text-slate-500">
+              All payments are non-refundable.
+            </span>
+          </div>
+
+        </div>
+      </footer>
+
       {showDashboardTour && (
         <OnboardingModal
           type="post-verification"
           isOpen={showDashboardTour}
           isLocked={isLocked}
-          
+
           onComplete={() => {
             const userId = localStorage.getItem("user_id");
+
             if (isLocked) {
               localStorage.setItem(`tour_part1_seen_${userId}`, 'true');
-              setShowDashboardTour(false); 
+              setShowDashboardTour(false);
             } else {
               localStorage.setItem(`dashboard_tour_completed_${userId}`, 'true');
               setShowDashboardTour(false);
